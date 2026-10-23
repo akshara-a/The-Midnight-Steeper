@@ -1,0 +1,34 @@
+services:
+  # =========================================================================
+  # Unified Full-Stack Service: Frontend (Next.js) + Backend (FastAPI) together
+  # Pure embedded zero-setup database (SQLite) - No MongoDB needed!
+  # =========================================================================
+  - type: web
+    name: the-midnight-steeper
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: SQLITE_DB_PATH
+        value: midnight_steeper.db
+      - key: BREW_DURATION_SECONDS
+        value: 15
+      # Sensitive keys must be populated directly in Render dashboard (sync: false)
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_API_ENDPOINT
+        value: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_ENDPOINT
+        value: https://api.elevenlabs.io/v1/text-to-speech
+      - key: ELEVENLABS_VOICE_ID
+        value: 21m00Tcm4TlvDq8ikWAM
+      - key: FREE_TTS_ENDPOINT
+        value: https://translate.google.com/translate_tts
+      - key: TEMPORAL_HOST
+        value: localhost:7233
+      - key: TEMPORAL_TASK_QUEUE
+        value: MIDNIGHT_STEEPER_TASK_QUEUE

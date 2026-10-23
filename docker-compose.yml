@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  # The Midnight Steeper - Single Unified Full-Stack Container (Frontend + Backend)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - SQLITE_DB_PATH=midnight_steeper.db
+      - BREW_DURATION_SECONDS=15
+      - TEMPORAL_HOST=localhost:7233
+      - TEMPORAL_TASK_QUEUE=MIDNIGHT_STEEPER_TASK_QUEUE

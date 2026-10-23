@@ -1,0 +1,368 @@
+@import "tailwindcss";
+
+:root {
+  --background: #020617;
+  --foreground: #f8fafc;
+}
+
+body {
+  background: #020617;
+  color: #f8fafc;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+/* ========================================================================= */
+/* 🎮 GAME ANIMATIONS & KEYFRAMES */
+/* ========================================================================= */
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 25px rgba(168, 85, 247, 0.4), inset 0 0 15px rgba(168, 85, 247, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 55px rgba(168, 85, 247, 0.9), inset 0 0 30px rgba(168, 85, 247, 0.6);
+  }
+}
+
+@keyframes pulseClaim {
+  0%, 100% {
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.7), 0 0 60px rgba(16, 185, 129, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 65px rgba(16, 185, 129, 1), 0 0 95px rgba(16, 185, 129, 0.7);
+    transform: scale(1.025);
+  }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(1400%); }
+}
+
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes holographicShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* 360-degree rotating God Rays / Sunburst effect for legendary loot unboxing */
+@keyframes sunburstRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Screen shake for intense sci-fi activations */
+@keyframes screenShake {
+  0% { transform: translate(0, 0); }
+  15% { transform: translate(-4px, 3px); }
+  30% { transform: translate(4px, -3px); }
+  45% { transform: translate(-3px, -2px); }
+  60% { transform: translate(3px, 2px); }
+  75% { transform: translate(-2px, 1px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Floating RPG Action Text */
+@keyframes floatUpFade {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.75);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1.15);
+  }
+  75% {
+    opacity: 0.9;
+    transform: translateY(-28px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-48px) scale(0.9);
+  }
+}
+
+/* Equalizer frequency bars bouncing */
+@keyframes eqBounce {
+  0%, 100% { height: 18%; }
+  50% { height: 95%; }
+}
+
+/* Pop-in game modal spring */
+@keyframes modalSpringIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(20px);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.02) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Achievement banner drop-down */
+@keyframes achievementSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-80px) scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(6px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Utility Animation Classes */
+.animate-pulse-glow {
+  animation: pulseGlow 3s infinite ease-in-out;
+}
+
+.animate-pulse-claim {
+  animation: pulseClaim 1.8s infinite ease-in-out;
+}
+
+.animate-radar-sweep {
+  animation: radarSweep 4s linear infinite;
+}
+
+.animate-sunburst {
+  animation: sunburstRotate 24s linear infinite;
+}
+
+.animate-shake {
+  animation: screenShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.animate-float-text {
+  animation: floatUpFade 1.3s ease-out forwards;
+}
+
+.animate-modal-spring {
+  animation: modalSpringIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.animate-achievement-drop {
+  animation: achievementSlideDown 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.cosmic-scanline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.5), transparent);
+  animation: scanline 6s linear infinite;
+  pointer-events: none;
+}
+
+.hologram-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: holographicShimmer 3s infinite;
+}
+
+/* Ambient Cyberpunk Grid Pattern */
+.cyber-grid {
+  background-image: 
+    linear-gradient(to right, rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+::-webkit-scrollbar-thumb {
+  background: #312e81;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4f46e5;
+}
+
+/* ========================================================================= */
+/* 🕹️ GAME CHROME: HUD PANELS, ARCADE BUTTONS, TITLE SCREEN, FX              */
+/* ========================================================================= */
+
+/* Chamfered sci-fi panel with glowing edge */
+.hud-panel {
+  position: relative;
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.92), rgba(2, 6, 23, 0.94));
+  clip-path: polygon(16px 0, calc(100% - 16px) 0, 100% 16px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 16px 100%, 0 calc(100% - 16px), 0 16px);
+  box-shadow: inset 0 0 0 1px rgba(129, 140, 248, 0.45), inset 0 0 40px rgba(79, 70, 229, 0.12);
+}
+.hud-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, #22d3ee, #22d3ee) top left / 28px 2px no-repeat,
+    linear-gradient(180deg, #22d3ee, #22d3ee) top left / 2px 28px no-repeat,
+    linear-gradient(90deg, #ec4899, #ec4899) bottom right / 28px 2px no-repeat,
+    linear-gradient(180deg, #ec4899, #ec4899) bottom right / 2px 28px no-repeat;
+}
+
+.neon-title {
+  background: linear-gradient(90deg, #67e8f9, #c4b5fd 45%, #f9a8d4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 18px rgba(168, 85, 247, 0.65));
+}
+
+/* Arcade button with sweeping highlight */
+.btn-arcade {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 0.15s ease, filter 0.2s ease;
+}
+.btn-arcade::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: skewX(-20deg);
+  animation: btnSweep 3.2s ease-in-out infinite;
+  z-index: -1;
+}
+.btn-arcade:hover:not(:disabled) { filter: brightness(1.15); transform: translateY(-2px); }
+.btn-arcade:active:not(:disabled) { transform: translateY(1px) scale(0.98); }
+
+@keyframes btnSweep {
+  0%, 55% { left: -60%; }
+  100% { left: 130%; }
+}
+
+/* Ingredient card: tilt-on-hover + selection halo */
+.ingredient-card {
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.ingredient-card:hover { transform: translateY(-3px) rotate(-0.6deg); }
+.ingredient-card[data-selected='true']::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 1rem;
+  border: 1px dashed rgba(255, 255, 255, 0.55);
+  animation: haloSpin 6s linear infinite;
+  pointer-events: none;
+}
+@keyframes haloSpin {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.95; }
+}
+
+/* Title / press-start screen */
+@keyframes titleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes blinkPrompt {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.25; }
+}
+.animate-title-float { animation: titleFloat 4s ease-in-out infinite; }
+.animate-blink { animation: blinkPrompt 1.2s steps(1) infinite; }
+
+/* Level-up banner */
+@keyframes levelUpBurst {
+  0% { opacity: 0; transform: scale(0.4); letter-spacing: 0.6em; }
+  25% { opacity: 1; transform: scale(1.15); }
+  70% { opacity: 1; transform: scale(1); letter-spacing: 0.2em; }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+.animate-levelup { animation: levelUpBurst 2.4s ease-out forwards; }
+
+/* XP bar shimmer */
+@keyframes xpShine {
+  0% { background-position: 0 0; }
+  100% { background-position: 40px 0; }
+}
+.xp-fill {
+  background-image:
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.28) 0 8px, transparent 8px 20px),
+    linear-gradient(90deg, #22d3ee, #a855f7, #ec4899);
+  background-size: 40px 100%, 100% 100%;
+  animation: xpShine 1.2s linear infinite;
+}
+
+/* Quest completion check-pop */
+@keyframes checkPop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+.animate-check-pop { animation: checkPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
+
+/* Rarity auras for loot card */
+@keyframes auraPulse {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.08); }
+}
+.animate-aura { animation: auraPulse 2.4s ease-in-out infinite; }
+
+/* CRT vignette overlay */
+.crt-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 45;
+  background:
+    radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px);
+}
+
+/* Particle burst shards */
+@keyframes shardFly {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.2); }
+}
+.shard {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  animation: shardFly 0.9s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-arcade::after,
+  .animate-title-float,
+  .animate-blink,
+  .xp-fill,
+  .animate-aura,
+  .cosmic-scanline,
+  .animate-sunburst { animation: none !important; }
+}
