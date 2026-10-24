@@ -1,62 +1,53 @@
 interface ProgressRingProps {
   /** 0..1 */
-  progress: number;
-  size?: number;
-  stroke?: number;
-  children?: React.ReactNode;
+  readonly progress: number;
+  readonly size?: number;
+  readonly stroke?: number;
+  readonly children?: React.ReactNode;
 }
 
-/** Circular neon progress gauge with tick marks; children render in the center. */
-export default function ProgressRing({ progress, size = 280, stroke = 10, children }: ProgressRingProps) {
+/** Chunky rainbow progress ring with a little star riding the end; children render in the center. */
+export default function ProgressRing({ progress, size = 260, stroke = 22, children }: ProgressRingProps) {
   const clamped = Math.min(1, Math.max(0, progress));
-  const r = (size - stroke) / 2 - 14;
+  const r = (size - stroke) / 2 - 4;
   const c = 2 * Math.PI * r;
-  const ticks = 60;
   const center = size / 2;
+  const angle = clamped * Math.PI * 2 - Math.PI / 2;
 
   return (
     <div className="relative mx-auto" style={{ width: size, height: size, maxWidth: '100%' }}>
-      <svg viewBox={`0 0 ${size} ${size}`} className="absolute inset-0 w-full h-full -rotate-90">
+      <svg viewBox={`0 0 ${size} ${size}`} className="absolute inset-0 w-full h-full" role="img" aria-label={`${Math.round(clamped * 100)} percent asleep`}>
         <defs>
-          <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#22d3ee" />
-            <stop offset="50%" stopColor="#a855f7" />
-            <stop offset="100%" stopColor="#ec4899" />
+          <linearGradient id="kidRing" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#ff6b9d" />
+            <stop offset="35%" stopColor="#ffd93d" />
+            <stop offset="70%" stopColor="#7dffb3" />
+            <stop offset="100%" stopColor="#6bcbff" />
           </linearGradient>
         </defs>
-        {Array.from({ length: ticks }, (_, i) => {
-          const a = (i / ticks) * Math.PI * 2;
-          const major = i % 5 === 0;
-          const r1 = size / 2 - 3;
-          const r2 = r1 - (major ? 8 : 4);
-          const lit = i / ticks <= clamped;
-          return (
-            <line
-              key={i}
-              x1={center + Math.cos(a) * r1}
-              y1={center + Math.sin(a) * r1}
-              x2={center + Math.cos(a) * r2}
-              y2={center + Math.sin(a) * r2}
-              stroke={lit ? '#c4b5fd' : '#312e81'}
-              strokeWidth={major ? 2 : 1}
-              strokeLinecap="round"
-            />
-          );
-        })}
-        <circle cx={center} cy={center} r={r} fill="none" stroke="#1e1b4b" strokeWidth={stroke} />
+        <circle cx={center} cy={center} r={r} fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" strokeWidth={stroke} />
         <circle
           cx={center}
           cy={center}
           r={r}
           fill="none"
-          stroke="url(#ringGrad)"
+          stroke="url(#kidRing)"
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={c * (1 - clamped)}
+          transform={`rotate(-90 ${center} ${center})`}
           className="transition-[stroke-dashoffset] duration-1000 ease-linear"
-          style={{ filter: 'drop-shadow(0 0 8px rgba(168,85,247,0.9))' }}
         />
+        <text
+          x={center + Math.cos(angle) * r}
+          y={center + Math.sin(angle) * r}
+          fontSize={stroke * 1.2}
+          textAnchor="middle"
+          dominantBaseline="central"
+        >
+          ⭐
+        </text>
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">{children}</div>
     </div>

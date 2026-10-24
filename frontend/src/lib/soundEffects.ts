@@ -167,6 +167,48 @@ class SoundEngine {
     });
   }
 
+  // Bouncy sine blip used by the kid sounds below
+  private blip(freqFrom: number, freqTo: number, start: number, dur: number, vol = 0.14, type: OscillatorType = 'sine') {
+    const ctx = this.getContext();
+    if (!ctx) return;
+    const t0 = ctx.currentTime + start;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freqFrom, t0);
+    osc.frequency.exponentialRampToValueAtTime(freqTo, t0 + dur);
+    gain.gain.setValueAtTime(vol, t0);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }
+
+  // Sunny's giggle: a quick run of rising bubbles
+  playGiggle() {
+    if (!this.enabled) return;
+    [0, 0.09, 0.18, 0.27].forEach((d, i) => this.blip(520 + i * 70, 900 + i * 90, d, 0.08, 0.13));
+  }
+
+  // Sleepy yawn: a slow falling slide
+  playYawn() {
+    if (!this.enabled) return;
+    this.blip(520, 180, 0, 1.1, 0.1, 'triangle');
+  }
+
+  // Soft pop when a friend arrives or a card is picked
+  playPop() {
+    if (!this.enabled) return;
+    this.blip(300, 760, 0, 0.09, 0.16);
+  }
+
+  // Little three-note wind chime
+  playChime() {
+    if (!this.enabled) return;
+    [660, 880, 1320].forEach((f, i) => this.blip(f, f * 1.01, i * 0.12, 0.5, 0.1));
+  }
+
   // Screen shake sub impact
   playImpact() {
     if (!this.enabled) return;

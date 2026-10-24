@@ -1,6 +1,10 @@
 # 🍵 The Midnight Steeper (Online Edition)
 
-An interdimensional zero-player idle game built for the "Slow and Steady" theme. Mix esoteric cosmic ingredients, ignite the celestial vat, close your tab, and let the 24-hour Sloth Engine steep your tea while cosmic travelers visit your teahouse at the edge of the universe.
+A cozy 3D bedtime tea party for kids aged 5-10, built for the "Slow and Steady" theme. Sunny the sloth is a talking, tappable 3D pet. Kids pick a leaf and a treat, tuck Sunny in for a nap, and Sunny tells them to go to sleep too. The tea steeps in real time while forest-animal friends visit, and in the morning there is a surprise sticker with a kind note from a friend.
+
+**Why it's a good bedtime game:** it ends play instead of extending it. There are no ads, no accounts, no chat and no microphone.
+
+**Open-source and free to run:** Gemma (open-weight) writes the notes, either in the browser (transformers.js, opt-in, ~320 MB once) or through Ollama. TabPFN predicts prize rarity. Sunny's voice is the browser's built-in speech. No API keys anywhere.
 
 ---
 
@@ -66,4 +70,4 @@ cd backend && python temporal_worker.py
 cd frontend && npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to begin steeping your cosmic tea.
+Visit [http://localhost:3000](http://localhost:3000) to meet Sunny.

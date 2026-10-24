@@ -43,28 +43,26 @@ export function classifyRarity(
   return RARITIES[RARITIES.length - 1];
 }
 
-const TRAVELERS = [
-  ['Zorblatt', 'Voyager of the 9th Sector'],
-  ['Kael', 'Chronos Monk of the Vega Rift'],
-  ['Captain Vex', 'Smuggler of the Orion Rim'],
-  ['Astraea', 'Seraph of the Helios Core'],
+const FRIENDS = [
+  ['Bunny', 'from Clover Hill'],
+  ['Fox', 'from Maple Woods'],
+  ['Bear', 'from Honey Hollow'],
+  ['Owl', 'from Moonlight Tree'],
+  ['Frog', 'from Lily Pond'],
+  ['Penguin', 'from Snowy Slide'],
 ];
 
 const OPENERS: Record<string, string[]> = {
-  Common: [
-    'A humble cup, but it warmed my third stomach.',
-    'Honest, steady, and gentle on the ion-receptors.',
-    'Not a supernova, yet it hummed pleasantly in my antennae.',
-  ],
+  Common: ['Thank you for the cozy tea!', 'This tea made my tummy feel warm.', 'What a yummy cup of tea!'],
   Rare: [
-    'The cup shimmered like a binary star at dusk.',
-    'I tasted three dimensions at once and enjoyed all of them.',
-    'My hyperdrive sickness vanished halfway down the cup.',
+    'Wow, this tea sparkles like little stars!',
+    'This tea made me giggle and wiggle!',
+    'I never tasted tea this sparkly before!',
   ],
   Legendary: [
-    'Time itself paused to sip this, and so did I.',
-    'I have crossed fourteen universal resets and never tasted anything like it.',
-    'The cosmos leaned in close to taste this one.',
+    'Magic! This tea is the best in the whole forest!',
+    'Everybody at the party said WOW!',
+    'This tea is so magical it made my ears tingle!',
   ],
 };
 
@@ -75,7 +73,7 @@ export function proceduralReview(rarity: string, ingredients: string[], seed = '
   );
   const rand = rng(`${seed}|${rarity}|${ingredients.join('+')}`);
   const pick = <T,>(arr: T[]) => arr[Math.floor(rand() * arr.length)];
-  const [name, title] = pick(TRAVELERS);
+  const [name, title] = pick(FRIENDS);
   const list = ingredients?.length ? ingredients.join(' and ') : 'Nebula Dust and Void Water';
   const opener = pick(OPENERS[rarity] ?? OPENERS.Common);
   const review = `${opener} The ${list} blend left me gloriously unhurried. — ${name}, ${title}`;
@@ -92,7 +90,7 @@ export async function generateTravelerReview(
     `[Gemma AI] Initiating review generation for rarity='${rarity}', ingredients=${JSON.stringify(ingredients)}, seed='${seed}'`
   );
   const list = ingredients?.length ? ingredients.join(' and ') : 'Nebula Dust and Void Water';
-  const prompt = `Write a 2-sentence quirky review of ${rarity} ${list} tea as an interdimensional cosmic traveler who drank it while the barista was away. End with your alien signature (e.g., '— Zorblatt, Voyager of the 9th Sector').`;
+  const prompt = `You are a kind forest animal friend at Sunny the sloth's tea party. Write exactly 2 short, happy sentences for a 6 year old, using very simple words, thanking them for the ${rarity} ${list} tea. Be gentle and silly. Nothing scary. End with your animal name, like '- Bunny'.`;
 
   const host = (process.env.OLLAMA_HOST ?? 'http://localhost:11434').trim().replace(/\/$/, '');
   const model = (process.env.OLLAMA_MODEL || 'gemma2').trim();

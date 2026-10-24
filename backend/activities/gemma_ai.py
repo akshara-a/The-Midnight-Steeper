@@ -6,28 +6,30 @@ from temporalio import activity
 
 logger = activity.logger
 
-TRAVELERS = [
-    ("Zorblatt", "Voyager of the 9th Sector"),
-    ("Kael", "Chronos Monk of the Vega Rift"),
-    ("Captain Vex", "Smuggler of the Orion Rim"),
-    ("Astraea", "Seraph of the Helios Core"),
+FRIENDS = [
+    ("Bunny", "from Clover Hill"),
+    ("Fox", "from Maple Woods"),
+    ("Bear", "from Honey Hollow"),
+    ("Owl", "from Moonlight Tree"),
+    ("Frog", "from Lily Pond"),
+    ("Penguin", "from Snowy Slide"),
 ]
 
 OPENERS = {
     "Common": [
-        "A humble cup, but it warmed my third stomach.",
-        "Honest, steady, and gentle on the ion-receptors.",
-        "Not a supernova, yet it hummed pleasantly in my antennae.",
+        "Thank you for the cozy tea!",
+        "This tea made my tummy feel warm.",
+        "What a yummy cup of tea!",
     ],
     "Rare": [
-        "The cup shimmered like a binary star at dusk.",
-        "I tasted three dimensions at once and enjoyed all of them.",
-        "My hyperdrive sickness vanished halfway down the cup.",
+        "Wow, this tea sparkles like little stars!",
+        "This tea made me giggle and wiggle!",
+        "I never tasted tea this sparkly before!",
     ],
     "Legendary": [
-        "Time itself paused to sip this, and so did I.",
-        "I have crossed fourteen universal resets and never tasted anything like it.",
-        "The cosmos leaned in close to taste this one.",
+        "Magic! This tea is the best in the whole forest!",
+        "Everybody at the party said WOW!",
+        "This tea is so magical it made my ears tingle!",
     ],
 }
 
@@ -38,10 +40,10 @@ def procedural_review(rarity: str, ingredients: list[str], seed: str = "") -> st
         f"[Gemma Fallback] Activating procedural lore writer (rarity='{rarity}', ingredients={ingredients}, seed='{seed}')."
     )
     rng = random.Random(f"{seed}|{rarity}|{'+'.join(ingredients)}")
-    name, title = rng.choice(TRAVELERS)
+    name, title = rng.choice(FRIENDS)
     ingredients_str = " and ".join(ingredients) if ingredients else "Nebula Dust and Void Water"
     opener = rng.choice(OPENERS.get(rarity, OPENERS["Common"]))
-    review = f"{opener} The {ingredients_str} blend left me gloriously unhurried. — {name}, {title}"
+    review = f"{opener} I loved the {ingredients_str} and I feel so sleepy and happy. Goodnight! — {name} {title}"
     logger.info(f"[Gemma Fallback] Generated procedural review: \"{review}\"")
     return review
 
@@ -86,9 +88,9 @@ async def generate_review_activity(rarity: str, ingredients: list[str], seed: st
     )
     ingredients_str = " and ".join(ingredients) if ingredients else "Nebula Dust and Void Water"
     prompt = (
-        f"Write a 2-sentence quirky review of {rarity} {ingredients_str} tea as an interdimensional "
-        f"cosmic traveler who drank it while the barista was away. End with your alien signature "
-        f"(e.g., '— Zorblatt, Voyager of the 9th Sector')."
+        f"You are a kind forest animal friend at Sunny the sloth's tea party. Write exactly 2 short, happy sentences "
+        f"for a 6 year old, using very simple words, thanking them for the {rarity} {ingredients_str} tea. "
+        f"Be gentle and silly. Nothing scary. End with your animal name, like '- Bunny'."
     )
     review = await asyncio.to_thread(_ollama_review, prompt)
     if review:

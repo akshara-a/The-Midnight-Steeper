@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   const loot = targetBrew.loot || {
     rarity: 'Common',
-    item_name: 'Mystic Cosmic Blend',
+    item_name: 'Cozy Forest Blend',
     review: 'A stellar traveler drank your tea in silence and nodded approvingly.',
   };
 
