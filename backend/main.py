@@ -79,6 +79,7 @@ async def _resilient_cloud_steep_pipeline(
         base_rarity = await determine_rarity_activity(player_id, ingredients, duration_seconds, brew_id)
         rarity = adjust_rarity(base_rarity, customers_served, customers_target)
         review = await generate_review_activity(rarity, ingredients, brew_id)
+        logger.info(f"Review generated for brew {brew_id} (Gemma / fallback): {review}")
 
         tea_name = f"{rarity} {' & '.join(ingredients)} Infusion"
         loot = {

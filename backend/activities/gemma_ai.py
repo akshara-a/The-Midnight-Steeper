@@ -34,18 +34,25 @@ OPENERS = {
 
 def procedural_review(rarity: str, ingredients: list[str], seed: str = "") -> str:
     """Built-in lore writer: no model, no network, always available (e.g. Render free tier)."""
+    logger.info(
+        f"[Gemma Fallback] Activating procedural lore writer (rarity='{rarity}', ingredients={ingredients}, seed='{seed}')."
+    )
     rng = random.Random(f"{seed}|{rarity}|{'+'.join(ingredients)}")
     name, title = rng.choice(TRAVELERS)
     ingredients_str = " and ".join(ingredients) if ingredients else "Nebula Dust and Void Water"
     opener = rng.choice(OPENERS.get(rarity, OPENERS["Common"]))
-    return f"{opener} The {ingredients_str} blend left me gloriously unhurried. — {name}, {title}"
+    review = f"{opener} The {ingredients_str} blend left me gloriously unhurried. — {name}, {title}"
+    logger.info(f"[Gemma Fallback] Generated procedural review: \"{review}\"")
+    return review
 
 
 def _ollama_review(prompt: str) -> str | None:
     host = os.getenv("OLLAMA_HOST", "http://localhost:11434").strip().rstrip("/")
     model = os.getenv("OLLAMA_MODEL", "gemma2").strip()
     if not host:
+        logger.warning("[Gemma] OLLAMA_HOST is empty or not configured. Falling back to built-in lore writer.")
         return None
+    logger.info(f"[Gemma] Querying Ollama at {host}/api/generate with model '{model}'...")
     try:
         resp = requests.post(
             f"{host}/api/generate",
@@ -55,10 +62,16 @@ def _ollama_review(prompt: str) -> str | None:
         if resp.status_code == 200:
             text = resp.json().get("response", "").strip()
             if text:
-                logger.info(f"Ollama ({model}) review generated.")
+                logger.info(f"[Gemma] Ollama ({model}) review generated successfully: \"{text}\"")
                 return text
+            else:
+                logger.warning(f"[Gemma] Ollama ({model}) returned 200 OK, but response text was empty.")
+        else:
+            logger.warning(
+                f"[Gemma] Ollama ({model}) request failed with HTTP {resp.status_code}: {resp.text[:200]}"
+            )
     except Exception as e:
-        logger.info(f"Ollama not reachable ({e}). Using built-in lore writer.")
+        logger.warning(f"[Gemma] Ollama not reachable or encountered error ({e}). Using built-in lore writer.")
     return None
 
 
@@ -68,6 +81,9 @@ async def generate_review_activity(rarity: str, ingredients: list[str], seed: st
     Open-weight Gemma via local Ollama (no API key). Falls back to the procedural writer
     when Ollama is unavailable so the game always works.
     """
+    logger.info(
+        f"[Gemma Activity] Initiating review generation for rarity='{rarity}', ingredients={ingredients}, seed='{seed}'"
+    )
     ingredients_str = " and ".join(ingredients) if ingredients else "Nebula Dust and Void Water"
     prompt = (
         f"Write a 2-sentence quirky review of {rarity} {ingredients_str} tea as an interdimensional "
@@ -75,4 +91,11 @@ async def generate_review_activity(rarity: str, ingredients: list[str], seed: st
         f"(e.g., '— Zorblatt, Voyager of the 9th Sector')."
     )
     review = await asyncio.to_thread(_ollama_review, prompt)
-    return review or procedural_review(rarity, ingredients, seed)
+    if review:
+        logger.info(f"[Gemma Activity] Completed review generation via Gemma ({os.getenv('OLLAMA_MODEL', 'gemma2')}).")
+        return review
+
+    logger.info("[Gemma Activity] Gemma review unavailable. Triggering procedural fallback.")
+    fallback = procedural_review(rarity, ingredients, seed)
+    logger.info(f"[Gemma Activity] Completed review generation via procedural fallback.")
+    return fallback

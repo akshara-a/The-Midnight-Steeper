@@ -45,7 +45,7 @@ class BrewWorkflow:
             args=[rarity, ingredients, brew_id],
             start_to_close_timeout=timedelta(seconds=120)
         )
-        workflow.logger.info(f"Review generated (Gemma via Ollama, or built-in lore fallback)")
+        workflow.logger.info(f"Review generated (Gemma via Ollama, or built-in lore fallback): {review}")
 
         # Formulate final loot
         tea_name = f"{rarity} {' & '.join(ingredients)} Infusion"

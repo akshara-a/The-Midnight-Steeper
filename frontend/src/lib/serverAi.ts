@@ -70,12 +70,17 @@ const OPENERS: Record<string, string[]> = {
 
 /** Built-in lore writer: no model, no network. */
 export function proceduralReview(rarity: string, ingredients: string[], seed = ''): string {
+  console.log(
+    `[Gemma Fallback] Activating procedural lore writer (rarity='${rarity}', ingredients=${JSON.stringify(ingredients)}, seed='${seed}').`
+  );
   const rand = rng(`${seed}|${rarity}|${ingredients.join('+')}`);
   const pick = <T,>(arr: T[]) => arr[Math.floor(rand() * arr.length)];
   const [name, title] = pick(TRAVELERS);
   const list = ingredients?.length ? ingredients.join(' and ') : 'Nebula Dust and Void Water';
   const opener = pick(OPENERS[rarity] ?? OPENERS.Common);
-  return `${opener} The ${list} blend left me gloriously unhurried. — ${name}, ${title}`;
+  const review = `${opener} The ${list} blend left me gloriously unhurried. — ${name}, ${title}`;
+  console.log(`[Gemma Fallback] Generated procedural review: "${review}"`);
+  return review;
 }
 
 export async function generateTravelerReview(
@@ -83,6 +88,9 @@ export async function generateTravelerReview(
   ingredients: string[],
   seed = ''
 ): Promise<string> {
+  console.log(
+    `[Gemma AI] Initiating review generation for rarity='${rarity}', ingredients=${JSON.stringify(ingredients)}, seed='${seed}'`
+  );
   const list = ingredients?.length ? ingredients.join(' and ') : 'Nebula Dust and Void Water';
   const prompt = `Write a 2-sentence quirky review of ${rarity} ${list} tea as an interdimensional cosmic traveler who drank it while the barista was away. End with your alien signature (e.g., '— Zorblatt, Voyager of the 9th Sector').`;
 
@@ -91,6 +99,7 @@ export async function generateTravelerReview(
 
   if (host) {
     try {
+      console.log(`[Gemma AI] Querying Ollama at ${host}/api/generate with model '${model}'...`);
       const resp = await fetch(`${host}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -100,12 +109,24 @@ export async function generateTravelerReview(
       if (resp.ok) {
         const data = await resp.json();
         const text = typeof data?.response === 'string' ? data.response.trim() : '';
-        if (text) return text;
+        if (text) {
+          console.log(`[Gemma AI] Ollama (${model}) review generated successfully: "${text}"`);
+          return text;
+        } else {
+          console.warn(`[Gemma AI] Ollama (${model}) returned 200 OK, but response text was empty.`);
+        }
+      } else {
+        console.warn(`[Gemma AI] Ollama (${model}) request failed with status ${resp.status} ${resp.statusText}.`);
       }
-    } catch {
-      // Ollama unreachable: fall through to the built-in lore writer.
+    } catch (err) {
+      console.warn(`[Gemma AI] Ollama not reachable or encountered error (${err}). Using built-in lore writer.`);
     }
+  } else {
+    console.warn('[Gemma AI] OLLAMA_HOST is not configured or empty. Using built-in lore writer.');
   }
 
-  return proceduralReview(rarity, ingredients, seed);
+  console.log('[Gemma AI] Gemma review unavailable. Triggering procedural fallback.');
+  const fallback = proceduralReview(rarity, ingredients, seed);
+  console.log('[Gemma AI] Completed review generation via procedural fallback.');
+  return fallback;
 }
