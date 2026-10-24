@@ -465,7 +465,7 @@ export default function SunnyTeaParty() {
           <div className="flex items-center gap-3 min-w-0">
             <span className="text-4xl">🦥</span>
             <div className="min-w-0">
-              <div className="font-bold text-base sm:text-lg leading-tight truncate">Sunny&apos;s Tea Party</div>
+              <div className="font-bold text-base sm:text-lg leading-tight truncate">The Midnight Steeper</div>
               <div className="text-sm font-medium opacity-80 truncate">
                 Level {playerLevel} · {getRank(playerLevel)}
               </div>
@@ -737,7 +737,7 @@ export default function SunnyTeaParty() {
         </section>
 
         <footer className="text-center text-sm font-semibold opacity-70 pb-4">
-          Sunny the Sloth&apos;s Tea Party · slow and steady wins the nap 🦥
+          The Midnight Steeper · Sunny&apos;s Tea Party · slow and steady wins the nap 🦥
         </footer>
       </div>
 
@@ -899,8 +899,9 @@ export default function SunnyTeaParty() {
         <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center text-center px-5 bg-gradient-to-b from-pink-200 via-purple-200 to-sky-200">
           <div className="text-8xl animate-bounce-soft drop-shadow-lg">🦥</div>
           <h1 className="mt-4 text-4xl sm:text-6xl font-bold bg-gradient-to-r from-pink-500 via-amber-400 to-sky-500 bg-clip-text text-transparent">
-            Sunny the Sloth&apos;s Tea Party
+            The Midnight Steeper
           </h1>
+          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#6c4fd1]">Sunny the Sloth&apos;s Tea Party</p>
           <p className="mt-3 text-xl font-semibold text-[#3b2a63]">Make tea, invite friends, then go to sleep! 🌙</p>
           <button onClick={handleStart} className="btn-chunky green animate-glow mt-10 px-12 py-5 text-3xl">
             ▶ Play!

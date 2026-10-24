@@ -9,7 +9,7 @@ const fredoka = Fredoka({
 });
 
 export const metadata: Metadata = {
-  title: "Sunny the Sloth's Tea Party",
+  title: "The Midnight Steeper | Sunny's Tea Party",
   description:
     "A cozy 3D bedtime tea party for kids 5-10. Sunny the sloth naps while the tea steeps, then says: go to sleep!",
 };
