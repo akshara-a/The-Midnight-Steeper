@@ -5,7 +5,6 @@ export interface InMemUser {
     rarity: string;
     item_name: string;
     review: string;
-    audio: string;
     ingredients?: string[];
   }>;
   created_at: string;
@@ -26,7 +25,6 @@ export interface InMemBrew {
     rarity: string;
     item_name: string;
     review: string;
-    audio: string;
     ingredients?: string[];
     base_rarity?: string;
     customers_served?: number;

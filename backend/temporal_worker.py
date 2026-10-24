@@ -10,7 +10,6 @@ load_dotenv()
 from workflows.brew_workflow import BrewWorkflow
 from activities.tabpfn_ai import determine_rarity_activity
 from activities.gemma_ai import generate_review_activity
-from activities.elevenlabs_ai import generate_audio_activity
 from activities.db_activities import update_brew_ready_activity
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -35,7 +34,6 @@ async def main():
         activities=[
             determine_rarity_activity,
             generate_review_activity,
-            generate_audio_activity,
             update_brew_ready_activity
         ],
     )

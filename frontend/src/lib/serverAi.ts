@@ -1,137 +1,111 @@
 /**
- * Serverless AI Pipeline for The Midnight Steeper.
- * All third-party endpoints and API keys are strictly read from environment variables only.
- * Zero hardcoded fallback URLs in source code.
+ * Keyless AI pipeline for The Midnight Steeper's serverless routes.
+ *
+ * Reviews: open-weight Gemma via a local/remote Ollama (OLLAMA_HOST). When Ollama is not
+ * reachable (e.g. Render's free tier) a built-in lore writer takes over so the game always works.
+ * Rarity: the rule-based probability model (the Python backend upgrades this with real TabPFN).
+ *
+ * Keep the rarity model in sync with backend/activities/tabpfn_ai.py.
  */
+import { DURATION_TIERS, rng, synergyPower } from './customers';
 
-export function classifyRarity(consistencyScore: number): string {
-  if (consistencyScore >= 8) return 'Legendary';
-  if (consistencyScore >= 4) return 'Rare';
-  return 'Common';
+const RARITIES = ['Common', 'Rare', 'Legendary'];
+const DURATION_ORDER = [...DURATION_TIERS].sort((a, b) => a.seconds - b.seconds);
+
+const sigmoid = (x: number) => 1 / (1 + Math.exp(-x));
+
+function durationIndex(seconds: number): number {
+  const i = DURATION_ORDER.findIndex((t) => seconds <= t.seconds);
+  return i === -1 ? DURATION_ORDER.length - 1 : i;
+}
+
+export function ruleProbabilities(streak: number, synergy: number, durIdx: number): number[] {
+  const score = streak + (synergy - 60) / 10 + durIdx * 0.5;
+  const pLeg = sigmoid((score - 12) / 2.5);
+  const pRare = Math.max(0, sigmoid((score - 6) / 2) - pLeg);
+  return [Math.max(0, 1 - pRare - pLeg), pRare, pLeg];
+}
+
+/** Samples a rarity from the model's probabilities, seeded so a brew always resolves the same way. */
+export function classifyRarity(
+  streak: number,
+  ingredients: string[],
+  durationSeconds: number,
+  seed: string
+): string {
+  const probs = ruleProbabilities(streak, synergyPower(ingredients), durationIndex(durationSeconds));
+  const roll = rng(`${seed}|rarity`)();
+  let acc = 0;
+  for (let i = 0; i < probs.length; i++) {
+    acc += probs[i];
+    if (roll < acc) return RARITIES[i];
+  }
+  return RARITIES[RARITIES.length - 1];
+}
+
+const TRAVELERS = [
+  ['Zorblatt', 'Voyager of the 9th Sector'],
+  ['Kael', 'Chronos Monk of the Vega Rift'],
+  ['Captain Vex', 'Smuggler of the Orion Rim'],
+  ['Astraea', 'Seraph of the Helios Core'],
+];
+
+const OPENERS: Record<string, string[]> = {
+  Common: [
+    'A humble cup, but it warmed my third stomach.',
+    'Honest, steady, and gentle on the ion-receptors.',
+    'Not a supernova, yet it hummed pleasantly in my antennae.',
+  ],
+  Rare: [
+    'The cup shimmered like a binary star at dusk.',
+    'I tasted three dimensions at once and enjoyed all of them.',
+    'My hyperdrive sickness vanished halfway down the cup.',
+  ],
+  Legendary: [
+    'Time itself paused to sip this, and so did I.',
+    'I have crossed fourteen universal resets and never tasted anything like it.',
+    'The cosmos leaned in close to taste this one.',
+  ],
+};
+
+/** Built-in lore writer: no model, no network. */
+export function proceduralReview(rarity: string, ingredients: string[], seed = ''): string {
+  const rand = rng(`${seed}|${rarity}|${ingredients.join('+')}`);
+  const pick = <T,>(arr: T[]) => arr[Math.floor(rand() * arr.length)];
+  const [name, title] = pick(TRAVELERS);
+  const list = ingredients?.length ? ingredients.join(' and ') : 'Nebula Dust and Void Water';
+  const opener = pick(OPENERS[rarity] ?? OPENERS.Common);
+  return `${opener} The ${list} blend left me gloriously unhurried. — ${name}, ${title}`;
 }
 
 export async function generateTravelerReview(
   rarity: string,
-  ingredients: string[]
+  ingredients: string[],
+  seed = ''
 ): Promise<string> {
-  const ingredientsStr = ingredients?.length ? ingredients.join(' and ') : 'Nebula Dust and Void Water';
-  const prompt = `Write a 2-sentence quirky review of ${rarity} ${ingredientsStr} tea as an interdimensional cosmic traveler who drank it while the barista was away. End with your alien signature (e.g., '— Zorblatt, Voyager of the 9th Sector').`;
+  const list = ingredients?.length ? ingredients.join(' and ') : 'Nebula Dust and Void Water';
+  const prompt = `Write a 2-sentence quirky review of ${rarity} ${list} tea as an interdimensional cosmic traveler who drank it while the barista was away. End with your alien signature (e.g., '— Zorblatt, Voyager of the 9th Sector').`;
 
-  // 1. Google Gemini Cloud API (Strictly from env)
-  const geminiKey = process.env.GEMINI_API_KEY?.trim();
-  const geminiEndpoint = process.env.GEMINI_API_ENDPOINT?.trim();
+  const host = (process.env.OLLAMA_HOST ?? 'http://localhost:11434').trim().replace(/\/$/, '');
+  const model = (process.env.OLLAMA_MODEL || 'gemma2').trim();
 
-  if (geminiKey && geminiEndpoint) {
+  if (host) {
     try {
-      const url = `${geminiEndpoint}?key=${geminiKey}`;
-      const resp = await fetch(url, {
+      const resp = await fetch(`${host}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
+        body: JSON.stringify({ model, prompt, stream: false }),
+        signal: AbortSignal.timeout(20000),
       });
       if (resp.ok) {
         const data = await resp.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        const text = typeof data?.response === 'string' ? data.response.trim() : '';
         if (text) return text;
       }
-    } catch (e) {
-      console.warn('Gemini review generation failed:', e);
+    } catch {
+      // Ollama unreachable: fall through to the built-in lore writer.
     }
   }
 
-  // 2. OpenAI / Groq / OpenRouter API (Strictly from env)
-  const openaiKey = (process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY || '').trim();
-  const openaiBase = (process.env.OPENAI_BASE_URL || '').trim().replace(/\/$/, '');
-  const modelName = process.env.ONLINE_LLM_MODEL || 'gpt-4o-mini';
-
-  if (openaiKey && openaiBase) {
-    try {
-      const resp = await fetch(`${openaiBase}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${openaiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: modelName,
-          messages: [
-            { role: 'system', content: 'You are a quirky cosmic traveler visiting a tea shop at the edge of the universe.' },
-            { role: 'user', content: prompt },
-          ],
-          max_tokens: 120,
-        }),
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        const text = data?.choices?.[0]?.message?.content?.trim();
-        if (text) return text;
-      }
-    } catch (e) {
-      console.warn('OpenAI review generation failed:', e);
-    }
-  }
-
-  // 3. Fallback Lore Persona
-  return `The ${ingredientsStr} was a bit prickly on my ion-receptors, but this ${rarity} batch instantly cured my hyperdrive sickness! Pure celestial wizardry. — Zorblatt, Voyager of the 9th Sector`;
-}
-
-export async function generateSpeechAudio(reviewText: string): Promise<string> {
-  const apiKey = process.env.ELEVENLABS_API_KEY?.trim();
-  const apiEndpoint = (process.env.ELEVENLABS_API_ENDPOINT || '').trim().replace(/\/$/, '');
-  const voiceId = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
-  const freeTtsEndpoint = (process.env.FREE_TTS_ENDPOINT || '').trim();
-
-  // 1. ElevenLabs (if key AND endpoint provided in env)
-  if (apiKey && apiEndpoint) {
-    try {
-      const url = `${apiEndpoint}/${voiceId}`;
-      const resp = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'xi-api-key': apiKey,
-          'Content-Type': 'application/json',
-          Accept: 'audio/mpeg',
-        },
-        body: JSON.stringify({
-          text: reviewText,
-          model_id: 'eleven_monolingual_v1',
-          voice_settings: { stability: 0.5, similarity_boost: 0.75 },
-        }),
-      });
-
-      if (resp.ok) {
-        const buffer = await resp.arrayBuffer();
-        const b64 = Buffer.from(buffer).toString('base64');
-        return `data:audio/mp3;base64,${b64}`;
-      }
-    } catch (e) {
-      console.warn('ElevenLabs speech generation error:', e);
-    }
-  }
-
-  // 2. Free Neural Speech (if FREE_TTS_ENDPOINT provided in env)
-  if (freeTtsEndpoint) {
-    try {
-      const freeUrl = `${freeTtsEndpoint}?ie=UTF-8&client=tw-ob&tl=en-us&q=${encodeURIComponent(
-        reviewText.slice(0, 200)
-      )}`;
-      const resp = await fetch(freeUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-      });
-      if (resp.ok) {
-        const buffer = await resp.arrayBuffer();
-        if (buffer.byteLength > 100) {
-          const b64 = Buffer.from(buffer).toString('base64');
-          return `data:audio/mp3;base64,${b64}`;
-        }
-      }
-    } catch (e) {
-      console.warn('Free TTS fallback error:', e);
-    }
-  }
-
-  // 3. Fallback synthetic crystal chime WAV base64
-  return 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YV4GAACBhYqFbXF7ioqWkZqaoJ2ioqKgo6WnpKeoqKmpqqmrqaqprKmrqqqrqaupq6mqqaqpqqmqqamppaSkpKOfnZ2cm5mYmJaUk5OSkZGQkI+Pj46Ojo2NjIyMi4uLiomJh4eHhoWFhYSEg4ODg4GBgYGAgICAf4CAf39/f35+';
+  return proceduralReview(rarity, ingredients, seed);
 }

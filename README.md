@@ -11,7 +11,9 @@ An interdimensional zero-player idle game built for the "Slow and Steady" theme.
 * **Resilient Online Engine:**
   - Works with **Temporal** for resilient distributed workflow timers.
   - Automatically activates an in-process cloud asynchronous scheduler if deployed to a single cloud container without Temporal.
-  - Supports both **Local Ollama (`gemma2`)** and **Cloud LLM APIs** (`GEMINI_API_KEY`, `OPENAI_API_KEY`, `GROQ_API_KEY`) for instant zero-server AI reviews.
+  - **No API keys anywhere.** Traveler reviews come from open-weight **Gemma via local Ollama**; if Ollama isn't reachable (e.g. Render's free tier) a built-in lore writer takes over so the game never breaks.
+  - Harvest rarity is predicted by open-source **TabPFN** (keyless, CPU) when installed (`pip install -r backend/requirements-ml.txt`), with a transparent rule-based model as the fallback.
+  - Traveler voices use the browser's built-in speech synthesis, so there is no TTS service either.
 
 ---
 
@@ -27,8 +29,7 @@ Deploy both the **Next.js Frontend** and the **FastAPI Backend** together into a
    * *Or click **New +** -> **Web Service** -> select your repo -> select **Docker**.*
 4. Set your environment variables:
    * `BREW_DURATION_SECONDS`: `15` for testing, `86400` for 24h.
-   * `GEMINI_API_KEY`: (Optional) Free API key for cosmic traveler reviews.
-   * `ELEVENLABS_API_KEY`: (Optional) For voice broadcasts.
+   * No API keys needed. Set `OLLAMA_HOST` only if you host Ollama somewhere reachable.
    *(Database is 100% embedded SQLite - zero external database setup needed!)*
 5. Click **Apply / Deploy**! Render will build the unified container and give you a live URL (`https://your-app.onrender.com`).
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/serverDb';
 import { adjustRarity, bonusXp } from '@/lib/customers';
-import { classifyRarity, generateTravelerReview, generateSpeechAudio } from '@/lib/serverAi';
+import { classifyRarity, generateTravelerReview } from '@/lib/serverAi';
 
 export async function GET(req: NextRequest) {
   const playerId = req.headers.get('x-player-id')?.trim();
@@ -30,17 +30,15 @@ export async function GET(req: NextRequest) {
 
       const served: number = brew.customer_arrivals?.length ?? 0;
       const target: number = brew.customers_target ?? 0;
-      const baseRarity = classifyRarity(consistency);
+      const baseRarity = classifyRarity(consistency, brew.ingredients ?? [], brew.duration_seconds, brew.brew_id);
       const rarity = adjustRarity(baseRarity, served, target);
-      const review = await generateTravelerReview(rarity, brew.ingredients);
-      const audio = await generateSpeechAudio(review);
+      const review = await generateTravelerReview(rarity, brew.ingredients, brew.brew_id);
       const teaName = `${rarity} ${brew.ingredients?.join(' & ')} Infusion`;
 
       const loot = {
         rarity,
         item_name: teaName,
         review,
-        audio,
         ingredients: brew.ingredients,
         base_rarity: baseRarity,
         customers_served: served,

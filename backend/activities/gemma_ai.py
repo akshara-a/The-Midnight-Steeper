@@ -1,89 +1,78 @@
+import asyncio
 import os
+import random
 import requests
 from temporalio import activity
 
 logger = activity.logger
 
+TRAVELERS = [
+    ("Zorblatt", "Voyager of the 9th Sector"),
+    ("Kael", "Chronos Monk of the Vega Rift"),
+    ("Captain Vex", "Smuggler of the Orion Rim"),
+    ("Astraea", "Seraph of the Helios Core"),
+]
+
+OPENERS = {
+    "Common": [
+        "A humble cup, but it warmed my third stomach.",
+        "Honest, steady, and gentle on the ion-receptors.",
+        "Not a supernova, yet it hummed pleasantly in my antennae.",
+    ],
+    "Rare": [
+        "The cup shimmered like a binary star at dusk.",
+        "I tasted three dimensions at once and enjoyed all of them.",
+        "My hyperdrive sickness vanished halfway down the cup.",
+    ],
+    "Legendary": [
+        "Time itself paused to sip this, and so did I.",
+        "I have crossed fourteen universal resets and never tasted anything like it.",
+        "The cosmos leaned in close to taste this one.",
+    ],
+}
+
+
+def procedural_review(rarity: str, ingredients: list[str], seed: str = "") -> str:
+    """Built-in lore writer: no model, no network, always available (e.g. Render free tier)."""
+    rng = random.Random(f"{seed}|{rarity}|{'+'.join(ingredients)}")
+    name, title = rng.choice(TRAVELERS)
+    ingredients_str = " and ".join(ingredients) if ingredients else "Nebula Dust and Void Water"
+    opener = rng.choice(OPENERS.get(rarity, OPENERS["Common"]))
+    return f"{opener} The {ingredients_str} blend left me gloriously unhurried. — {name}, {title}"
+
+
+def _ollama_review(prompt: str) -> str | None:
+    host = os.getenv("OLLAMA_HOST", "http://localhost:11434").strip().rstrip("/")
+    model = os.getenv("OLLAMA_MODEL", "gemma2").strip()
+    if not host:
+        return None
+    try:
+        resp = requests.post(
+            f"{host}/api/generate",
+            json={"model": model, "prompt": prompt, "stream": False},
+            timeout=(2, 60),
+        )
+        if resp.status_code == 200:
+            text = resp.json().get("response", "").strip()
+            if text:
+                logger.info(f"Ollama ({model}) review generated.")
+                return text
+    except Exception as e:
+        logger.info(f"Ollama not reachable ({e}). Using built-in lore writer.")
+    return None
+
+
 @activity.defn
-async def generate_review_activity(rarity: str, ingredients: list[str]) -> str:
+async def generate_review_activity(rarity: str, ingredients: list[str], seed: str = "") -> str:
     """
-    Takes rarity and ingredients as arguments.
-    All endpoints are strictly supplied via environment variables with zero hardcoded fallback URLs.
+    Open-weight Gemma via local Ollama (no API key). Falls back to the procedural writer
+    when Ollama is unavailable so the game always works.
     """
     ingredients_str = " and ".join(ingredients) if ingredients else "Nebula Dust and Void Water"
     prompt = (
         f"Write a 2-sentence quirky review of {rarity} {ingredients_str} tea as an interdimensional "
-        f"cosmic traveler who drank it while the barista was away. End with your alien signature (e.g., '— Zorblatt, Voyager of the 9th Sector')."
+        f"cosmic traveler who drank it while the barista was away. End with your alien signature "
+        f"(e.g., '— Zorblatt, Voyager of the 9th Sector')."
     )
-
-    # 1. Cloud Gemini API (Strictly from env)
-    gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
-    gemini_endpoint = os.getenv("GEMINI_API_ENDPOINT", "").strip()
-
-    if gemini_key and gemini_endpoint:
-        try:
-            url = f"{gemini_endpoint}?key={gemini_key}"
-            payload = {"contents": [{"parts": [{"text": prompt}]}]}
-            resp = requests.post(url, json=payload, timeout=15)
-            if resp.status_code == 200:
-                data = resp.json()
-                text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
-                if text:
-                    logger.info("Online Gemini cloud review generated successfully.")
-                    return text
-        except Exception as e:
-            logger.warning(f"Gemini cloud API error: {e}")
-
-    # 2. Cloud OpenAI / Groq / Compatible API (Strictly from env)
-    openai_key = (os.getenv("OPENAI_API_KEY") or os.getenv("GROQ_API_KEY") or os.getenv("OPENROUTER_API_KEY") or "").strip()
-    openai_base = os.getenv("OPENAI_BASE_URL", "").strip().rstrip("/")
-    llm_model = os.getenv("ONLINE_LLM_MODEL", "gpt-4o-mini").strip()
-
-    if openai_key and openai_base:
-        try:
-            headers = {
-                "Authorization": f"Bearer {openai_key}",
-                "Content-Type": "application/json"
-            }
-            payload = {
-                "model": llm_model,
-                "messages": [
-                    {"role": "system", "content": "You are a quirky cosmic traveler visiting a tea shop at the edge of the universe."},
-                    {"role": "user", "content": prompt}
-                ],
-                "max_tokens": 120
-            }
-            resp = requests.post(f"{openai_base}/chat/completions", headers=headers, json=payload, timeout=15)
-            if resp.status_code == 200:
-                text = resp.json()["choices"][0]["message"]["content"].strip()
-                if text:
-                    logger.info("Online cloud LLM review generated successfully.")
-                    return text
-        except Exception as e:
-            logger.warning(f"Online cloud LLM error: {e}")
-
-    # 3. Local/Remote Ollama Endpoint (Strictly from env)
-    ollama_host = os.getenv("OLLAMA_HOST", "").strip().rstrip("/")
-    ollama_model = os.getenv("OLLAMA_MODEL", "gemma2").strip()
-
-    if ollama_host:
-        try:
-            payload = {
-                "model": ollama_model,
-                "prompt": prompt,
-                "stream": False
-            }
-            response = requests.post(f"{ollama_host}/api/generate", json=payload, timeout=30)
-            if response.status_code == 200:
-                review = response.json().get("response", "").strip()
-                if review:
-                    logger.info("Ollama local review generated successfully.")
-                    return review
-        except Exception as e:
-            logger.info(f"Ollama host not reachable ({e}). Proceeding to procedural fallback.")
-
-    # 4. Built-in procedural lore fallback
-    return (
-        f"The {ingredients_str} was a bit prickly on my ion-receptors, but this {rarity} batch "
-        f"instantly cured my hyperdrive sickness! Pure celestial wizardry. — Zorblatt, Voyager of the 9th Sector"
-    )
+    review = await asyncio.to_thread(_ollama_review, prompt)
+    return review or procedural_review(rarity, ingredients, seed)

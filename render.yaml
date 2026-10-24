@@ -15,19 +15,10 @@ services:
         value: midnight_steeper.db
       - key: BREW_DURATION_SECONDS
         value: 15
-      # Sensitive keys must be populated directly in Render dashboard (sync: false)
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: GEMINI_API_ENDPOINT
-        value: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
-      - key: ELEVENLABS_API_KEY
-        sync: false
-      - key: ELEVENLABS_API_ENDPOINT
-        value: https://api.elevenlabs.io/v1/text-to-speech
-      - key: ELEVENLABS_VOICE_ID
-        value: 21m00Tcm4TlvDq8ikWAM
-      - key: FREE_TTS_ENDPOINT
-        value: https://translate.google.com/translate_tts
+      # No API keys required. Gemma runs via Ollama when reachable; otherwise the
+      # built-in lore writer and rule-based rarity model keep the game fully working.
+      - key: OLLAMA_HOST
+        value: ""
       - key: TEMPORAL_HOST
         value: localhost:7233
       - key: TEMPORAL_TASK_QUEUE

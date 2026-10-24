@@ -148,7 +148,15 @@ export default function MidnightSteeperPage() {
   const [sessionPicks, setSessionPicks] = useState(0);
   const prevLevelRef = useRef<number | null>(null);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Traveler voice: the browser's built-in speech synthesis (free, local, no API)
+  const speak = useCallback((text: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.pitch = 0.8;
+    utt.rate = 0.95;
+    window.speechSynthesis.speak(utt);
+  }, []);
 
   // Trigger floating action text (RPG damage/gain text style)
   const spawnFloatingText = (text: string, x?: number, y?: number, color = '#a855f7') => {
@@ -283,14 +291,11 @@ export default function MidnightSteeperPage() {
     return () => clearInterval(timer);
   }, [lootModal]);
 
-  // Autoplay audio on modal reveal
+  // Speak the traveler's review when the loot card is revealed
   useEffect(() => {
-    if (lootModal?.audio && audioRef.current) {
-      audioRef.current.play().catch((e) => {
-        console.warn('Autoplay blocked by browser policy:', e);
-      });
-    }
-  }, [lootModal]);
+    if (lootModal?.review && soundEnabled) speak(lootModal.review);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lootModal, speak]);
 
   const handleStartBrew = async (e: React.MouseEvent) => {
     if (isStarting) return;
@@ -1104,7 +1109,7 @@ export default function MidnightSteeperPage() {
               </p>
             </div>
 
-            {/* Alien Communicator Player (Autoplay Audio Transmission) */}
+            {/* Alien Communicator (browser speech synthesis) */}
             <div className="mb-6 p-4 rounded-2xl bg-black/80 border border-purple-800/60 flex flex-col items-center">
               <div className="w-full flex items-center justify-between text-[11px] text-purple-300 font-bold mb-2">
                 <span className="flex items-center space-x-1.5">
@@ -1122,35 +1127,12 @@ export default function MidnightSteeperPage() {
                   ))}
                 </div>
               </div>
-              {lootModal.audio ? (
-                <audio
-                  ref={audioRef}
-                  autoPlay
-                  controls
-                  src={lootModal.audio}
-                  className="w-full h-10 accent-purple-500 rounded-lg mb-2"
-                >
-                  Your browser does not support audio playback.
-                </audio>
-              ) : (
-                <div className="text-xs text-slate-500 italic mb-2">Generating transmission...</div>
-              )}
-
-              {/* Free Browser Alien Voice Synthesizer Button */}
               <button
-                onClick={() => {
-                  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
-                    const utt = new SpeechSynthesisUtterance(lootModal.review);
-                    utt.pitch = 0.8;
-                    utt.rate = 0.95;
-                    window.speechSynthesis.speak(utt);
-                  }
-                }}
+                onClick={() => speak(lootModal.review)}
                 className="text-[10px] text-indigo-300 hover:text-white bg-indigo-950/70 border border-indigo-700 hover:bg-indigo-900/80 px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer active:scale-95"
               >
                 <span>🛸</span>
-                <span>Speak with Browser Alien Voice (100% Free)</span>
+                <span>Replay transmission (browser voice)</span>
               </button>
             </div>
 
@@ -1290,9 +1272,12 @@ export default function MidnightSteeperPage() {
                     <p className="text-[11px] text-indigo-200/80 font-serif italic mb-2">
                       &ldquo;{item.review}&rdquo;
                     </p>
-                    {item.audio && (
-                      <audio controls src={item.audio} className="w-full h-8" />
-                    )}
+                    <button
+                      onClick={() => speak(item.review)}
+                      className="text-[10px] text-indigo-300 hover:text-white bg-indigo-950/70 border border-indigo-700 px-2.5 py-1 rounded-lg cursor-pointer"
+                    >
+                      🛸 Replay
+                    </button>
                   </div>
                 ))
               )}

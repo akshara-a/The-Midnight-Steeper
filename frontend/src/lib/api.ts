@@ -6,7 +6,6 @@ export interface Loot {
   rarity: string;
   item_name: string;
   review: string;
-  audio: string;
   ingredients?: string[];
   base_rarity?: string;
   customers_served?: number;

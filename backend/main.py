@@ -14,7 +14,6 @@ from middleware import get_player_id
 from workflows.brew_workflow import BrewWorkflow
 from activities.tabpfn_ai import determine_rarity_activity
 from activities.gemma_ai import generate_review_activity
-from activities.elevenlabs_ai import generate_audio_activity
 from activities.db_activities import update_brew_ready_activity
 from customers import (
     DURATION_TIERS,
@@ -77,17 +76,15 @@ async def _resilient_cloud_steep_pipeline(
     logger.info(f"Steep complete for {brew_id}. Generating AI loot...")
 
     try:
-        base_rarity = await determine_rarity_activity(player_id)
+        base_rarity = await determine_rarity_activity(player_id, ingredients, duration_seconds, brew_id)
         rarity = adjust_rarity(base_rarity, customers_served, customers_target)
-        review = await generate_review_activity(rarity, ingredients)
-        audio = await generate_audio_activity(review)
+        review = await generate_review_activity(rarity, ingredients, brew_id)
 
         tea_name = f"{rarity} {' & '.join(ingredients)} Infusion"
         loot = {
             "rarity": rarity,
             "item_name": tea_name,
             "review": review,
-            "audio": audio,
             "ingredients": ingredients,
             "base_rarity": base_rarity,
             "customers_served": customers_served,
@@ -187,6 +184,7 @@ async def start_brew(
         "duration_key": request.duration_key,
         "customers_target": target,
         "customer_arrivals": arrivals,
+        "streak": streak,
         "loot": None
     }
     await brews_collection.insert_one(brew_doc)
@@ -248,8 +246,7 @@ async def claim_brew(
     loot = brew.get("loot") or {
         "rarity": "Common",
         "item_name": "Mystic Herbal Infusion",
-        "review": "A pleasant warmth fills your soul as stars align in the cup.",
-        "audio": ""
+        "review": "A pleasant warmth fills your soul as stars align in the cup."
     }
 
     await brews_collection.update_one(

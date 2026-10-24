@@ -63,6 +63,16 @@ class LocalCollection:
                     return doc
         return None
 
+    async def find(self, query: dict) -> list:
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, self._sync_find, query)
+
+    def _sync_find(self, query: dict) -> list:
+        with self._get_conn() as conn:
+            rows = conn.execute(f"SELECT data FROM {self.table_name}").fetchall()
+        docs = [json.loads(raw) for (raw,) in rows]
+        return [d for d in docs if all(d.get(k) == v for k, v in query.items() if k != "_id")]
+
     async def insert_one(self, doc: dict):
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, self._sync_insert_one, doc)

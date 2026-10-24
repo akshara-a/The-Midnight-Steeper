@@ -41,7 +41,7 @@ export function customerTarget(durationKey: string | undefined, ingredients: str
 }
 
 /** Deterministic mulberry32 PRNG seeded from an FNV-1a hash of the text. */
-function rng(seedText: string): () => number {
+export function rng(seedText: string): () => number {
   let h = 2166136261;
   for (let i = 0; i < seedText.length; i++) {
     h ^= seedText.charCodeAt(i);

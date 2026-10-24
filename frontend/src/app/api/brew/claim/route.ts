@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
     rarity: 'Common',
     item_name: 'Mystic Cosmic Blend',
     review: 'A stellar traveler drank your tea in silence and nodded approvingly.',
-    audio: '',
   };
 
   targetBrew.status = 'claimed';

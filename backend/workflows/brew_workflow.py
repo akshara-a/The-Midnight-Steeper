@@ -5,7 +5,6 @@ from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from activities.tabpfn_ai import determine_rarity_activity
     from activities.gemma_ai import generate_review_activity
-    from activities.elevenlabs_ai import generate_audio_activity
     from activities.db_activities import update_brew_ready_activity
     from customers import adjust_rarity, bonus_xp
 
@@ -34,8 +33,8 @@ class BrewWorkflow:
         # 2. Execute TabPFN Activity (Rarity)
         base_rarity = await workflow.execute_activity(
             determine_rarity_activity,
-            args=[player_id],
-            start_to_close_timeout=timedelta(seconds=60)
+            args=[player_id, ingredients, duration_seconds, brew_id],
+            start_to_close_timeout=timedelta(seconds=120)
         )
         rarity = adjust_rarity(base_rarity, customers_served, customers_target)
         workflow.logger.info(f"Rarity classified: {rarity}")
@@ -43,18 +42,10 @@ class BrewWorkflow:
         # 3. Execute Gemma Activity (Review)
         review = await workflow.execute_activity(
             generate_review_activity,
-            args=[rarity, ingredients],
+            args=[rarity, ingredients, brew_id],
             start_to_close_timeout=timedelta(seconds=120)
         )
-        workflow.logger.info(f"Review received from Gemma")
-
-        # 4. Execute ElevenLabs Activity (Audio)
-        audio_data = await workflow.execute_activity(
-            generate_audio_activity,
-            args=[review],
-            start_to_close_timeout=timedelta(seconds=90)
-        )
-        workflow.logger.info("Audio received from ElevenLabs")
+        workflow.logger.info(f"Review generated (Gemma via Ollama, or built-in lore fallback)")
 
         # Formulate final loot
         tea_name = f"{rarity} {' & '.join(ingredients)} Infusion"
@@ -62,7 +53,6 @@ class BrewWorkflow:
             "rarity": rarity,
             "item_name": tea_name,
             "review": review,
-            "audio": audio_data,
             "ingredients": ingredients,
             "base_rarity": base_rarity,
             "customers_served": customers_served,
@@ -71,7 +61,7 @@ class BrewWorkflow:
             "bonus_xp": bonus_xp(customers_served, customers_target)
         }
 
-        # 5. Execute MongoDB Update Activity (Set brew to ready, attach loot)
+        # 4. Execute database Update Activity (Set brew to ready, attach loot)
         await workflow.execute_activity(
             update_brew_ready_activity,
             args=[{

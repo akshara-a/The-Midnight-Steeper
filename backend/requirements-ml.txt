@@ -1,0 +1,4 @@
+# Optional: real TabPFN rarity classification (needs ~2GB RAM; not for Render free tier).
+# Pretrained weights download automatically; no API key or token is required.
+-r requirements.txt
+tabpfn>=2.0.0
