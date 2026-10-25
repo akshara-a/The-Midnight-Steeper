@@ -17,6 +17,7 @@ export interface DurationTier {
 }
 
 export const DURATION_TIERS: DurationTier[] = [
+  { key: 'demo', label: '⚡ Demo', seconds: 10, baseTarget: 3 },
   { key: 'quick', label: 'Quick', seconds: 120, baseTarget: 2 },
   { key: '1h', label: '1 Hour', seconds: 3600, baseTarget: 2 },
   { key: '4h', label: '4 Hours', seconds: 14400, baseTarget: 3 },

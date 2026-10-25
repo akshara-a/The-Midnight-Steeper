@@ -32,6 +32,7 @@ export const iconFor = (name: string) => ALL_INGREDIENTS.find((i) => i.name === 
 
 /** Nap lengths map to the server's steep tiers (quick, 1h, 4h, 12h). */
 export const NAPS = [
+  { key: 'demo', label: '⚡ Judge Demo', sub: '10 seconds', icon: '⚡' },
   { key: 'quick', label: 'Tiny Nap', sub: '2 minutes', icon: '😴' },
   { key: '1h', label: 'Cat Nap', sub: '1 hour', icon: '🐱' },
   { key: '4h', label: 'Afternoon Nap', sub: '4 hours', icon: '☀️' },

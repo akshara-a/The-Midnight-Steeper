@@ -1,10 +1,18 @@
 /**
  * Procedural Web Audio API sound synthesizer for The Midnight Steeper.
- * Generates retro-arcade, pet-care and mini-game sounds directly in the browser with 0 external assets.
+ * Generates retro-arcade, pet-care, mini-game sounds and continuous generative lofi sleep soundscapes
+ * directly in the browser with 0 external assets.
  */
 class SoundEngine {
   private ctx: AudioContext | null = null;
   public enabled: boolean = true;
+
+  // Soundscape state
+  private soundscapeActive: boolean = false;
+  private soundscapeMode: 'off' | 'rain' | 'breeze' | 'chimes' = 'off';
+  private soundscapeGain: GainNode | null = null;
+  private soundscapeNodes: (AudioNode | { stop: () => void; disconnect: () => void })[] = [];
+  private soundscapeInterval: ReturnType<typeof setInterval> | null = null;
 
   private getContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
@@ -306,6 +314,136 @@ class SoundEngine {
     [523.25, 659.25, 783.99, 1046.5].forEach((f, idx) => {
       this.blip(f, f, idx * 0.08, 0.3, 0.18, 'triangle');
     });
+  }
+
+  // ==========================================
+  // PROCEDURAL GENERATIVE LOFI / WHITE NOISE SOUNDSCAPE
+  // ==========================================
+
+  /** Generates a loopable pink noise buffer using the Paul Kellet algorithm */
+  private createPinkNoiseBuffer(ctx: AudioContext, seconds = 4): AudioBuffer {
+    const bufferSize = ctx.sampleRate * seconds;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + white * 0.0555179;
+      b1 = 0.99332 * b1 + white * 0.0750759;
+      b2 = 0.96900 * b2 + white * 0.1538520;
+      b3 = 0.86650 * b3 + white * 0.3104856;
+      b4 = 0.55000 * b4 + white * 0.5329522;
+      b5 = -0.7616 * b5 - white * 0.0168980;
+      data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+      b6 = white * 0.115926;
+    }
+    return buffer;
+  }
+
+  /** Starts a procedural soothing sleep soundscape: 'rain' | 'breeze' | 'chimes' */
+  startSleepSoundscape(mode: 'rain' | 'breeze' | 'chimes' = 'rain') {
+    if (!this.enabled) return;
+    this.stopSleepSoundscape();
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    this.soundscapeMode = mode;
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0.001, ctx.currentTime);
+    masterGain.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + 1.2);
+    masterGain.connect(ctx.destination);
+    this.soundscapeGain = masterGain;
+
+    if (mode === 'rain' || mode === 'breeze') {
+      const noiseBuffer = this.createPinkNoiseBuffer(ctx, 4);
+      const noiseSource = ctx.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+      noiseSource.loop = true;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(mode === 'rain' ? 440 : 220, ctx.currentTime);
+
+      // Slow breathing rate modulation (0.12 Hz LFO simulates relaxed sloth breathing)
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.type = 'sine';
+      lfo.frequency.setValueAtTime(mode === 'rain' ? 0.2 : 0.09, ctx.currentTime);
+      lfoGain.gain.setValueAtTime(mode === 'rain' ? 70 : 110, ctx.currentTime);
+      lfo.connect(lfoGain);
+      lfoGain.connect(filter.frequency);
+      lfo.start();
+
+      noiseSource.connect(filter);
+      filter.connect(masterGain);
+      noiseSource.start();
+
+      this.soundscapeNodes.push(noiseSource, lfo);
+    }
+
+    if (mode === 'chimes' || mode === 'breeze') {
+      // Warm, calming lofi drone chord: F3, C4, E4 (cozy restful interval)
+      const freqs = [174.61, 261.63, 329.63];
+      freqs.forEach((freq) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        g.gain.setValueAtTime(0.02, ctx.currentTime);
+        osc.connect(g);
+        g.connect(masterGain);
+        osc.start();
+        this.soundscapeNodes.push(osc);
+      });
+    }
+
+    if (mode === 'chimes') {
+      // Occasional random gentle wind chime note
+      const chimeNotes = [523.25, 659.25, 783.99, 1046.5, 1318.51];
+      this.soundscapeInterval = setInterval(() => {
+        if (!this.soundscapeActive) return;
+        const note = chimeNotes[Math.floor(Math.random() * chimeNotes.length)];
+        this.blip(note, note, 0, 1.8, 0.045, 'sine');
+      }, 3600);
+    }
+
+    this.soundscapeActive = true;
+  }
+
+  /** Stops and fades out the sleep soundscape */
+  stopSleepSoundscape() {
+    this.soundscapeActive = false;
+    this.soundscapeMode = 'off';
+    if (this.soundscapeInterval) {
+      clearInterval(this.soundscapeInterval);
+      this.soundscapeInterval = null;
+    }
+    if (this.soundscapeGain && this.ctx) {
+      const now = this.ctx.currentTime;
+      try {
+        this.soundscapeGain.gain.setValueAtTime(this.soundscapeGain.gain.value, now);
+        this.soundscapeGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+      } catch {}
+    }
+    const nodesToStop = [...this.soundscapeNodes];
+    this.soundscapeNodes = [];
+    setTimeout(() => {
+      nodesToStop.forEach((node) => {
+        try {
+          if ('stop' in node && typeof (node as { stop: () => void }).stop === 'function') {
+            (node as { stop: () => void }).stop();
+          }
+          if ('disconnect' in node && typeof (node as { disconnect: () => void }).disconnect === 'function') {
+            (node as { disconnect: () => void }).disconnect();
+          }
+        } catch {}
+      });
+      this.soundscapeGain = null;
+    }, 700);
+  }
+
+  getSoundscapeMode(): 'off' | 'rain' | 'breeze' | 'chimes' {
+    return this.soundscapeActive ? this.soundscapeMode : 'off';
   }
 }
 

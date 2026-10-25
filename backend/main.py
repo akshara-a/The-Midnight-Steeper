@@ -225,6 +225,24 @@ async def start_brew(
 
     return {"message": "Brew started successfully", "brew": brew_doc}
 
+@app.post("/api/brew/fast-forward")
+async def fast_forward_brew(player_id: str = Depends(get_player_id)):
+    """
+    Judge / Demo Fast-Forward. Instantly completes the active brew.
+    """
+    now = datetime.now(timezone.utc) - timedelta(seconds=1)
+    brew = await brews_collection.find_one({"player_id": player_id, "status": "brewing"})
+    if not brew:
+        return {"message": "No active brewing session found", "brew": None}
+
+    await brews_collection.update_one(
+        {"_id": brew["_id"]},
+        {"$set": {"ready_time": now.isoformat()}}
+    )
+    brew["ready_time"] = now.isoformat()
+    brew.pop("_id", None)
+    return {"message": "Fast-forwarded successfully", "brew": brew}
+
 @app.post("/api/brew/claim")
 async def claim_brew(
     player_id: str = Depends(get_player_id),

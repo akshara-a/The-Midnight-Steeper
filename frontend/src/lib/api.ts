@@ -99,3 +99,9 @@ export async function claimBrew(brewId?: string): Promise<{
     body: JSON.stringify({ brew_id: brewId }),
   });
 }
+
+export async function fastForwardBrew(): Promise<{ message: string; brew?: BrewItem }> {
+  return apiFetch('/api/brew/fast-forward', {
+    method: 'POST',
+  });
+}

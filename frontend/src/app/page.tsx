@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { fetchMe, fetchCurrentBrew, startBrew, claimBrew, UserProfile, BrewItem, Loot } from '@/lib/api';
+import { fetchMe, fetchCurrentBrew, startBrew, claimBrew, fastForwardBrew, UserProfile, BrewItem, Loot } from '@/lib/api';
 import { getPlayerId } from '@/lib/identity';
 import { sounds } from '@/lib/soundEffects';
 import { speech } from '@/lib/speech';
@@ -118,7 +118,7 @@ export default function SunnyTeaParty() {
   const [step, setStep] = useState(1);
   const [leaf, setLeaf] = useState<Ingredient>(LEAVES[0]);
   const [treat, setTreat] = useState<Ingredient>(TREATS[0]);
-  const [napKey, setNapKey] = useState('quick');
+  const [napKey, setNapKey] = useState('demo');
   const [now, setNow] = useState(() => Date.now());
   const [tuck, setTuck] = useState<null | 'drink' | 'bed'>(null);
   const [isStarting, setIsStarting] = useState(false);
@@ -132,6 +132,10 @@ export default function SunnyTeaParty() {
   const [showMiniGames, setShowMiniGames] = useState(false);
   const [showTalking, setShowTalking] = useState(false);
   const [extraXP, setExtraXP] = useState(0);
+
+  // Bedtime procedural soundscape & demo fast-forward
+  const [soundscape, setSoundscape] = useState<'off' | 'rain' | 'breeze' | 'chimes'>('rain');
+  const [isFastForwarding, setIsFastForwarding] = useState(false);
 
   const [bubble, setBubble] = useState<{ id: number; text: string } | null>(null);
   const [talking, setTalking] = useState(false);
@@ -224,6 +228,18 @@ export default function SunnyTeaParty() {
     }
   }, [isBedtimeActive]);
 
+  // Manage generative procedural sleep soundscape (rain, breeze, chimes)
+  useEffect(() => {
+    if (isSleeping && soundscape !== 'off' && sfxOn) {
+      sounds.startSleepSoundscape(soundscape);
+    } else {
+      sounds.stopSleepSoundscape();
+    }
+    return () => {
+      sounds.stopSleepSoundscape();
+    };
+  }, [isSleeping, soundscape, sfxOn]);
+
   // Countdown until Sunny wakes up, derived from a clock that ticks once a second while napping
   useEffect(() => {
     if (!isBrewing) return;
@@ -236,6 +252,7 @@ export default function SunnyTeaParty() {
 
   useEffect(() => {
     if (!timeUp) return;
+    sounds.stopSleepSoundscape();
     sounds.playChime();
     say('Good morning! The tea party is ready!');
     loadData();
@@ -427,6 +444,22 @@ export default function SunnyTeaParty() {
     }
   };
 
+  const handleFastForward = async () => {
+    if (isFastForwarding) return;
+    setIsFastForwarding(true);
+    sounds.playClick();
+    try {
+      await fastForwardBrew();
+      sounds.stopSleepSoundscape();
+      await loadData();
+      say('⚡ Fast-forward complete! Sunny is ready to wake up!');
+    } catch (err) {
+      console.warn('Could not fast forward:', err);
+    } finally {
+      setIsFastForwarding(false);
+    }
+  };
+
   const handleClaim = async (e: React.MouseEvent) => {
     if (isClaiming) return;
     setIsClaiming(true);
@@ -514,6 +547,17 @@ export default function SunnyTeaParty() {
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {isBrewing && (
+              <button
+                onClick={handleFastForward}
+                disabled={isFastForwarding}
+                aria-label="Fast-Forward Steep for demo"
+                className="btn-chunky yellow h-11 sm:h-12 px-2.5 sm:px-3 text-xs sm:text-sm font-bold flex items-center gap-1 animate-pulse"
+                title="⚡ Fast-forward sleep timer (Judge Demo Mode)"
+              >
+                ⚡ <span className="hidden sm:inline">{isFastForwarding ? 'Skipping...' : 'Fast-Forward'}</span>
+              </button>
+            )}
             <button
               onClick={() => setVoiceOn((v) => !v)}
               aria-label={voiceOn ? 'Turn Sunny’s voice off' : 'Turn Sunny’s voice on'}
@@ -760,7 +804,7 @@ export default function SunnyTeaParty() {
 
             {step === 3 && (
               <>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {NAPS.map((n) => (
                     <button
                       key={n.key}
@@ -786,7 +830,9 @@ export default function SunnyTeaParty() {
                   <div className="mt-1 text-2xl tracking-wide">
                     {FRIENDS.slice(0, target).map((f) => f.icon).join(' ')}
                   </div>
-                  <div className="mt-1 text-sm opacity-80">Longer naps and yummier mixes bring more friends.</div>
+                  <div className="mt-1 text-sm opacity-80">
+                    {napKey === 'demo' ? '⚡ Judge Demo Mode: full steep runs in 10 seconds!' : 'Longer naps and yummier mixes bring more friends.'}
+                  </div>
                 </div>
               </>
             )}
@@ -828,6 +874,50 @@ export default function SunnyTeaParty() {
               <div className="text-5xl font-bold tracking-wide">{formatTimer(remainingSeconds)}</div>
               <div className="text-sm font-semibold opacity-80">{Math.floor(brewProgress * 100)}% asleep 💤</div>
             </ProgressRing>
+
+            {/* Judge Demo Fast-Forward Button */}
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={handleFastForward}
+                disabled={isFastForwarding}
+                className="btn-chunky yellow px-5 py-2.5 text-sm sm:text-base font-bold flex items-center gap-2 hover:scale-105"
+                title="Fast-forwards sleep timer so judges can immediately test the morning surprise"
+              >
+                ⚡ {isFastForwarding ? 'Fast-Forwarding...' : 'Fast-Forward Steep (Judge Demo)'}
+              </button>
+            </div>
+
+            {/* Bedtime Generative Sleep Soundscape Machine */}
+            <div className="mt-4 rounded-2xl bg-indigo-900/40 border-2 border-indigo-300/40 p-3 text-center">
+              <div className="text-xs font-bold uppercase tracking-wider text-indigo-200 mb-2 flex items-center justify-center gap-1.5">
+                <span>✨</span>
+                <span>Procedural Lofi Sleep Soundscape</span>
+                <span>✨</span>
+              </div>
+              <div className="flex flex-wrap justify-center gap-1.5">
+                {[
+                  { key: 'rain', label: '🌧️ Gentle Rain' },
+                  { key: 'breeze', label: '🍃 Forest Breeze' },
+                  { key: 'chimes', label: '🎶 Twilight Chimes' },
+                  { key: 'off', label: '🔇 Off' },
+                ].map((mode) => (
+                  <button
+                    key={mode.key}
+                    onClick={() => {
+                      sounds.playClick();
+                      setSoundscape(mode.key as 'off' | 'rain' | 'breeze' | 'chimes');
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition ${
+                      soundscape === mode.key
+                        ? 'bg-sky-400 text-sky-950 shadow-md scale-105'
+                        : 'bg-white/20 text-white/90 hover:bg-white/30'
+                    }`}
+                  >
+                    {mode.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <div className="mt-5">
               <div className="font-bold text-lg">
@@ -1015,8 +1105,18 @@ export default function SunnyTeaParty() {
 
       {/* ---------- GROWN-UPS ---------- */}
       {showGrownups && (
-        <Modal title="For grown-ups 👪" onClose={() => setShowGrownups(false)} wide>
+        <Modal title="For grown-ups & Hackathon Judges 👪" onClose={() => setShowGrownups(false)} wide>
           <div className="space-y-4 text-base font-medium leading-relaxed">
+            <div className="p-3 bg-amber-100 rounded-2xl border-2 border-amber-300 text-amber-950">
+              <h3 className="font-bold text-lg flex items-center gap-1.5">
+                <span>⚡</span>
+                <span>Judge Demo Mode</span>
+              </h3>
+              <p className="text-sm mt-1">
+                For quick hackathon evaluation: Select <strong>⚡ Judge Demo (10 seconds)</strong> in Step 3 when picking nap length, or tap the <strong>⚡ Fast-Forward</strong> button while Sunny sleeps to test the wake-up, animal friend arrivals, and AI prize loot in seconds!
+              </p>
+            </div>
+
             <div>
               <h3 className="font-bold text-lg">Talking Pet & Bedtime Game for Kids</h3>
               <p>

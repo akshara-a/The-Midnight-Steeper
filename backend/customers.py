@@ -13,6 +13,7 @@ from typing import List, Optional
 
 # key -> (duration seconds, base customer target)
 DURATION_TIERS = {
+    "demo": (10, 3),
     "quick": (120, 2),
     "1h": (3600, 2),
     "4h": (14400, 3),
