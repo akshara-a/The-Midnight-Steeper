@@ -151,6 +151,8 @@ export default function SunnyTeaParty() {
   const [sfxOn, setSfxOn] = useState(true);
   const [showBook, setShowBook] = useState(false);
   const [selectedSticker, setSelectedSticker] = useState<Loot | null>(null);
+  const [showCrystalModal, setShowCrystalModal] = useState(false);
+  const [showAttributionModal, setShowAttributionModal] = useState(false);
   const [showGrownups, setShowGrownups] = useState(false);
   const [brain, setBrain] = useState<{ status: BrainStatus; pct: number }>({ status: 'off', pct: 0 });
 
@@ -562,6 +564,17 @@ export default function SunnyTeaParty() {
               </button>
             )}
             <button
+              onClick={() => {
+                sounds.playClick();
+                setShowCrystalModal(true);
+              }}
+              aria-label="TabPFN AI Alchemist Forecast"
+              className="btn-chunky purple w-11 h-11 sm:w-12 sm:h-12 text-xl flex items-center justify-center hover:scale-105"
+              title="🔮 TabPFN AI Alchemist Forecast & Odds"
+            >
+              🔮
+            </button>
+            <button
               onClick={() => setVoiceOn((v) => !v)}
               aria-label={voiceOn ? 'Turn Sunny’s voice off' : 'Turn Sunny’s voice on'}
               className={`btn-chunky ${voiceOn ? 'green' : 'purple'} w-11 h-11 sm:w-12 sm:h-12 text-xl flex items-center justify-center`}
@@ -837,18 +850,23 @@ export default function SunnyTeaParty() {
                     {napKey === 'demo' ? '⚡ Judge Demo Mode: full steep runs in 10 seconds!' : 'Longer naps and yummier mixes bring more friends.'}
                   </div>
                 </div>
+
+                {/* TabPFN Alchemist Forecast Popup Trigger */}
+                <div className="mt-3.5 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sounds.playClick();
+                      setShowCrystalModal(true);
+                    }}
+                    className="btn-chunky purple py-2 px-4 text-xs sm:text-sm font-bold flex items-center gap-2 hover:scale-105"
+                  >
+                    <span className="text-lg">🔮</span>
+                    <span>Peek at TabPFN Forecast</span>
+                  </button>
+                </div>
               </>
             )}
-
-            {/* Live TabPFN Alchemist Crystal Ball (Option A & B) */}
-            <AlchemistCrystalBall
-              leafName={leaf.name}
-              treatName={treat.name}
-              napKey={napKey}
-              streak={streak}
-              careXP={extraXP}
-              onSelectNap={(key) => setNapKey(key)}
-            />
 
             <div className="mt-5 flex items-center justify-between gap-3">
               {step > 1 ? (
@@ -1046,15 +1064,22 @@ export default function SunnyTeaParty() {
                   </p>
                 </div>
 
-                {/* TabPFN Feature Attribution Card (Explainable AI & Sensory Profile) */}
-                <TabPFNAttributionCard loot={lootModal} />
-
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
                   <button
                     onClick={() => speech.speak(note, { onStart: () => setTalking(true), onEnd: () => setTalking(false) })}
                     className="btn-chunky blue px-5 py-3 text-lg"
                   >
                     🔊 Hear it again
+                  </button>
+                  <button
+                    onClick={() => {
+                      sounds.playClick();
+                      setShowAttributionModal(true);
+                    }}
+                    className="btn-chunky purple px-4 py-3 text-base flex items-center gap-1.5"
+                  >
+                    <span>🔬</span>
+                    <span>AI Attribution</span>
                   </button>
                 </div>
               </div>
@@ -1088,22 +1113,7 @@ export default function SunnyTeaParty() {
       {/* ---------- STICKER BOOK ---------- */}
       {showBook && (
         <Modal title="My sticker book 📖" onClose={() => setShowBook(false)} wide>
-          {selectedSticker ? (
-            <div className="space-y-4">
-              <button
-                onClick={() => setSelectedSticker(null)}
-                className="btn-chunky blue px-4 py-2 text-sm font-bold flex items-center gap-1.5"
-              >
-                ← Back to Sticker Collection
-              </button>
-              <div className="text-center p-4 bg-white/80 rounded-3xl border-4 border-indigo-200">
-                <div className="text-5xl">{comboIcons(selectedSticker.ingredients) || '🍵'}</div>
-                <div className="text-xl font-bold mt-2">{selectedSticker.item_name}</div>
-                <div className="text-sm font-semibold opacity-80 mt-1 italic">&ldquo;{selectedSticker.review}&rdquo;</div>
-              </div>
-              <TabPFNAttributionCard loot={selectedSticker} />
-            </div>
-          ) : invCount === 0 ? (
+          {invCount === 0 ? (
             <p className="text-center text-lg font-medium py-8">
               No stickers yet! Make your first tea with Sunny to get one. 🦥
             </p>
@@ -1191,6 +1201,51 @@ export default function SunnyTeaParty() {
                 {sfxOn ? '🎵 Sounds on' : '🔕 Sounds off'}
               </button>
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ---------- TABPFN AI ALCHEMIST MODAL ---------- */}
+      {showCrystalModal && (
+        <Modal title="🔮 TabPFN AI Alchemist Lab" onClose={() => setShowCrystalModal(false)} wide>
+          <div className="space-y-3">
+            <p className="text-xs sm:text-sm text-[#3b2a63] font-medium leading-relaxed">
+              Explore live in-context Bayesian probability distributions and multi-task sensory flavor regression predicted by <strong>TabPFN</strong> for your current recipe:
+            </p>
+            <AlchemistCrystalBall
+              leafName={leaf.name}
+              treatName={treat.name}
+              napKey={napKey}
+              streak={streak}
+              careXP={extraXP}
+              onSelectNap={(key) => setNapKey(key)}
+            />
+          </div>
+        </Modal>
+      )}
+
+      {/* ---------- TABPFN ATTRIBUTION POPUP MODAL (Loot claim) ---------- */}
+      {showAttributionModal && lootModal && (
+        <Modal title="🔬 TabPFN AI Attribution & Flavors" onClose={() => setShowAttributionModal(false)} wide>
+          <div className="space-y-3">
+            <p className="text-xs sm:text-sm text-[#3b2a63] font-medium leading-relaxed">
+              Transparent Explainable AI (XAI) feature attribution breakdown for your <strong>{lootModal.item_name}</strong>:
+            </p>
+            <TabPFNAttributionCard loot={lootModal} defaultExpanded={true} />
+          </div>
+        </Modal>
+      )}
+
+      {/* ---------- TABPFN STICKER DETAIL POPUP MODAL (Sticker book) ---------- */}
+      {selectedSticker && (
+        <Modal title={`🍵 ${selectedSticker.item_name}`} onClose={() => setSelectedSticker(null)} wide>
+          <div className="space-y-3">
+            <div className="text-center p-3 bg-white/80 rounded-2xl border-2 border-indigo-200">
+              <div className="text-4xl">{comboIcons(selectedSticker.ingredients) || '🍵'}</div>
+              <div className="text-base font-bold mt-1 text-[#3b2a63]">{selectedSticker.item_name}</div>
+              <div className="text-xs font-semibold opacity-80 mt-0.5 italic">&ldquo;{selectedSticker.review}&rdquo;</div>
+            </div>
+            <TabPFNAttributionCard loot={selectedSticker} defaultExpanded={true} />
           </div>
         </Modal>
       )}
