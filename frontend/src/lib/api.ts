@@ -1,4 +1,7 @@
 import { getPlayerId } from './identity';
+import type { SensoryProfile, TabPFNAttributions } from './tabpfn';
+
+export type { SensoryProfile, TabPFNAttributions };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -12,6 +15,11 @@ export interface Loot {
   customers_target?: number;
   quota_met?: boolean;
   bonus_xp?: number;
+  sensory?: SensoryProfile;
+  sleepiness_score?: number;
+  attributions?: TabPFNAttributions;
+  probabilities?: { common: number; rare: number; legendary: number };
+  mystery_index?: number;
 }
 
 export interface UserProfile {
@@ -49,59 +57,43 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
     headers.set('X-Player-ID', playerId);
   }
 
-  if (options.body && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json');
-  }
-
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
-
+  const response = await fetch(url, { credentials: 'include', ...options, headers });
   if (!response.ok) {
-    let errorDetail = 'API request failed';
-    try {
-      const errorJson = await response.json();
-      errorDetail = errorJson.detail || errorJson.message || errorDetail;
-    } catch {
-      errorDetail = `${response.status} ${response.statusText}`;
-    }
-    throw new Error(errorDetail);
+    const errorBody = await response.text();
+    throw new Error(`API Error ${response.status}: ${errorBody}`);
   }
-
   return response.json();
 }
 
-export async function fetchMe(): Promise<UserProfile> {
+export async function fetchProfile(): Promise<UserProfile> {
   return apiFetch<UserProfile>('/api/me');
 }
+
+export const fetchMe = fetchProfile;
 
 export async function fetchCurrentBrew(): Promise<{ brew: BrewItem | null }> {
   return apiFetch<{ brew: BrewItem | null }>('/api/brew/current');
 }
 
-export async function startBrew(
-  ingredients: string[],
-  durationKey?: string
-): Promise<{ message: string; brew: BrewItem }> {
+export async function startBrew(ingredients: string[], durationKey?: string): Promise<{ message: string; brew: BrewItem }> {
   return apiFetch<{ message: string; brew: BrewItem }>('/api/brew/start', {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ingredients, duration_key: durationKey }),
   });
 }
 
-export async function claimBrew(brewId?: string): Promise<{
-  message: string;
-  loot: Loot;
-}> {
-  return apiFetch('/api/brew/claim', {
+export async function claimBrew(brewId?: string): Promise<{ message: string; loot: Loot }> {
+  return apiFetch<{ message: string; loot: Loot }>('/api/brew/claim', {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ brew_id: brewId }),
   });
 }
 
-export async function fastForwardBrew(): Promise<{ message: string; brew?: BrewItem }> {
-  return apiFetch('/api/brew/fast-forward', {
+export async function fastForwardBrew(): Promise<{ message: string; brew: BrewItem | null }> {
+  return apiFetch<{ message: string; brew: BrewItem | null }>('/api/brew/fast-forward', {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
   });
 }

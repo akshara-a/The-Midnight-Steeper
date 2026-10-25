@@ -28,8 +28,8 @@ logger = logging.getLogger("main_api")
 
 app = FastAPI(
     title="The Midnight Steeper Online API",
-    version="1.1.0",
-    description="Online zero-auth API for The Midnight Steeper"
+    version="1.2.0",
+    description="Online zero-auth API with TabPFN Multi-Task AI for The Midnight Steeper"
 )
 
 # CORS configuration allowing online web clients
@@ -48,6 +48,12 @@ BREW_DURATION_SECONDS = int(os.getenv("BREW_DURATION_SECONDS", "15"))
 class BrewStartRequest(BaseModel):
     ingredients: List[str]
     duration_key: Optional[str] = None
+
+class TabPFNPredictRequest(BaseModel):
+    ingredients: List[str]
+    duration_key: Optional[str] = "demo"
+    streak: Optional[int] = 1
+    care_xp: Optional[int] = 0
 
 async def get_temporal_client() -> Optional[Client]:
     if not TEMPORAL_HOST:
@@ -73,10 +79,11 @@ async def _resilient_cloud_steep_pipeline(
     """
     logger.info(f"Resilient steep pipeline active for brew {brew_id} ({duration_seconds}s timer)...")
     await asyncio.sleep(duration_seconds)
-    logger.info(f"Steep complete for {brew_id}. Generating AI loot...")
+    logger.info(f"Steep complete for {brew_id}. Generating AI loot with TabPFN multi-task regression...")
 
     try:
-        base_rarity = await determine_rarity_activity(player_id, ingredients, duration_seconds, brew_id)
+        tabpfn_res = await determine_rarity_activity(player_id, ingredients, duration_seconds, brew_id)
+        base_rarity = tabpfn_res.get("rarity") if isinstance(tabpfn_res, dict) else str(tabpfn_res)
         rarity = adjust_rarity(base_rarity, customers_served, customers_target)
         review = await generate_review_activity(rarity, ingredients, brew_id)
         logger.info(f"Review generated for brew {brew_id} (Gemma / fallback): {review}")
@@ -91,7 +98,12 @@ async def _resilient_cloud_steep_pipeline(
             "customers_served": customers_served,
             "customers_target": customers_target,
             "quota_met": customers_served >= customers_target,
-            "bonus_xp": bonus_xp(customers_served, customers_target)
+            "bonus_xp": bonus_xp(customers_served, customers_target),
+            "sensory": tabpfn_res.get("sensory") if isinstance(tabpfn_res, dict) else None,
+            "sleepiness_score": tabpfn_res.get("sleepiness_score") if isinstance(tabpfn_res, dict) else None,
+            "attributions": tabpfn_res.get("attributions") if isinstance(tabpfn_res, dict) else None,
+            "probabilities": tabpfn_res.get("probabilities") if isinstance(tabpfn_res, dict) else None,
+            "mystery_index": tabpfn_res.get("mystery_index") if isinstance(tabpfn_res, dict) else None,
         }
 
         await update_brew_ready_activity({
@@ -99,7 +111,7 @@ async def _resilient_cloud_steep_pipeline(
             "player_id": player_id,
             "loot": loot
         })
-        logger.info(f"Brew {brew_id} successfully finalized in database.")
+        logger.info(f"Brew {brew_id} successfully finalized in database with TabPFN sensory vector.")
     except Exception as e:
         logger.error(f"Error executing resilient cloud pipeline: {e}")
 
@@ -110,7 +122,7 @@ async def root():
     return {
         "status": "online",
         "game": "The Midnight Steeper",
-        "mode": "Zero-Auth Cloud Engine"
+        "mode": "Zero-Auth Cloud Engine with TabPFN Multi-Task AI"
     }
 
 @app.get("/api/me")
@@ -224,6 +236,25 @@ async def start_brew(
         )
 
     return {"message": "Brew started successfully", "brew": brew_doc}
+
+@app.post("/api/tabpfn/predict")
+async def predict_tabpfn(
+    request: TabPFNPredictRequest,
+    player_id: str = Depends(get_player_id)
+):
+    """
+    Live TabPFN Alchemist Crystal Ball prediction.
+    Calculates Bayesian posterior probabilities, multi-task sensory profile,
+    sleepiness index, and feature attributions.
+    """
+    dur_seconds = DURATION_TIERS.get(request.duration_key or "demo", (10, 3))[0]
+    result = await determine_rarity_activity(
+        player_id=player_id,
+        ingredients=request.ingredients,
+        duration_seconds=dur_seconds,
+        seed=f"live_{player_id}"
+    )
+    return result
 
 @app.post("/api/brew/fast-forward")
 async def fast_forward_brew(player_id: str = Depends(get_player_id)):

@@ -16,6 +16,7 @@ interface SlothPet3DProps {
   /** Increment to trigger a poke reaction */
   pokeCount: number;
   onPoke: () => void;
+  starlightGlow?: number;
 }
 
 const damp = THREE.MathUtils.damp;
@@ -33,7 +34,7 @@ const DECOR: [number, number, number, 'ico' | 'octa' | 'torus' | 'bubble', numbe
   [3.5, 1.0, -1.2, 'bubble', 2, 0.3],
 ];
 
-function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps) {
+function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: SlothPet3DProps) {
   const root = useRef<THREE.Group>(null);
   const body = useRef<THREE.Mesh>(null);
   const head = useRef<THREE.Group>(null);
@@ -463,11 +464,11 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps
       ))}
 
       <Sparkles
-        count={mood === 'sleeping' ? 28 : (mood === 'bathing' ? 60 : 45)}
+        count={starlightGlow && starlightGlow > 60 ? 75 : (mood === 'sleeping' ? 28 : (mood === 'bathing' ? 60 : 45))}
         scale={[7, 5, 3]}
-        size={mood === 'sleeping' ? 3 : (mood === 'bathing' ? 6 : 5)}
+        size={starlightGlow && starlightGlow > 75 ? 6 : (mood === 'sleeping' ? 3 : (mood === 'bathing' ? 6 : 5))}
         speed={mood === 'bathing' ? 0.7 : 0.4}
-        color={mood === 'sleeping' ? '#cfe0ff' : (mood === 'bathing' ? '#a5f3fc' : '#fff1a8')}
+        color={starlightGlow && starlightGlow > 70 ? '#fde047' : (mood === 'sleeping' ? '#cfe0ff' : (mood === 'bathing' ? '#a5f3fc' : '#fff1a8'))}
       />
     </>
   );

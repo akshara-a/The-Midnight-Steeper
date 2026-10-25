@@ -28,6 +28,8 @@ import BathMode from '@/components/BathMode';
 import SnackMode from '@/components/SnackMode';
 import MiniGamesModal from '@/components/MiniGamesModal';
 import TalkingSlothModal from '@/components/TalkingSlothModal';
+import { AlchemistCrystalBall } from '@/components/AlchemistCrystalBall';
+import { TabPFNAttributionCard } from '@/components/TabPFNAttributionCard';
 import type { PetMood } from '@/components/SlothPet3D';
 
 const SlothPet3D = dynamic(() => import('@/components/SlothPet3D'), {
@@ -148,6 +150,7 @@ export default function SunnyTeaParty() {
   const [voiceOn, setVoiceOn] = useState(true);
   const [sfxOn, setSfxOn] = useState(true);
   const [showBook, setShowBook] = useState(false);
+  const [selectedSticker, setSelectedSticker] = useState<Loot | null>(null);
   const [showGrownups, setShowGrownups] = useState(false);
   const [brain, setBrain] = useState<{ status: BrainStatus; pct: number }>({ status: 'off', pct: 0 });
 
@@ -601,7 +604,7 @@ export default function SunnyTeaParty() {
             pointerRef.current = { x: e.clientX, y: e.clientY };
           }}
         >
-          <SlothPet3D mood={mood} furColor={shownLeaf.color} accentColor={shownTreat.color} pokeCount={pokeCount} onPoke={onPoke} />
+          <SlothPet3D mood={mood} furColor={shownLeaf.color} accentColor={shownTreat.color} pokeCount={pokeCount} onPoke={onPoke} starlightGlow={currentBrew?.loot?.sensory?.starlight_glow ?? (lootModal?.sensory?.starlight_glow ?? (leaf.name === 'Moon Mint' || treat.name === 'Star Sugar' ? 85 : 50))} />
 
           {bubble && (
             <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[88%] max-w-md z-20 pointer-events-none">
@@ -837,6 +840,16 @@ export default function SunnyTeaParty() {
               </>
             )}
 
+            {/* Live TabPFN Alchemist Crystal Ball (Option A & B) */}
+            <AlchemistCrystalBall
+              leafName={leaf.name}
+              treatName={treat.name}
+              napKey={napKey}
+              streak={streak}
+              careXP={extraXP}
+              onSelectNap={(key) => setNapKey(key)}
+            />
+
             <div className="mt-5 flex items-center justify-between gap-3">
               {step > 1 ? (
                 <button onClick={() => goStep(step - 1)} className="btn-chunky blue px-5 py-3 text-lg">
@@ -1033,6 +1046,9 @@ export default function SunnyTeaParty() {
                   </p>
                 </div>
 
+                {/* TabPFN Feature Attribution Card (Explainable AI & Sensory Profile) */}
+                <TabPFNAttributionCard loot={lootModal} />
+
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
                   <button
                     onClick={() => speech.speak(note, { onStart: () => setTalking(true), onEnd: () => setTalking(false) })}
@@ -1072,7 +1088,22 @@ export default function SunnyTeaParty() {
       {/* ---------- STICKER BOOK ---------- */}
       {showBook && (
         <Modal title="My sticker book 📖" onClose={() => setShowBook(false)} wide>
-          {invCount === 0 ? (
+          {selectedSticker ? (
+            <div className="space-y-4">
+              <button
+                onClick={() => setSelectedSticker(null)}
+                className="btn-chunky blue px-4 py-2 text-sm font-bold flex items-center gap-1.5"
+              >
+                ← Back to Sticker Collection
+              </button>
+              <div className="text-center p-4 bg-white/80 rounded-3xl border-4 border-indigo-200">
+                <div className="text-5xl">{comboIcons(selectedSticker.ingredients) || '🍵'}</div>
+                <div className="text-xl font-bold mt-2">{selectedSticker.item_name}</div>
+                <div className="text-sm font-semibold opacity-80 mt-1 italic">&ldquo;{selectedSticker.review}&rdquo;</div>
+              </div>
+              <TabPFNAttributionCard loot={selectedSticker} />
+            </div>
+          ) : invCount === 0 ? (
             <p className="text-center text-lg font-medium py-8">
               No stickers yet! Make your first tea with Sunny to get one. 🦥
             </p>
@@ -1085,16 +1116,16 @@ export default function SunnyTeaParty() {
                     key={`${item.item_name}-${idx}`}
                     onClick={() => {
                       sounds.playPop();
-                      speech.speak(item.review, { onStart: () => setTalking(true), onEnd: () => setTalking(false) });
+                      setSelectedSticker(item as Loot);
                     }}
                     className="rounded-3xl border-4 p-3 text-center bg-white/85 text-[#3b2a63] cursor-pointer hover:-rotate-1 transition"
                     style={{ borderColor: kid.color }}
-                    aria-label={`${kid.label} tea. Tap to hear the note.`}
+                    aria-label={`${kid.label} tea. Tap to view TabPFN sensory profile.`}
                   >
                     <div className="text-4xl">{comboIcons(item.ingredients) || '🍵'}</div>
                     <div className="font-bold">{kid.label}</div>
                     <div>{'⭐'.repeat(kid.stars)}</div>
-                    <div className="text-xs font-semibold opacity-70 mt-1">Tap to hear 🔊</div>
+                    <div className="text-xs font-semibold opacity-70 mt-1">🔬 View AI Profile</div>
                   </button>
                 );
               })}

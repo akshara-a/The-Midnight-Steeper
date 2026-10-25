@@ -30,14 +30,15 @@ class BrewWorkflow:
         await asyncio.sleep(duration_seconds)
         workflow.logger.info(f"Steeping complete for {brew_id}. Commencing loot generation...")
 
-        # 2. Execute TabPFN Activity (Rarity)
-        base_rarity = await workflow.execute_activity(
+        # 2. Execute TabPFN Activity (Rarity & Multi-Task Sensory)
+        tabpfn_res = await workflow.execute_activity(
             determine_rarity_activity,
             args=[player_id, ingredients, duration_seconds, brew_id],
             start_to_close_timeout=timedelta(seconds=120)
         )
+        base_rarity = tabpfn_res.get("rarity") if isinstance(tabpfn_res, dict) else str(tabpfn_res)
         rarity = adjust_rarity(base_rarity, customers_served, customers_target)
-        workflow.logger.info(f"Rarity classified: {rarity}")
+        workflow.logger.info(f"Rarity classified: {rarity} (base: {base_rarity})")
 
         # 3. Execute Gemma Activity (Review)
         review = await workflow.execute_activity(
@@ -58,7 +59,12 @@ class BrewWorkflow:
             "customers_served": customers_served,
             "customers_target": customers_target,
             "quota_met": customers_served >= customers_target,
-            "bonus_xp": bonus_xp(customers_served, customers_target)
+            "bonus_xp": bonus_xp(customers_served, customers_target),
+            "sensory": tabpfn_res.get("sensory") if isinstance(tabpfn_res, dict) else None,
+            "sleepiness_score": tabpfn_res.get("sleepiness_score") if isinstance(tabpfn_res, dict) else None,
+            "attributions": tabpfn_res.get("attributions") if isinstance(tabpfn_res, dict) else None,
+            "probabilities": tabpfn_res.get("probabilities") if isinstance(tabpfn_res, dict) else None,
+            "mystery_index": tabpfn_res.get("mystery_index") if isinstance(tabpfn_res, dict) else None,
         }
 
         # 4. Execute database Update Activity (Set brew to ready, attach loot)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/serverDb';
 import { adjustRarity, bonusXp } from '@/lib/customers';
 import { classifyRarity, generateTravelerReview } from '@/lib/serverAi';
+import { evaluateTabPFN } from '@/lib/tabpfn';
 
 export async function GET(req: NextRequest) {
   const playerId = req.headers.get('x-player-id')?.trim();
@@ -35,6 +36,14 @@ export async function GET(req: NextRequest) {
       const review = await generateTravelerReview(rarity, brew.ingredients, brew.brew_id);
       const teaName = `${rarity} ${brew.ingredients?.join(' & ')} Infusion`;
 
+      // Multi-task TabPFN evaluation (Sensory Vector, Sleepiness, Feature Attributions)
+      const tabpfnResult = evaluateTabPFN({
+        ingredients: brew.ingredients ?? [],
+        durationSeconds: brew.duration_seconds,
+        streak: consistency,
+        careXP: 25,
+      });
+
       const loot = {
         rarity,
         item_name: teaName,
@@ -45,6 +54,11 @@ export async function GET(req: NextRequest) {
         customers_target: target,
         quota_met: served >= target,
         bonus_xp: bonusXp(served, target),
+        sensory: tabpfnResult.sensory,
+        sleepiness_score: tabpfnResult.sleepiness_score,
+        attributions: tabpfnResult.attributions,
+        probabilities: tabpfnResult.probabilities,
+        mystery_index: tabpfnResult.mystery_index,
       };
 
       brew.status = 'ready';
