@@ -19,10 +19,15 @@ import {
   POKE_LINES,
   SLEEP_MUMBLES,
   FIFTH_POKE,
+  SnackItem,
 } from '@/lib/kidsContent';
 import { brainWasEnabled, brainReady, loadBrain, writeNote, BrainStatus } from '@/lib/browserAI';
 import Fireflies from '@/components/Fireflies';
 import ProgressRing from '@/components/ProgressRing';
+import BathMode from '@/components/BathMode';
+import SnackMode from '@/components/SnackMode';
+import MiniGamesModal from '@/components/MiniGamesModal';
+import TalkingSlothModal from '@/components/TalkingSlothModal';
 import type { PetMood } from '@/components/SlothPet3D';
 
 const SlothPet3D = dynamic(() => import('@/components/SlothPet3D'), {
@@ -121,6 +126,12 @@ export default function SunnyTeaParty() {
   const [lootModal, setLootModal] = useState<Loot | null>(null);
   const [noteOverride, setNoteOverride] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Talking Tom features state
+  const [petMode, setPetMode] = useState<'tea' | 'bath' | 'snack'>('tea');
+  const [showMiniGames, setShowMiniGames] = useState(false);
+  const [showTalking, setShowTalking] = useState(false);
+  const [extraXP, setExtraXP] = useState(0);
 
   const [bubble, setBubble] = useState<{ id: number; text: string } | null>(null);
   const [talking, setTalking] = useState(false);
@@ -257,17 +268,18 @@ export default function SunnyTeaParty() {
   const shownTreat = isIdle ? treat : (TREATS.find((t) => t.name === currentBrew?.ingredients?.[1]) ?? treat);
 
   let mood: PetMood = 'idle';
-  if (tuck === 'drink') mood = 'eating';
+  if (tuck === 'drink' || petMode === 'snack') mood = 'eating';
+  else if (petMode === 'bath') mood = 'bathing';
   else if (tuck === 'bed' || isBrewing) mood = 'sleeping';
   else if (talking) mood = 'talking';
   else if (isReady) mood = 'happy';
   const night = mood === 'sleeping';
 
-  // Level and stars
+  // Level and stars including mini-games and care rewards
   const invCount = user?.inventory?.length ?? 0;
   const streak = user?.consistency_score ?? 1;
   const bonusTotal = (user?.inventory ?? []).reduce((sum, i) => sum + (i.bonus_xp ?? 0), 0);
-  const totalXP = invCount * 250 + streak * 100 + bonusTotal;
+  const totalXP = invCount * 250 + streak * 100 + bonusTotal + extraXP;
   const currentXP = totalXP % 1000;
   const playerLevel = Math.max(1, Math.floor(totalXP / 1000) + 1);
 
@@ -285,7 +297,7 @@ export default function SunnyTeaParty() {
     prevLevelRef.current = playerLevel;
   }, [user, playerLevel]);
 
-  // Brain: Gemma running inside the browser (opt-in by a grown-up, cached after the first download)
+  // Brain: Gemma running inside the browser
   const enableBrain = useCallback(async () => {
     setBrain({ status: 'loading', pct: 0 });
     try {
@@ -297,7 +309,7 @@ export default function SunnyTeaParty() {
     }
   }, []);
 
-  // When a prize opens, Sunny's brain (if awake) writes a fresh note, otherwise the server note is used
+  // When a prize opens, Sunny's brain writes a note
   useEffect(() => {
     if (!lootModal || !brainReady()) return;
     let cancelled = false;
@@ -325,8 +337,8 @@ export default function SunnyTeaParty() {
     const late = hour >= 19 || hour < 6;
     say(
       late
-        ? "Hi friend! It's late, so let's make a cozy bedtime tea. Then we both go to sleep!"
-        : "Hi! I'm Sunny the sloth! Let's make tea for our forest friends. Tap me to say hello!"
+        ? "Hi friend! It's bedtime, so let's take a bath, make cozy tea, and go to sleep!"
+        : "Hi! I'm Sunny the sloth! We can play games, take a bath, or make delicious tea!"
     );
   };
 
@@ -337,6 +349,11 @@ export default function SunnyTeaParty() {
     if (mood === 'sleeping') {
       sounds.playYawn();
       say(pick(SLEEP_MUMBLES), { voice: false });
+      return;
+    }
+    if (mood === 'bathing') {
+      sounds.playBubblePop();
+      say('Splish splash! The water is warm and cozy!');
       return;
     }
     sounds.playGiggle();
@@ -426,6 +443,7 @@ export default function SunnyTeaParty() {
 
   const wishes = [
     { label: 'Pick leaf + treat', done: sessionPicks >= 2 || isBrewing || isReady },
+    { label: 'Take a bubble bath', done: extraXP >= 50 },
     { label: 'Tuck Sunny in', done: sessionBrews > 0 || isBrewing || isReady },
     { label: 'Open the surprise', done: sessionClaims > 0 },
   ];
@@ -465,7 +483,7 @@ export default function SunnyTeaParty() {
           <div className="flex items-center gap-3 min-w-0">
             <span className="text-4xl">🦥</span>
             <div className="min-w-0">
-              <div className="font-bold text-base sm:text-lg leading-tight truncate">The Midnight Steeper</div>
+              <div className="font-bold text-base sm:text-lg leading-tight truncate">Sunny the Talking Sloth</div>
               <div className="text-sm font-medium opacity-80 truncate">
                 Level {playerLevel} · {getRank(playerLevel)}
               </div>
@@ -516,7 +534,7 @@ export default function SunnyTeaParty() {
 
         {/* 3D stage: tap Sunny! */}
         <section
-          className="toy-card relative overflow-hidden h-[50vh] min-h-[330px] max-h-[500px]"
+          className="toy-card relative overflow-hidden h-[46vh] min-h-[310px] max-h-[460px]"
           onPointerDown={(e) => {
             pointerRef.current = { x: e.clientX, y: e.clientY };
           }}
@@ -540,12 +558,113 @@ export default function SunnyTeaParty() {
           )}
 
           <div className="absolute bottom-2 left-0 right-0 text-center text-sm font-semibold opacity-80 pointer-events-none">
-            {mood === 'sleeping' ? '💤 Shh... Sunny is sleeping' : '👆 Tap Sunny!'}
+            {mood === 'sleeping'
+              ? '💤 Shh... Sunny is sleeping'
+              : mood === 'bathing'
+              ? '🛁 Splish splash! Sunny is enjoying the bath!'
+              : '👆 Tap or tickle Sunny!'}
           </div>
         </section>
 
-        {/* ---------- IDLE: three easy steps ---------- */}
-        {isIdle && !tuck && (
+        {/* Talking Tom Style Care & Activity Navigation Bar */}
+        <div className="grid grid-cols-5 gap-1.5 sm:gap-2.5">
+          <button
+            onClick={() => {
+              sounds.playClick();
+              setPetMode('bath');
+              say("Splish splash! Let's take a warm bubble bath! 🛁");
+            }}
+            aria-label="Bath time"
+            className={`btn-chunky p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 ${
+              petMode === 'bath' ? 'blue ring-4 ring-sky-300 scale-105' : 'purple'
+            }`}
+          >
+            <span className="text-2xl sm:text-3xl">🛁</span>
+            <span className="text-xs sm:text-sm font-bold">Bath</span>
+          </button>
+
+          <button
+            onClick={() => {
+              sounds.playClick();
+              setPetMode('snack');
+              say("Yay, snack time! Pick a yummy treat for me! 🍓");
+            }}
+            aria-label="Snack time"
+            className={`btn-chunky p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 ${
+              petMode === 'snack' ? 'yellow ring-4 ring-amber-300 scale-105' : 'purple'
+            }`}
+          >
+            <span className="text-2xl sm:text-3xl">🍓</span>
+            <span className="text-xs sm:text-sm font-bold">Snack</span>
+          </button>
+
+          <button
+            onClick={() => {
+              sounds.playClick();
+              setShowMiniGames(true);
+            }}
+            aria-label="Mini games"
+            className="btn-chunky green p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 hover:scale-105"
+          >
+            <span className="text-2xl sm:text-3xl">🎮</span>
+            <span className="text-xs sm:text-sm font-bold">Games</span>
+          </button>
+
+          <button
+            onClick={() => {
+              sounds.playClick();
+              setShowTalking(true);
+            }}
+            aria-label="Talk to Sunny"
+            className="btn-chunky purple p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 hover:scale-105"
+          >
+            <span className="text-2xl sm:text-3xl">🎤</span>
+            <span className="text-xs sm:text-sm font-bold">Talk</span>
+          </button>
+
+          <button
+            onClick={() => {
+              sounds.playClick();
+              setPetMode('tea');
+              say("Let's brew bedtime tea for our forest friends! 🍵");
+            }}
+            aria-label="Bedtime tea"
+            className={`btn-chunky p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 ${
+              petMode === 'tea' ? 'blue ring-4 ring-indigo-300 scale-105' : 'purple'
+            }`}
+          >
+            <span className="text-2xl sm:text-3xl">🍵</span>
+            <span className="text-xs sm:text-sm font-bold">Tea & Bed</span>
+          </button>
+        </div>
+
+        {/* ---------- BATH MODE ---------- */}
+        {petMode === 'bath' && !isBrewing && (
+          <BathMode
+            onSay={say}
+            onReward={(xp) => {
+              setExtraXP((x) => x + xp);
+              sounds.playPop();
+            }}
+            onClose={() => setPetMode('tea')}
+          />
+        )}
+
+        {/* ---------- SNACK MODE ---------- */}
+        {petMode === 'snack' && !isBrewing && (
+          <SnackMode
+            onFeed={(snack: SnackItem) => {
+              setExtraXP((x) => x + snack.xp);
+              sounds.playNom();
+              say(snack.soundText);
+              floatEmoji(snack.icon);
+            }}
+            onClose={() => setPetMode('tea')}
+          />
+        )}
+
+        {/* ---------- IDLE: three easy steps for tea ---------- */}
+        {petMode === 'tea' && isIdle && !tuck && (
           <section className="toy-card p-4 sm:p-6">
             <div className="flex items-center justify-center gap-2 mb-3" aria-label={`Step ${step} of 3`}>
               {[1, 2, 3].map((n) => (
@@ -737,7 +856,7 @@ export default function SunnyTeaParty() {
         </section>
 
         <footer className="text-center text-sm font-semibold opacity-70 pb-4">
-          The Midnight Steeper · Sunny&apos;s Tea Party · slow and steady wins the nap 🦥
+          Sunny the Sloth · Talking Pet & Mini-Games · slow and steady wins the nap 🦥
         </footer>
       </div>
 
@@ -751,7 +870,7 @@ export default function SunnyTeaParty() {
             setLootModal(null);
             setNoteOverride(null);
             setConfetti(false);
-            say('Into the sticker book it goes! Want to make more tea?');
+            say('Into the sticker book it goes! Want to play more with Sunny?');
           }}
         >
           {(() => {
@@ -808,6 +927,28 @@ export default function SunnyTeaParty() {
         </Modal>
       )}
 
+      {/* ---------- MINI-GAMES MODAL ---------- */}
+      {showMiniGames && (
+        <Modal title="Sunny's Mini-Games Arcade 🎮" onClose={() => setShowMiniGames(false)} wide>
+          <MiniGamesModal
+            onScoreReward={(xp) => {
+              setExtraXP((x) => x + xp);
+              setConfetti(true);
+              sounds.playAchievement();
+              setTimeout(() => setConfetti(false), 3000);
+            }}
+            onClose={() => setShowMiniGames(false)}
+          />
+        </Modal>
+      )}
+
+      {/* ---------- TALK TO SUNNY MODAL ---------- */}
+      {showTalking && (
+        <Modal title="Talk to Sunny 🦥" onClose={() => setShowTalking(false)}>
+          <TalkingSlothModal onSay={say} onSetTalking={setTalking} />
+        </Modal>
+      )}
+
       {/* ---------- STICKER BOOK ---------- */}
       {showBook && (
         <Modal title="My sticker book 📖" onClose={() => setShowBook(false)} wide>
@@ -847,18 +988,17 @@ export default function SunnyTeaParty() {
         <Modal title="For grown-ups 👪" onClose={() => setShowGrownups(false)} wide>
           <div className="space-y-4 text-base font-medium leading-relaxed">
             <div>
-              <h3 className="font-bold text-lg">A game that sends kids to bed</h3>
+              <h3 className="font-bold text-lg">Talking Pet & Bedtime Game for Kids</h3>
               <p>
-                Kids pick a tea mix and a nap length, then Sunny falls asleep and tells them to go to sleep too. The tea steeps in real
-                time, so the fun is waiting for tomorrow, not tapping more. There are no ads, no accounts, no chat and no microphone.
+                Kids can care for Sunny just like Talking Tom: give Sunny a warm bubble bath, feed delicious snacks, play fun sensory mini-games (Bubble Pop, Forest Friends Match, Leaf Catcher), and talk with Sunny! When it is bedtime, kids tuck Sunny in with chamomile tea and go to sleep too.
               </p>
             </div>
             <div>
-              <h3 className="font-bold text-lg">Open-source AI, free to run</h3>
+              <h3 className="font-bold text-lg">Open-source AI, safe and free to run</h3>
               <ul className="list-disc pl-5">
                 <li>Sunny&apos;s friends write notes with open-weight <strong>Gemma</strong>, running on this device or via Ollama.</li>
                 <li>Prize rarity is predicted by open-source <strong>TabPFN</strong>, with a simple fallback when it is not installed.</li>
-                <li>Sunny&apos;s voice is your browser&apos;s built-in speech. Nothing is sent to a voice service.</li>
+                <li>Sunny&apos;s voice uses your browser&apos;s built-in speech. Nothing is ever sent to third-party tracking services.</li>
               </ul>
             </div>
             <div className="rounded-2xl bg-white/70 border-4 border-white p-4 text-[#3b2a63]">
@@ -901,12 +1041,12 @@ export default function SunnyTeaParty() {
           <h1 className="mt-4 text-4xl sm:text-6xl font-bold bg-gradient-to-r from-pink-500 via-amber-400 to-sky-500 bg-clip-text text-transparent">
             The Midnight Steeper
           </h1>
-          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#6c4fd1]">Sunny the Sloth&apos;s Tea Party</p>
-          <p className="mt-3 text-xl font-semibold text-[#3b2a63]">Make tea, invite friends, then go to sleep! 🌙</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#6c4fd1]">Sunny the Talking Sloth</p>
+          <p className="mt-3 text-xl font-semibold text-[#3b2a63]">Take bubble baths, play mini-games, and make bedtime tea! 🛁🎮🌙</p>
           <button onClick={handleStart} className="btn-chunky green animate-glow mt-10 px-12 py-5 text-3xl">
             ▶ Play!
           </button>
-          <p className="mt-6 text-sm font-semibold text-[#3b2a63]/70">No ads · No accounts · No microphone</p>
+          <p className="mt-6 text-sm font-semibold text-[#3b2a63]/70">No ads · No accounts · 100% Kid Safe</p>
         </div>
       )}
     </main>

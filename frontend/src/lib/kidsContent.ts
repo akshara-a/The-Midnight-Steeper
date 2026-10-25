@@ -79,3 +79,41 @@ export const SLEEP_MUMBLES = [
 ];
 
 export const FIFTH_POKE = 'Okay, okay! Now I am getting sleepy. Time to go to sleep!';
+
+/** Talking Tom style Bath Time quotes */
+export const BATH_LINES = [
+  'Splish splash! The warm water is so cozy!',
+  'Hehe! Look at all the suds on my ears!',
+  'Squeak squeak! My rubber ducky loves bubbles too!',
+  'Ahhh... smells like sweet lavender bubbles!',
+  'Wiggle wiggle! Scrub behind my sloth claws!',
+  'Yay! I am the cleanest, shiniest sloth in the forest!',
+];
+
+/** Snacks kids can feed Sunny like Talking Tom */
+export interface SnackItem {
+  id: string;
+  name: string;
+  icon: string;
+  soundText: string;
+  xp: number;
+}
+
+export const SNACKS: SnackItem[] = [
+  { id: 'strawberry', name: 'Sweet Berry', icon: '🍓', soundText: 'Mmm, sweet and juicy strawberries!', xp: 15 },
+  { id: 'cookie', name: 'Choco Cookie', icon: '🍪', soundText: 'Crunch crunch crunch! Chocolatey goodness!', xp: 20 },
+  { id: 'apple', name: 'Crisp Apple', icon: '🍎', soundText: 'Chomp! So fresh and crisp!', xp: 15 },
+  { id: 'honey', name: 'Honey Spoon', icon: '🍯', soundText: 'Slurp! Golden and sticky sweet!', xp: 25 },
+  { id: 'watermelon', name: 'Watermelon', icon: '🍉', soundText: 'Slurp! Cool and refreshing!', xp: 15 },
+  { id: 'cupcake', name: 'Star Cupcake', icon: '🧁', soundText: 'Nom nom! Fluffy with rainbow sprinkles!', xp: 30 },
+];
+
+/** Sunny's silly jokes for talking mode */
+export const SUNNY_JOKES = [
+  'Why do sloths take slow baths? ... Because they love soaking up every bubble! 🛁',
+  'What does a cloud wear under its raincoat? ... Thunderwear! ⚡😂',
+  'Why did the teddy bear say no to dessert? ... Because it was already stuffed! 🧸',
+  'What do sloths drink right before bed? ... Chamomile zzzz-tea! 🍵💤',
+  'Why are fish so smart? ... Because they swim in schools! 🐟🎒',
+  'What did one wall say to the other wall? ... I will meet you at the corner! 🏠',
+];

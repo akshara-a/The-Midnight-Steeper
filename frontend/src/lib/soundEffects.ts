@@ -1,6 +1,6 @@
 /**
  * Procedural Web Audio API sound synthesizer for The Midnight Steeper.
- * Generates retro-arcade and sci-fi sounds directly in the browser with 0 external assets.
+ * Generates retro-arcade, pet-care and mini-game sounds directly in the browser with 0 external assets.
  */
 class SoundEngine {
   private ctx: AudioContext | null = null;
@@ -127,7 +127,7 @@ class SoundEngine {
     sweepOsc.stop(ctx.currentTime + 0.85);
   }
 
-  // Loot fanfare victory arpeggio (Hades / Zelda / Final Fantasy style victory chime)
+  // Loot fanfare victory arpeggio
   playLootFanfare() {
     if (!this.enabled) return;
     const ctx = this.getContext();
@@ -225,6 +225,87 @@ class SoundEngine {
     gain.connect(ctx.destination);
     osc.start();
     osc.stop(ctx.currentTime + 0.28);
+  }
+
+  // Water splash sound for bath time!
+  playSplash() {
+    if (!this.enabled) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+    this.blip(260, 90, 0, 0.22, 0.2, 'triangle');
+    [0.04, 0.09, 0.14, 0.19].forEach((d, i) => {
+      this.blip(500 + i * 140, 1100 + i * 80, d, 0.06, 0.12, 'sine');
+    });
+  }
+
+  // Water stream whoosh for shower spray
+  playWaterStream() {
+    if (!this.enabled) return;
+    [0, 0.05, 0.1, 0.15].forEach((d) => {
+      this.blip(600 + Math.random() * 200, 1200 + Math.random() * 300, d, 0.05, 0.08, 'sine');
+    });
+  }
+
+  // Squeaky rubber duck sound
+  playSqueak() {
+    if (!this.enabled) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+    const t0 = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(950, t0);
+    osc.frequency.linearRampToValueAtTime(1480, t0 + 0.06);
+    osc.frequency.linearRampToValueAtTime(820, t0 + 0.14);
+    gain.gain.setValueAtTime(0.2, t0);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.15);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + 0.16);
+  }
+
+  // Bubble pop
+  playBubblePop() {
+    if (!this.enabled) return;
+    this.blip(450, 1350, 0, 0.05, 0.18, 'sine');
+  }
+
+  // Cute nom nom / chomp sound for feeding
+  playNom() {
+    if (!this.enabled) return;
+    this.blip(380, 180, 0, 0.07, 0.22, 'triangle');
+    this.blip(520, 240, 0.08, 0.08, 0.18, 'sine');
+  }
+
+  // Mini-game card match success
+  playMatchSuccess() {
+    if (!this.enabled) return;
+    this.blip(659.25, 659.25, 0, 0.12, 0.18, 'sine');
+    this.blip(987.77, 987.77, 0.1, 0.25, 0.22, 'sine');
+    this.blip(1318.51, 1318.51, 0.18, 0.35, 0.2, 'sine');
+  }
+
+  // Mini-game mismatch fail
+  playMatchFail() {
+    if (!this.enabled) return;
+    this.blip(340, 290, 0, 0.12, 0.12, 'triangle');
+    this.blip(260, 210, 0.1, 0.16, 0.12, 'triangle');
+  }
+
+  // Catching falling item / coin pickup
+  playCatch() {
+    if (!this.enabled) return;
+    this.blip(784, 1174, 0, 0.08, 0.2, 'sine');
+  }
+
+  // Mini-game victory fanfare
+  playGameWin() {
+    if (!this.enabled) return;
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, idx) => {
+      this.blip(f, f, idx * 0.08, 0.3, 0.18, 'triangle');
+    });
   }
 }
 

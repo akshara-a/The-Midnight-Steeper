@@ -5,7 +5,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 
-export type PetMood = 'idle' | 'talking' | 'sleeping' | 'happy' | 'eating';
+export type PetMood = 'idle' | 'talking' | 'sleeping' | 'happy' | 'eating' | 'bathing' | 'playing';
 
 interface SlothPet3DProps {
   mood: PetMood;
@@ -47,6 +47,9 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps
   const armR = useRef<THREE.Group>(null);
   const cup = useRef<THREE.Group>(null);
   const cap = useRef<THREE.Group>(null);
+  const showerCap = useRef<THREE.Group>(null);
+  const tub = useRef<THREE.Group>(null);
+  const duck = useRef<THREE.Group>(null);
   const blanket = useRef<THREE.Mesh>(null);
   const pillow = useRef<THREE.Mesh>(null);
   const moon = useRef<THREE.Mesh>(null);
@@ -70,6 +73,11 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps
       claw: new THREE.MeshStandardMaterial({ color: '#fff4d6', roughness: 0.5 }),
       mouth: new THREE.MeshStandardMaterial({ color: '#7a1f3d', roughness: 0.6 }),
       moon: new THREE.MeshStandardMaterial({ color: '#fff3b0', emissive: '#ffe680', emissiveIntensity: 1.2 }),
+      water: new THREE.MeshStandardMaterial({ color: '#4dc3ff', roughness: 0.1, transparent: true, opacity: 0.82, emissive: '#1692ff', emissiveIntensity: 0.25 }),
+      duck: new THREE.MeshStandardMaterial({ color: '#ffd000', roughness: 0.4 }),
+      orange: new THREE.MeshStandardMaterial({ color: '#ff6600', roughness: 0.5 }),
+      bubbleWhite: new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.15, transparent: true, opacity: 0.9 }),
+      showerCapMat: new THREE.MeshStandardMaterial({ color: '#38bdf8', roughness: 0.4, emissive: '#0284c7', emissiveIntensity: 0.2 }),
     }),
     []
   );
@@ -83,6 +91,8 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps
     const happy = mood === 'happy';
     const talking = mood === 'talking';
     const eating = mood === 'eating';
+    const bathing = mood === 'bathing';
+    const playing = mood === 'playing';
 
     // Colors glide toward their targets
     mats.fur.color.lerp(furTarget, 0.1);
@@ -101,10 +111,11 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps
     const wobble = Math.sin((1 - s) * 16) * s;
 
     if (root.current) {
-      const hop = happy ? Math.abs(Math.sin(t * 3.2)) * 0.25 : 0;
-      root.current.position.y = damp(root.current.position.y, (sleeping ? -0.2 : 0) + hop + s * 0.12, 8, dt);
+      const hop = (happy || playing) ? Math.abs(Math.sin(t * (playing ? 4.5 : 3.2))) * 0.28 : 0;
+      const bathBob = bathing ? Math.sin(t * 2.2) * 0.08 - 0.25 : 0;
+      root.current.position.y = damp(root.current.position.y, (sleeping ? -0.2 : 0) + hop + bathBob + s * 0.12, 8, dt);
       root.current.scale.set(1 - wobble * 0.08, 1 + wobble * 0.14, 1 - wobble * 0.08);
-      root.current.rotation.z = damp(root.current.rotation.z, sleeping ? 0.1 : Math.sin(t * 1.3) * 0.02, 4, dt);
+      root.current.rotation.z = damp(root.current.rotation.z, sleeping ? 0.1 : (playing ? Math.sin(t * 3.5) * 0.08 : Math.sin(t * 1.3) * 0.02), 4, dt);
     }
     if (body.current) {
       const breath = Math.sin(t * (sleeping ? 1.1 : 1.9)) * 0.025;
@@ -113,8 +124,8 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps
 
     // Head follows the finger unless asleep
     if (head.current) {
-      head.current.rotation.y = damp(head.current.rotation.y, sleeping ? 0 : pointer.x * 0.4, 5, dt);
-      head.current.rotation.x = damp(head.current.rotation.x, sleeping ? 0.3 : -pointer.y * 0.22, 5, dt);
+      head.current.rotation.y = damp(head.current.rotation.y, sleeping ? 0 : (bathing ? Math.sin(t * 1.5) * 0.15 : pointer.x * 0.4), 5, dt);
+      head.current.rotation.x = damp(head.current.rotation.x, sleeping ? 0.3 : (bathing ? -0.1 : -pointer.y * 0.22), 5, dt);
       head.current.position.y = 1.45 + Math.sin(t * 1.9) * 0.015;
     }
 
@@ -123,7 +134,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps
       blinkUntil.current = t + 0.14;
       nextBlink.current = t + 2.5 + ((Math.sin(t * 12.9898) + 1) / 2) * 2.5;
     }
-    const closed = sleeping || t < blinkUntil.current ? 1 : 0;
+    const closed = sleeping || (bathing && Math.sin(t * 1.5) > 0.3) ? 1 : (t < blinkUntil.current ? 1 : 0);
     [eyeL, eyeR].forEach((e) => {
       if (e.current) e.current.scale.y = damp(e.current.scale.y, 1 - 0.93 * closed, 30, dt);
     });
@@ -135,7 +146,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps
     });
 
     // Mouth: smile at rest, open when talking, eating or cheering
-    const open = talking ? 0.35 + 0.65 * Math.abs(Math.sin(t * 16)) : eating ? 0.5 : happy ? 0.45 : 0;
+    const open = talking ? 0.35 + 0.65 * Math.abs(Math.sin(t * 16)) : eating ? 0.5 : (happy || playing) ? 0.45 : bathing ? 0.2 : 0;
     if (smile.current) smile.current.visible = open < 0.08;
     if (openMouth.current) {
       openMouth.current.visible = open >= 0.08;
@@ -144,11 +155,28 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps
 
     // Arms
     if (armL.current) {
-      armL.current.rotation.z = damp(armL.current.rotation.z, talking ? -0.9 + Math.sin(t * 6) * 0.25 : -0.28, 6, dt);
+      const targetL = playing
+        ? -2.1 + Math.sin(t * 6) * 0.3
+        : bathing
+        ? -0.55 + Math.sin(t * 3.5) * 0.18
+        : talking
+        ? -0.9 + Math.sin(t * 6) * 0.25
+        : -0.28;
+      armL.current.rotation.z = damp(armL.current.rotation.z, targetL, 6, dt);
     }
     if (armR.current) {
-      const target = happy ? 2.3 + Math.sin(t * 8) * 0.35 : eating ? 1.7 : talking ? 0.9 - Math.sin(t * 5) * 0.25 : 0.28;
-      armR.current.rotation.z = damp(armR.current.rotation.z, target, 6, dt);
+      const targetR = playing
+        ? 2.1 - Math.cos(t * 6) * 0.3
+        : bathing
+        ? 0.55 - Math.cos(t * 3.5) * 0.18
+        : happy
+        ? 2.3 + Math.sin(t * 8) * 0.35
+        : eating
+        ? 1.7
+        : talking
+        ? 0.9 - Math.sin(t * 5) * 0.25
+        : 0.28;
+      armR.current.rotation.z = damp(armR.current.rotation.z, targetR, 6, dt);
     }
 
     // Props pop in and out
@@ -163,7 +191,15 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps
     popTo(pillow.current, sleeping);
     popTo(moon.current, sleeping);
     popTo(cup.current, eating);
+    popTo(showerCap.current, bathing);
+    popTo(tub.current, bathing);
+    popTo(duck.current, bathing);
+
     if (cup.current) cup.current.position.y = 0.95 + Math.sin(t * 3) * 0.08;
+    if (duck.current) {
+      duck.current.position.y = -0.55 + Math.sin(t * 3.5) * 0.06;
+      duck.current.rotation.y = Math.sin(t * 1.8) * 0.3;
+    }
 
     if (ambient.current) ambient.current.intensity = damp(ambient.current.intensity, sleeping ? 0.55 : 1.15, 3, dt);
   });
@@ -190,6 +226,49 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps
         <sphereGeometry args={[0.6, 32, 32]} />
         <primitive object={mats.moon} attach="material" />
       </mesh>
+
+      {/* Bathtub and Water */}
+      <group ref={tub} position={[0, -1.05, 0]} scale={0}>
+        {/* Outer Tub rim */}
+        <mesh position={[0, 0, 0]} rotation={[0, 0, 0]}>
+          <cylinderGeometry args={[1.75, 1.45, 0.9, 36]} />
+          <primitive object={mats.white} attach="material" />
+        </mesh>
+        {/* Tub inner water surface */}
+        <mesh position={[0, 0.32, 0]} rotation={[0, 0, 0]}>
+          <cylinderGeometry args={[1.65, 1.65, 0.05, 36]} />
+          <primitive object={mats.water} attach="material" />
+        </mesh>
+        {/* Foamy Soap Bubbles on water surface */}
+        {[-0.9, -0.4, 0.3, 0.8, -0.1].map((bx, idx) => (
+          <mesh key={idx} position={[bx, 0.38, (idx % 2 === 0 ? 0.6 : -0.5)]}>
+            <sphereGeometry args={[0.18 + (idx % 3) * 0.06, 16, 16]} />
+            <primitive object={mats.bubbleWhite} attach="material" />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Floating Rubber Ducky for bath time */}
+      <group ref={duck} position={[1.05, -0.55, 0.7]} scale={0}>
+        <mesh>
+          <sphereGeometry args={[0.22, 16, 16]} />
+          <primitive object={mats.duck} attach="material" />
+        </mesh>
+        <mesh position={[0.08, 0.16, 0.05]}>
+          <sphereGeometry args={[0.14, 16, 16]} />
+          <primitive object={mats.duck} attach="material" />
+        </mesh>
+        {/* Beak */}
+        <mesh position={[0.24, 0.14, 0.05]} rotation={[0, 0, -Math.PI / 2]}>
+          <coneGeometry args={[0.07, 0.14, 12]} />
+          <primitive object={mats.orange} attach="material" />
+        </mesh>
+        {/* Eye */}
+        <mesh position={[0.13, 0.2, 0.14]} scale={0.7}>
+          <sphereGeometry args={[0.025, 8, 8]} />
+          <primitive object={mats.dark} attach="material" />
+        </mesh>
+      </group>
 
       <group
         ref={root}
@@ -308,7 +387,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps
             </mesh>
           ))}
 
-          {/* Nightcap with a pompom */}
+          {/* Nightcap with a pompom for sleeping */}
           <group ref={cap} position={[0.1, 0.78, 0]} rotation={[0, 0, -0.35]} scale={0}>
             <mesh>
               <coneGeometry args={[0.6, 1.1, 24]} />
@@ -318,6 +397,21 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps
               <sphereGeometry args={[0.14, 16, 16]} />
               <primitive object={mats.white} attach="material" />
             </mesh>
+          </group>
+
+          {/* Bubbly shower cap for bath time */}
+          <group ref={showerCap} position={[0, 0.75, 0.05]} scale={0}>
+            <mesh scale={[1.12, 0.6, 1.12]}>
+              <sphereGeometry args={[0.82, 32, 24]} />
+              <primitive object={mats.showerCapMat} attach="material" />
+            </mesh>
+            {/* Suds on the cap */}
+            {[-0.3, 0.3, 0].map((bx, i) => (
+              <mesh key={i} position={[bx, 0.5, (i === 2 ? 0.3 : 0)]}>
+                <sphereGeometry args={[0.16, 14, 14]} />
+                <primitive object={mats.bubbleWhite} attach="material" />
+              </mesh>
+            ))}
           </group>
         </group>
 
@@ -369,11 +463,11 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke }: SlothPet3DProps
       ))}
 
       <Sparkles
-        count={mood === 'sleeping' ? 28 : 45}
+        count={mood === 'sleeping' ? 28 : (mood === 'bathing' ? 60 : 45)}
         scale={[7, 5, 3]}
-        size={mood === 'sleeping' ? 3 : 5}
-        speed={0.4}
-        color={mood === 'sleeping' ? '#cfe0ff' : '#fff1a8'}
+        size={mood === 'sleeping' ? 3 : (mood === 'bathing' ? 6 : 5)}
+        speed={mood === 'bathing' ? 0.7 : 0.4}
+        color={mood === 'sleeping' ? '#cfe0ff' : (mood === 'bathing' ? '#a5f3fc' : '#fff1a8')}
       />
     </>
   );
