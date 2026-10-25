@@ -211,6 +211,19 @@ export default function SunnyTeaParty() {
   const isReady = currentBrew?.status === 'ready';
   const isIdle = !currentBrew || currentBrew.status === 'claimed';
 
+  // Bedtime state: when sleeping or tucking in, no other activities are allowed
+  const isSleeping = isBrewing || tuck === 'bed';
+  const isBedtimeActive = isSleeping || tuck !== null || isStarting;
+
+  // Auto-close any open activities or modals when bedtime/sleep starts
+  useEffect(() => {
+    if (isBedtimeActive) {
+      setPetMode('tea');
+      setShowMiniGames(false);
+      setShowTalking(false);
+    }
+  }, [isBedtimeActive]);
+
   // Countdown until Sunny wakes up, derived from a clock that ticks once a second while napping
   useEffect(() => {
     if (!isBrewing) return;
@@ -267,10 +280,12 @@ export default function SunnyTeaParty() {
   const shownLeaf = isIdle ? leaf : (LEAVES.find((l) => l.name === currentBrew?.ingredients?.[0]) ?? leaf);
   const shownTreat = isIdle ? treat : (TREATS.find((t) => t.name === currentBrew?.ingredients?.[1]) ?? treat);
 
+  // Sleeping takes top priority: Sunny stays asleep with blanket and nightcap!
   let mood: PetMood = 'idle';
-  if (tuck === 'drink' || petMode === 'snack') mood = 'eating';
+  if (isSleeping) mood = 'sleeping';
+  else if (tuck === 'drink') mood = 'eating';
   else if (petMode === 'bath') mood = 'bathing';
-  else if (tuck === 'bed' || isBrewing) mood = 'sleeping';
+  else if (petMode === 'snack') mood = 'eating';
   else if (talking) mood = 'talking';
   else if (isReady) mood = 'happy';
   const night = mood === 'sleeping';
@@ -346,7 +361,7 @@ export default function SunnyTeaParty() {
     pokesRef.current += 1;
     setPokeCount((n) => n + 1);
     floatEmoji(pick(['💖', '⭐', '✨', '💫']), pointerRef.current.x, pointerRef.current.y);
-    if (mood === 'sleeping') {
+    if (isBedtimeActive || mood === 'sleeping') {
       sounds.playYawn();
       say(pick(SLEEP_MUMBLES), { voice: false });
       return;
@@ -386,6 +401,9 @@ export default function SunnyTeaParty() {
     if (isStarting) return;
     setIsStarting(true);
     setErrorMsg(null);
+    setPetMode('tea');
+    setShowMiniGames(false);
+    setShowTalking(false);
     setTuck('drink');
     sounds.playChime();
     say(`Yum yum! ${leaf.name} and ${treat.name}. Yaaawn... I'm so sleepy. Goodnight! You go to sleep too!`);
@@ -559,87 +577,99 @@ export default function SunnyTeaParty() {
 
           <div className="absolute bottom-2 left-0 right-0 text-center text-sm font-semibold opacity-80 pointer-events-none">
             {mood === 'sleeping'
-              ? '💤 Shh... Sunny is sleeping'
+              ? '💤 Shh... Sunny is sleeping peacefully'
               : mood === 'bathing'
               ? '🛁 Splish splash! Sunny is enjoying the bath!'
               : '👆 Tap or tickle Sunny!'}
           </div>
         </section>
 
-        {/* Talking Tom Style Care & Activity Navigation Bar */}
-        <div className="grid grid-cols-5 gap-1.5 sm:gap-2.5">
-          <button
-            onClick={() => {
-              sounds.playClick();
-              setPetMode('bath');
-              say("Splish splash! Let's take a warm bubble bath! 🛁");
-            }}
-            aria-label="Bath time"
-            className={`btn-chunky p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 ${
-              petMode === 'bath' ? 'blue ring-4 ring-sky-300 scale-105' : 'purple'
-            }`}
-          >
-            <span className="text-2xl sm:text-3xl">🛁</span>
-            <span className="text-xs sm:text-sm font-bold">Bath</span>
-          </button>
+        {/* Activity Navigation Bar (Active only when awake; calm bedtime notice when sleeping) */}
+        {isBedtimeActive ? (
+          <div className="toy-card px-4 py-3.5 text-center bg-indigo-950/60 border-indigo-300/40 text-indigo-100 flex items-center justify-center gap-3 select-none">
+            <span className="text-3xl animate-bounce-soft">🌙</span>
+            <div className="text-left">
+              <div className="font-bold text-sm sm:text-base text-white">Shhh... Sunny is sleeping soundly 💤</div>
+              <div className="text-xs sm:text-sm text-indigo-200">
+                No baths, snacks, or games right now. Time for you to sleep too!
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-5 gap-1.5 sm:gap-2.5">
+            <button
+              onClick={() => {
+                sounds.playClick();
+                setPetMode('bath');
+                say("Splish splash! Let's take a warm bubble bath! 🛁");
+              }}
+              aria-label="Bath time"
+              className={`btn-chunky p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 ${
+                petMode === 'bath' ? 'blue ring-4 ring-sky-300 scale-105' : 'purple'
+              }`}
+            >
+              <span className="text-2xl sm:text-3xl">🛁</span>
+              <span className="text-xs sm:text-sm font-bold">Bath</span>
+            </button>
 
-          <button
-            onClick={() => {
-              sounds.playClick();
-              setPetMode('snack');
-              say("Yay, snack time! Pick a yummy treat for me! 🍓");
-            }}
-            aria-label="Snack time"
-            className={`btn-chunky p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 ${
-              petMode === 'snack' ? 'yellow ring-4 ring-amber-300 scale-105' : 'purple'
-            }`}
-          >
-            <span className="text-2xl sm:text-3xl">🍓</span>
-            <span className="text-xs sm:text-sm font-bold">Snack</span>
-          </button>
+            <button
+              onClick={() => {
+                sounds.playClick();
+                setPetMode('snack');
+                say("Yay, snack time! Pick a yummy treat for me! 🍓");
+              }}
+              aria-label="Snack time"
+              className={`btn-chunky p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 ${
+                petMode === 'snack' ? 'yellow ring-4 ring-amber-300 scale-105' : 'purple'
+              }`}
+            >
+              <span className="text-2xl sm:text-3xl">🍓</span>
+              <span className="text-xs sm:text-sm font-bold">Snack</span>
+            </button>
 
-          <button
-            onClick={() => {
-              sounds.playClick();
-              setShowMiniGames(true);
-            }}
-            aria-label="Mini games"
-            className="btn-chunky green p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 hover:scale-105"
-          >
-            <span className="text-2xl sm:text-3xl">🎮</span>
-            <span className="text-xs sm:text-sm font-bold">Games</span>
-          </button>
+            <button
+              onClick={() => {
+                sounds.playClick();
+                setShowMiniGames(true);
+              }}
+              aria-label="Mini games"
+              className="btn-chunky green p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 hover:scale-105"
+            >
+              <span className="text-2xl sm:text-3xl">🎮</span>
+              <span className="text-xs sm:text-sm font-bold">Games</span>
+            </button>
 
-          <button
-            onClick={() => {
-              sounds.playClick();
-              setShowTalking(true);
-            }}
-            aria-label="Talk to Sunny"
-            className="btn-chunky purple p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 hover:scale-105"
-          >
-            <span className="text-2xl sm:text-3xl">🎤</span>
-            <span className="text-xs sm:text-sm font-bold">Talk</span>
-          </button>
+            <button
+              onClick={() => {
+                sounds.playClick();
+                setShowTalking(true);
+              }}
+              aria-label="Talk to Sunny"
+              className="btn-chunky purple p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 hover:scale-105"
+            >
+              <span className="text-2xl sm:text-3xl">🎤</span>
+              <span className="text-xs sm:text-sm font-bold">Talk</span>
+            </button>
 
-          <button
-            onClick={() => {
-              sounds.playClick();
-              setPetMode('tea');
-              say("Let's brew bedtime tea for our forest friends! 🍵");
-            }}
-            aria-label="Bedtime tea"
-            className={`btn-chunky p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 ${
-              petMode === 'tea' ? 'blue ring-4 ring-indigo-300 scale-105' : 'purple'
-            }`}
-          >
-            <span className="text-2xl sm:text-3xl">🍵</span>
-            <span className="text-xs sm:text-sm font-bold">Tea & Bed</span>
-          </button>
-        </div>
+            <button
+              onClick={() => {
+                sounds.playClick();
+                setPetMode('tea');
+                say("Let's brew bedtime tea for our forest friends! 🍵");
+              }}
+              aria-label="Bedtime tea"
+              className={`btn-chunky p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 ${
+                petMode === 'tea' ? 'blue ring-4 ring-indigo-300 scale-105' : 'purple'
+              }`}
+            >
+              <span className="text-2xl sm:text-3xl">🍵</span>
+              <span className="text-xs sm:text-sm font-bold">Tea & Bed</span>
+            </button>
+          </div>
+        )}
 
-        {/* ---------- BATH MODE ---------- */}
-        {petMode === 'bath' && !isBrewing && (
+        {/* ---------- BATH MODE (only when awake) ---------- */}
+        {petMode === 'bath' && !isBedtimeActive && (
           <BathMode
             onSay={say}
             onReward={(xp) => {
@@ -650,8 +680,8 @@ export default function SunnyTeaParty() {
           />
         )}
 
-        {/* ---------- SNACK MODE ---------- */}
-        {petMode === 'snack' && !isBrewing && (
+        {/* ---------- SNACK MODE (only when awake) ---------- */}
+        {petMode === 'snack' && !isBedtimeActive && (
           <SnackMode
             onFeed={(snack: SnackItem) => {
               setExtraXP((x) => x + snack.xp);
@@ -927,8 +957,8 @@ export default function SunnyTeaParty() {
         </Modal>
       )}
 
-      {/* ---------- MINI-GAMES MODAL ---------- */}
-      {showMiniGames && (
+      {/* ---------- MINI-GAMES MODAL (only when awake) ---------- */}
+      {showMiniGames && !isBedtimeActive && (
         <Modal title="Sunny's Mini-Games Arcade 🎮" onClose={() => setShowMiniGames(false)} wide>
           <MiniGamesModal
             onScoreReward={(xp) => {
@@ -942,8 +972,8 @@ export default function SunnyTeaParty() {
         </Modal>
       )}
 
-      {/* ---------- TALK TO SUNNY MODAL ---------- */}
-      {showTalking && (
+      {/* ---------- TALK TO SUNNY MODAL (only when awake) ---------- */}
+      {showTalking && !isBedtimeActive && (
         <Modal title="Talk to Sunny 🦥" onClose={() => setShowTalking(false)}>
           <TalkingSlothModal onSay={say} onSetTalking={setTalking} />
         </Modal>
