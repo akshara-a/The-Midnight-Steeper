@@ -1,6 +1,7 @@
-import asyncio
 import os
 import random
+import logging
+from typing import List
 import requests
 from temporalio import activity
 
@@ -34,8 +35,8 @@ OPENERS = {
 }
 
 
-def procedural_review(rarity: str, ingredients: list[str], seed: str = "") -> str:
-    """Built-in lore writer: no model, no network, always available (e.g. Render free tier)."""
+def _procedural_review(rarity: str, ingredients: List[str], seed: str = "") -> str:
+    """Built-in lore writer fallback: no model, no network, instant zero-lag."""
     logger.info(
         f"[Gemma Fallback] Activating procedural lore writer (rarity='{rarity}', ingredients={ingredients}, seed='{seed}')."
     )
@@ -49,17 +50,21 @@ def procedural_review(rarity: str, ingredients: list[str], seed: str = "") -> st
 
 
 def _ollama_review(prompt: str) -> str | None:
-    host = os.getenv("OLLAMA_HOST", "http://localhost:11434").strip().rstrip("/")
-    model = os.getenv("OLLAMA_MODEL", "gemma2").strip()
+    raw_host = os.getenv("OLLAMA_HOST", "").strip().rstrip("/")
+    is_cloud = bool(os.getenv("RENDER") or os.getenv("ENVIRONMENT") == "production")
+    host = raw_host or ("http://localhost:11434" if not is_cloud else "")
+    model = os.getenv("OLLAMA_MODEL", "gemma2:2b").strip()
+
     if not host:
-        logger.warning("[Gemma] OLLAMA_HOST is empty or not configured. Falling back to built-in lore writer.")
+        logger.info("[Gemma] OLLAMA_HOST is not configured for cloud tier. Using built-in procedural lore.")
         return None
+
     logger.info(f"[Gemma] Querying Ollama at {host}/api/generate with model '{model}'...")
     try:
         resp = requests.post(
             f"{host}/api/generate",
             json={"model": model, "prompt": prompt, "stream": False},
-            timeout=(2, 60),
+            timeout=(1.5, 4.0),
         )
         if resp.status_code == 200:
             text = resp.json().get("response", "").strip()
@@ -73,31 +78,27 @@ def _ollama_review(prompt: str) -> str | None:
                 f"[Gemma] Ollama ({model}) request failed with HTTP {resp.status_code}: {resp.text[:200]}"
             )
     except Exception as e:
-        logger.warning(f"[Gemma] Ollama not reachable or encountered error ({e}). Using built-in lore writer.")
+        logger.warning(f"[Gemma] Ollama not reachable or encountered error ({e}). Seamlessly using procedural lore writer.")
     return None
 
 
 @activity.defn
-async def generate_review_activity(rarity: str, ingredients: list[str], seed: str = "") -> str:
+async def generate_review_activity(rarity: str, ingredients: List[str], seed: str = "") -> str:
     """
     Open-weight Gemma via local Ollama (no API key). Falls back to the procedural writer
-    when Ollama is unavailable so the game always works.
+    when Ollama is unavailable so the game always works on free tiers.
     """
-    logger.info(
-        f"[Gemma Activity] Initiating review generation for rarity='{rarity}', ingredients={ingredients}, seed='{seed}'"
-    )
+    ingredients = ingredients or []
     ingredients_str = " and ".join(ingredients) if ingredients else "Nebula Dust and Void Water"
     prompt = (
-        f"You are a kind forest animal friend at Sunny the sloth's tea party. Write exactly 2 short, happy sentences "
-        f"for a 6 year old, using very simple words, thanking them for the {rarity} {ingredients_str} tea. "
+        f"You are a kind forest animal friend at Sunny the sloth's tea party. "
+        f"Write exactly 2 short, happy sentences for a 6 year old, using very simple words, "
+        f"thanking them for the {rarity} {ingredients_str} tea. "
         f"Be gentle and silly. Nothing scary. End with your animal name, like '- Bunny'."
     )
-    review = await asyncio.to_thread(_ollama_review, prompt)
+
+    review = _ollama_review(prompt)
     if review:
-        logger.info(f"[Gemma Activity] Completed review generation via Gemma ({os.getenv('OLLAMA_MODEL', 'gemma2')}).")
         return review
 
-    logger.info("[Gemma Activity] Gemma review unavailable. Triggering procedural fallback.")
-    fallback = procedural_review(rarity, ingredients, seed)
-    logger.info(f"[Gemma Activity] Completed review generation via procedural fallback.")
-    return fallback
+    return _procedural_review(rarity, ingredients, seed)

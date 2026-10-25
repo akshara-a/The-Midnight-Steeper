@@ -1173,10 +1173,9 @@ export default function SunnyTeaParty() {
               </ul>
             </div>
             <div className="rounded-2xl bg-white/70 border-4 border-white p-4 text-[#3b2a63]">
-              <h3 className="font-bold text-lg">🧠 Sunny&apos;s brain (optional)</h3>
+              <h3 className="font-bold text-lg">🧠 Sunny&apos;s brain (In-Browser Gemma 2B, optional)</h3>
               <p className="text-sm">
-                Download Gemma (about 320 MB, one time) so it runs inside the browser. After that it works offline and nothing a child sees
-                ever leaves the device. Without it, Sunny uses simple built-in notes.
+                Download Gemma (about 320 MB, one time) to run client-side in the browser via transformers.js. It works offline and nothing ever leaves the device. If device memory is limited (e.g. mobile Safari / low-RAM), Sunny automatically uses the built-in procedural lore.
               </p>
               {brain.status === 'ready' || brainReady() ? (
                 <div className="mt-2 font-bold text-emerald-600">✅ Sunny&apos;s brain is awake!</div>
@@ -1186,12 +1185,38 @@ export default function SunnyTeaParty() {
                     {brain.status === 'loading' ? `Downloading... ${brain.pct}%` : '⬇ Wake up Sunny’s brain'}
                   </button>
                   {brain.status === 'error' && (
-                    <div className="mt-2 text-sm font-semibold text-red-600">
-                      Could not load it on this device. Sunny will keep using the built-in notes.
+                    <div className="mt-2 text-xs font-semibold text-amber-700 bg-amber-100 p-2 rounded-xl border border-amber-300">
+                      ⚠️ Could not load in-browser weights (common on low-memory/mobile devices). Sunny will keep using the fast built-in procedural notes with zero lag!
                     </div>
                   )}
                 </>
               )}
+            </div>
+
+            {/* Developer & Judge Disclaimer: Local Ollama Gemma Setup */}
+            <div className="rounded-2xl bg-indigo-950/80 border-2 border-indigo-400/40 p-4 text-indigo-100">
+              <h3 className="font-bold text-base text-amber-200 flex items-center gap-1.5">
+                <span>💻</span>
+                <span>Developer & Judge Guide: Local Gemma via Ollama</span>
+              </h3>
+              <div className="text-xs mt-2 space-y-2 text-indigo-200/90 leading-relaxed">
+                <p>
+                  <strong>☁️ Render Free Tier Disclaimer:</strong> Render&apos;s free tier provides 512 MB RAM. This is perfect for the fast 3D graphics and procedural lore generator, but cannot host multi-gigabyte local LLM weights (Gemma / Llama) inside the container.
+                </p>
+                <p>
+                  <strong>✨ Zero-Crash Procedural Fallback:</strong> If no Ollama daemon is detected, the app automatically switches to the built-in procedural lore writer with 0 latency and 0 errors.
+                </p>
+                <div className="bg-black/50 rounded-xl p-3 font-mono text-[11px] text-amber-300 space-y-1 overflow-x-auto">
+                  <div className="text-indigo-300 font-sans font-bold text-xs">🚀 How to test with your local Ollama Gemma:</div>
+                  <div># 1. Run local Gemma on your machine</div>
+                  <div>ollama run gemma2:2b</div>
+                  <div className="text-indigo-400"># or: ollama run llama3.2:1b</div>
+                  <div className="pt-1 text-slate-300"># 2. When running locally (npm run dev), the app connects to http://localhost:11434 automatically!</div>
+                  <div className="text-slate-300"># 3. If testing against your Render deployed web app, tunnel Ollama:</div>
+                  <div>ngrok http 11434</div>
+                  <div className="text-slate-300"># Then set OLLAMA_HOST in your Render Environment to your ngrok URL!</div>
+                </div>
+              </div>
             </div>
             <div className="flex flex-wrap gap-3">
               <button onClick={() => setVoiceOn((v) => !v)} className="btn-chunky green px-4 py-2">

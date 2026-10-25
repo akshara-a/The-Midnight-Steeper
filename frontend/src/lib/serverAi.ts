@@ -1,10 +1,12 @@
 /**
  * Keyless AI pipeline for The Midnight Steeper's serverless routes.
  *
- * Reviews: open-weight Gemma via a local/remote Ollama (OLLAMA_HOST). When Ollama is not
- * reachable (e.g. Render's free tier) a built-in lore writer takes over so the game always works.
- * Rarity: the rule-based probability model (the Python backend upgrades this with real TabPFN).
+ * Reviews: open-weight Gemma via local/remote Ollama (OLLAMA_HOST).
+ * When running on Render free tier (512MB RAM) without an external Ollama host,
+ * or when Ollama is unreachable, a built-in lore writer immediately takes over
+ * so the game never lags, times out, or crashes.
  *
+ * Rarity: the rule-based probability model (the Python backend upgrades this with real TabPFN).
  * Keep the rarity model in sync with backend/activities/tabpfn_ai.py.
  */
 import { DURATION_TIERS, rng, synergyPower } from './customers';
@@ -66,7 +68,7 @@ const OPENERS: Record<string, string[]> = {
   ],
 };
 
-/** Built-in lore writer: no model, no network. */
+/** Built-in lore writer: no model, no network, instant zero-lag. */
 export function proceduralReview(rarity: string, ingredients: string[], seed = ''): string {
   console.log(
     `[Gemma Fallback] Activating procedural lore writer (rarity='${rarity}', ingredients=${JSON.stringify(ingredients)}, seed='${seed}').`
@@ -92,8 +94,14 @@ export async function generateTravelerReview(
   const list = ingredients?.length ? ingredients.join(' and ') : 'Nebula Dust and Void Water';
   const prompt = `You are a kind forest animal friend at Sunny the sloth's tea party. Write exactly 2 short, happy sentences for a 6 year old, using very simple words, thanking them for the ${rarity} ${list} tea. Be gentle and silly. Nothing scary. End with your animal name, like '- Bunny'.`;
 
-  const host = (process.env.OLLAMA_HOST ?? 'http://localhost:11434').trim().replace(/\/$/, '');
-  const model = (process.env.OLLAMA_MODEL || 'gemma2').trim();
+  // Render Free Tier / Cloud detection:
+  // Render Free Tier only provides 512MB RAM, so local Ollama cannot run inside the container.
+  // If OLLAMA_HOST is not explicitly configured in production/Render, bypass localhost:11434
+  // immediately to avoid 20-second connection timeouts!
+  const rawHost = process.env.OLLAMA_HOST?.trim();
+  const isCloudDeploy = Boolean(process.env.RENDER || process.env.VERCEL || process.env.NODE_ENV === 'production');
+  const host = rawHost || (!isCloudDeploy ? 'http://localhost:11434' : '');
+  const model = (process.env.OLLAMA_MODEL || 'gemma2:2b').trim();
 
   if (host) {
     try {
@@ -102,7 +110,7 @@ export async function generateTravelerReview(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model, prompt, stream: false }),
-        signal: AbortSignal.timeout(20000),
+        signal: AbortSignal.timeout(3500), // Fast 3.5s timeout to prevent UI lag
       });
       if (resp.ok) {
         const data = await resp.json();
@@ -117,14 +125,11 @@ export async function generateTravelerReview(
         console.warn(`[Gemma AI] Ollama (${model}) request failed with status ${resp.status} ${resp.statusText}.`);
       }
     } catch (err) {
-      console.warn(`[Gemma AI] Ollama not reachable or encountered error (${err}). Using built-in lore writer.`);
+      console.warn(`[Gemma AI] Ollama at ${host} unreachable or timed out (${err}). Seamlessly using procedural lore writer.`);
     }
   } else {
-    console.warn('[Gemma AI] OLLAMA_HOST is not configured or empty. Using built-in lore writer.');
+    console.info('[Gemma AI] Cloud free-tier mode detected without external OLLAMA_HOST. Using instant procedural lore writer.');
   }
 
-  console.log('[Gemma AI] Gemma review unavailable. Triggering procedural fallback.');
-  const fallback = proceduralReview(rarity, ingredients, seed);
-  console.log('[Gemma AI] Completed review generation via procedural fallback.');
-  return fallback;
+  return proceduralReview(rarity, ingredients, seed);
 }
