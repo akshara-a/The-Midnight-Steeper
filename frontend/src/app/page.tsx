@@ -577,6 +577,17 @@ export default function SunnyTeaParty() {
             <button
               onClick={() => {
                 sounds.playClick();
+                setShowThemeModal(true);
+              }}
+              aria-label="3D Diorama Atmosphere Themes"
+              className="btn-chunky purple w-11 h-11 sm:w-12 sm:h-12 text-xl flex items-center justify-center hover:scale-105"
+              title="🎨 3D Diorama Atmosphere Themes"
+            >
+              🎨
+            </button>
+            <button
+              onClick={() => {
+                sounds.playClick();
                 setShowCrystalModal(true);
               }}
               aria-label="TabPFN AI Alchemist Forecast"
@@ -635,7 +646,7 @@ export default function SunnyTeaParty() {
               setShowThemeModal(true);
             }}
             aria-label="Change 3D Diorama Theme"
-            className="absolute top-3 right-3 z-20 btn-chunky purple py-1 px-2.5 sm:px-3 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95"
+            className="absolute bottom-3 right-3 z-20 btn-chunky purple py-1 px-2.5 sm:px-3 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95"
             title="Switch 3D Diorama Atmosphere Theme"
           >
             <span className="text-base sm:text-lg">{DIORAMA_THEMES[dioramaTheme]?.icon || '🎨'}</span>
@@ -654,7 +665,7 @@ export default function SunnyTeaParty() {
           />
 
           {bubble && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[88%] max-w-md z-20 pointer-events-none">
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[80%] max-w-sm z-20 pointer-events-none">
               <div key={bubble.id} className="bubble px-4 py-3 text-center text-lg font-semibold leading-snug">
                 {bubble.text}
               </div>
@@ -669,12 +680,14 @@ export default function SunnyTeaParty() {
             </div>
           )}
 
-          <div className="absolute bottom-2 left-0 right-0 text-center text-sm font-semibold opacity-80 pointer-events-none">
-            {mood === 'sleeping'
-              ? '💤 Shh... Sunny is sleeping peacefully'
-              : mood === 'bathing'
-              ? '🛁 Splish splash! Sunny is enjoying the bath!'
-              : '👆 Tap or tickle Sunny!'}
+          <div className="absolute bottom-3 left-3 sm:left-4 text-xs sm:text-sm font-semibold pointer-events-none">
+            <span className="bg-black/45 backdrop-blur-md text-white/95 px-3 py-1 rounded-full shadow-sm">
+              {mood === 'sleeping'
+                ? '💤 Shh... Sunny is sleeping peacefully'
+                : mood === 'bathing'
+                ? '🛁 Splish splash! Sunny is enjoying the bath!'
+                : '👆 Tap or tickle Sunny!'}
+            </span>
           </div>
         </section>
 
