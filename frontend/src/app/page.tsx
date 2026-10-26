@@ -30,7 +30,7 @@ import MiniGamesModal from '@/components/MiniGamesModal';
 import TalkingSlothModal from '@/components/TalkingSlothModal';
 import { AlchemistCrystalBall } from '@/components/AlchemistCrystalBall';
 import { TabPFNAttributionCard } from '@/components/TabPFNAttributionCard';
-import type { PetMood } from '@/components/SlothPet3D';
+import { DIORAMA_THEMES, type DioramaTheme, type PetMood } from '@/components/SlothPet3D';
 
 const SlothPet3D = dynamic(() => import('@/components/SlothPet3D'), {
   ssr: false,
@@ -154,6 +154,17 @@ export default function SunnyTeaParty() {
   const [showCrystalModal, setShowCrystalModal] = useState(false);
   const [showAttributionModal, setShowAttributionModal] = useState(false);
   const [showGrownups, setShowGrownups] = useState(false);
+  const [dioramaTheme, setDioramaTheme] = useState<DioramaTheme>('classic');
+  const [showThemeModal, setShowThemeModal] = useState(false);
+
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem('midnight_theme') as DioramaTheme | null;
+      if (savedTheme && DIORAMA_THEMES[savedTheme]) {
+        setDioramaTheme(savedTheme);
+      }
+    } catch {}
+  }, []);
   const [brain, setBrain] = useState<{ status: BrainStatus; pct: number }>({ status: 'off', pct: 0 });
 
   const [sessionPicks, setSessionPicks] = useState(0);
@@ -617,7 +628,30 @@ export default function SunnyTeaParty() {
             pointerRef.current = { x: e.clientX, y: e.clientY };
           }}
         >
-          <SlothPet3D mood={mood} furColor={shownLeaf.color} accentColor={shownTreat.color} pokeCount={pokeCount} onPoke={onPoke} starlightGlow={currentBrew?.loot?.sensory?.starlight_glow ?? (lootModal?.sensory?.starlight_glow ?? (leaf.name === 'Moon Mint' || treat.name === 'Star Sugar' ? 85 : 50))} />
+          {/* 3D Diorama Theme Switcher Badge */}
+          <button
+            onClick={() => {
+              sounds.playClick();
+              setShowThemeModal(true);
+            }}
+            aria-label="Change 3D Diorama Theme"
+            className="absolute top-3 right-3 z-20 btn-chunky purple py-1 px-2.5 sm:px-3 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95"
+            title="Switch 3D Diorama Atmosphere Theme"
+          >
+            <span className="text-base sm:text-lg">{DIORAMA_THEMES[dioramaTheme]?.icon || '🎨'}</span>
+            <span className="hidden sm:inline">{DIORAMA_THEMES[dioramaTheme]?.name || 'Theme'}</span>
+            <span className="text-[10px] opacity-75">🎨</span>
+          </button>
+
+          <SlothPet3D
+            mood={mood}
+            furColor={shownLeaf.color}
+            accentColor={shownTreat.color}
+            pokeCount={pokeCount}
+            onPoke={onPoke}
+            starlightGlow={currentBrew?.loot?.sensory?.starlight_glow ?? (lootModal?.sensory?.starlight_glow ?? (leaf.name === 'Moon Mint' || treat.name === 'Star Sugar' ? 85 : 50))}
+            theme={dioramaTheme}
+          />
 
           {bubble && (
             <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[88%] max-w-md z-20 pointer-events-none">
@@ -1225,6 +1259,55 @@ export default function SunnyTeaParty() {
               <button onClick={() => setSfxOn((v) => !v)} className="btn-chunky blue px-4 py-2">
                 {sfxOn ? '🎵 Sounds on' : '🔕 Sounds off'}
               </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ---------- 3D DIORAMA THEME SELECTION MODAL ---------- */}
+      {showThemeModal && (
+        <Modal title="🎨 Choose 3D Diorama Theme" onClose={() => setShowThemeModal(false)}>
+          <div className="space-y-3.5">
+            <p className="text-xs sm:text-sm text-[#3b2a63] font-medium leading-relaxed text-center">
+              Transform Sunny&apos;s tea party nook with seasonal lanterns, glowing embers, kettle styles, and atmospheric lighting!
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {(Object.values(DIORAMA_THEMES) as Array<typeof DIORAMA_THEMES[keyof typeof DIORAMA_THEMES]>).map((th) => {
+                const isSelected = dioramaTheme === th.id;
+                return (
+                  <button
+                    key={th.id}
+                    onClick={() => {
+                      sounds.playClick();
+                      setDioramaTheme(th.id);
+                      try {
+                        localStorage.setItem('midnight_theme', th.id);
+                      } catch {}
+                      say(`Welcome to the ${th.name}! ${th.icon}`);
+                    }}
+                    className={`p-3 rounded-2xl border-2 text-left transition-all flex items-start gap-3 ${
+                      isSelected
+                        ? 'bg-purple-600/25 border-purple-500 ring-2 ring-purple-300 scale-[1.02]'
+                        : 'bg-white/70 border-indigo-200 hover:border-indigo-400 hover:bg-white/90'
+                    }`}
+                  >
+                    <span className="text-3xl">{th.icon}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-sm sm:text-base text-[#3b2a63] flex items-center justify-between">
+                        <span>{th.name}</span>
+                        {isSelected && (
+                          <span className="text-[11px] font-bold bg-purple-600 text-white px-2 py-0.5 rounded-full shadow-sm">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-[#3b2a63]/80 mt-0.5 leading-snug line-clamp-2">
+                        {th.description}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </Modal>

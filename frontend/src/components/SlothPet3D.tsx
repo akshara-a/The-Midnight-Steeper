@@ -7,6 +7,150 @@ import * as THREE from 'three';
 
 export type PetMood = 'idle' | 'talking' | 'sleeping' | 'happy' | 'eating' | 'bathing' | 'playing';
 
+export type DioramaTheme = 'classic' | 'sakura' | 'celestial' | 'autumn' | 'onsen';
+
+export interface ThemeConfig {
+  id: DioramaTheme;
+  name: string;
+  icon: string;
+  description: string;
+  lanternPaper: string;
+  lanternEmissive: string;
+  lanternLight: string;
+  kettle: string;
+  coal: string;
+  coalEmissive: string;
+  stone: string;
+  branch: string;
+  leaves: string;
+  terracotta: string;
+  petals: string;
+  keyLight: string;
+  fillLight: string;
+  rimLight: string;
+  sparkleColor: string;
+  woodBark: string;
+  woodTop: string;
+}
+
+export const DIORAMA_THEMES: Record<DioramaTheme, ThemeConfig> = {
+  classic: {
+    id: 'classic',
+    name: 'Midnight Tea House',
+    icon: '🏮',
+    description: 'Traditional cast-iron kettle, warm paper lantern, glowing hearth coals & chamomile aroma',
+    lanternPaper: '#fffbeb',
+    lanternEmissive: '#fef08a',
+    lanternLight: '#fef08a',
+    kettle: '#232126',
+    coal: '#ea580c',
+    coalEmissive: '#f97316',
+    stone: '#475569',
+    branch: '#6c4c37',
+    leaves: '#4ade80',
+    terracotta: '#c2410c',
+    petals: '#fde047',
+    keyLight: '#fff7ed',
+    fillLight: '#c7d2fe',
+    rimLight: '#fef08a',
+    sparkleColor: '#fef08a',
+    woodBark: '#5a3d28',
+    woodTop: '#bfa07a',
+  },
+  sakura: {
+    id: 'sakura',
+    name: 'Sakura Garden',
+    icon: '🌸',
+    description: 'Drifting cherry blossoms, rosy kettle, soft pink lantern glow & fresh jade tea leaves',
+    lanternPaper: '#ffe4e6',
+    lanternEmissive: '#fda4af',
+    lanternLight: '#f43f5e',
+    kettle: '#831843',
+    coal: '#f43f5e',
+    coalEmissive: '#fb7185',
+    stone: '#64748b',
+    branch: '#4c2e35',
+    leaves: '#86efac',
+    terracotta: '#e11d48',
+    petals: '#fda4af',
+    keyLight: '#fff1f2',
+    fillLight: '#fbcfe8',
+    rimLight: '#f472b6',
+    sparkleColor: '#f472b6',
+    woodBark: '#4a2838',
+    woodTop: '#ddb3c5',
+  },
+  celestial: {
+    id: 'celestial',
+    name: 'Celestial Starlight',
+    icon: '✨',
+    description: 'Cosmic indigo night, silver lunar kettle, glowing cyan lantern & shimmering star shards',
+    lanternPaper: '#cffafe',
+    lanternEmissive: '#38bdf8',
+    lanternLight: '#0ea5e9',
+    kettle: '#334155',
+    coal: '#0284c7',
+    coalEmissive: '#38bdf8',
+    stone: '#1e293b',
+    branch: '#1e1e38',
+    leaves: '#7dd3fc',
+    terracotta: '#1e3a8a',
+    petals: '#67e8f9',
+    keyLight: '#e0f2fe',
+    fillLight: '#818cf8',
+    rimLight: '#38bdf8',
+    sparkleColor: '#38bdf8',
+    woodBark: '#181e36',
+    woodTop: '#7c88b0',
+  },
+  autumn: {
+    id: 'autumn',
+    name: 'Autumn Fireside',
+    icon: '🍂',
+    description: 'Crisp fallen maple leaves, copper kettle, toasted firewood embers & harvest spices',
+    lanternPaper: '#fef3c7',
+    lanternEmissive: '#f59e0b',
+    lanternLight: '#d97706',
+    kettle: '#78350f',
+    coal: '#b45309',
+    coalEmissive: '#f59e0b',
+    stone: '#57534e',
+    branch: '#451a03',
+    leaves: '#ea580c',
+    terracotta: '#9a3412',
+    petals: '#f97316',
+    keyLight: '#ffedd5',
+    fillLight: '#fed7aa',
+    rimLight: '#fbbf24',
+    sparkleColor: '#f59e0b',
+    woodBark: '#3c1c0c',
+    woodTop: '#c48f65',
+  },
+  onsen: {
+    id: 'onsen',
+    name: 'Zen Mineral Onsen',
+    icon: '🫧',
+    description: 'Misty hot spring steam, river jade kettle, bamboo green leaves & soothing mineral waters',
+    lanternPaper: '#ccfbf1',
+    lanternEmissive: '#14b8a6',
+    lanternLight: '#0d9488',
+    kettle: '#134e4a',
+    coal: '#0f766e',
+    coalEmissive: '#2dd4bf',
+    stone: '#334155',
+    branch: '#1c342c',
+    leaves: '#34d399',
+    terracotta: '#115e59',
+    petals: '#5eead4',
+    keyLight: '#f0fdfa',
+    fillLight: '#a7f3d0',
+    rimLight: '#2dd4bf',
+    sparkleColor: '#2dd4bf',
+    woodBark: '#1c2e26',
+    woodTop: '#76a896',
+  },
+};
+
 interface SlothPet3DProps {
   mood: PetMood;
   /** Fur color (follows the leaf the child picks) */
@@ -17,6 +161,7 @@ interface SlothPet3DProps {
   pokeCount: number;
   onPoke: () => void;
   starlightGlow?: number;
+  theme?: DioramaTheme;
 }
 
 const damp = THREE.MathUtils.damp;
@@ -32,7 +177,7 @@ const FIREFLIES_CONFIG = [
   { base: [0.0, -1.0, 1.2], speed: 0.7, phase: 2.1 },
 ];
 
-function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: SlothPet3DProps) {
+function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, theme = 'classic' }: SlothPet3DProps) {
   const root = useRef<THREE.Group>(null);
   const body = useRef<THREE.Group>(null);
   const head = useRef<THREE.Group>(null);
@@ -54,6 +199,12 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
   const moon = useRef<THREE.Group>(null);
   const ambient = useRef<THREE.AmbientLight>(null);
   const seat = useRef<THREE.Group>(null);
+
+  // Lights for dynamic diorama themes
+  const keyLight = useRef<THREE.DirectionalLight>(null);
+  const fillLight = useRef<THREE.DirectionalLight>(null);
+  const rimLight = useRef<THREE.DirectionalLight>(null);
+  const lanternLight = useRef<THREE.PointLight>(null);
 
   // Package A: Environmental Props refs
   const kettle = useRef<THREE.Group>(null);
@@ -169,6 +320,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
       branch: new THREE.MeshStandardMaterial({ color: '#6c4c37', roughness: 0.95 }),
       leafGreen: new THREE.MeshStandardMaterial({ color: '#4ade80', roughness: 0.55 }),
       terracotta: new THREE.MeshStandardMaterial({ color: '#c2410c', roughness: 0.85 }),
+      petalMat: new THREE.MeshStandardMaterial({ color: '#fde047', roughness: 0.75 }),
       steam: new THREE.MeshStandardMaterial({
         color: '#ffffff',
         transparent: true,
@@ -210,6 +362,27 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
     const bathing = mood === 'bathing';
     const playing = mood === 'playing';
     const idle = mood === 'idle';
+
+    // Theme Config updates
+    const activeTheme = DIORAMA_THEMES[theme] || DIORAMA_THEMES.classic;
+
+    mats.lanternPaper.color.lerp(tmp.set(activeTheme.lanternPaper), 0.08);
+    mats.lanternPaper.emissive.lerp(tmp.set(activeTheme.lanternEmissive), 0.08);
+    mats.iron.color.lerp(tmp.set(activeTheme.kettle), 0.08);
+    mats.coal.color.lerp(tmp.set(activeTheme.coal), 0.08);
+    mats.coal.emissive.lerp(tmp.set(activeTheme.coalEmissive), 0.08);
+    mats.stone.color.lerp(tmp.set(activeTheme.stone), 0.08);
+    mats.branch.color.lerp(tmp.set(activeTheme.branch), 0.08);
+    mats.leafGreen.color.lerp(tmp.set(activeTheme.leaves), 0.08);
+    mats.terracotta.color.lerp(tmp.set(activeTheme.terracotta), 0.08);
+    mats.petalMat.color.lerp(tmp.set(activeTheme.petals), 0.08);
+    mats.woodBark.color.lerp(tmp.set(activeTheme.woodBark), 0.08);
+    mats.woodTop.color.lerp(tmp.set(activeTheme.woodTop), 0.08);
+
+    if (lanternLight.current) lanternLight.current.color.lerp(tmp.set(activeTheme.lanternLight), 0.08);
+    if (keyLight.current) keyLight.current.color.lerp(tmp.set(activeTheme.keyLight), 0.08);
+    if (fillLight.current) fillLight.current.color.lerp(tmp.set(activeTheme.fillLight), 0.08);
+    if (rimLight.current) rimLight.current.color.lerp(tmp.set(activeTheme.rimLight), 0.08);
 
     // Package B: Smooth Material & Velvet Sheen Transitions
     mats.fur.color.lerp(furTarget, 0.1);
@@ -498,12 +671,10 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
       const cfg = FIREFLIES_CONFIG[idx];
       const scatter = fireflyScatter.current[idx];
 
-      // Natural harmonic floating orbit
       const orbitX = cfg.base[0] + Math.sin(t * cfg.speed + cfg.phase) * 0.45;
       const orbitY = cfg.base[1] + Math.cos(t * cfg.speed * 1.25 + cfg.phase) * 0.35;
       const orbitZ = cfg.base[2] + Math.sin(t * cfg.speed * 0.75 + cfg.phase) * 0.4;
 
-      // Pointer interactive evasion (soft scatter on hover/tap)
       const dx = orbitX - scenePointerX;
       const dy = orbitY - scenePointerY;
       const dist = Math.sqrt(dx * dx + dy * dy);
@@ -519,7 +690,6 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
 
       group.position.set(orbitX + scatter.x, orbitY + scatter.y, orbitZ);
 
-      // Organic pulsing glow
       const pulse = 0.035 + (Math.sin(t * 3.5 + cfg.phase) * 0.5 + 0.5) * 0.025;
       group.scale.set(pulse, pulse, pulse);
     });
@@ -527,16 +697,15 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
     if (ambient.current) ambient.current.intensity = damp(ambient.current.intensity, sleeping ? 0.6 : 1.1, 3, dt);
   });
 
+  const activeTheme = DIORAMA_THEMES[theme] || DIORAMA_THEMES.classic;
+
   return (
     <>
-      {/* Pixar-style Studio 3-Point Lighting */}
+      {/* Pixar-style Studio 3-Point Lighting with Theme Support */}
       <ambientLight ref={ambient} intensity={1.1} />
-      {/* Key Light: warm sunlight */}
-      <directionalLight position={[4, 6, 5]} intensity={1.5} color="#fff7ed" />
-      {/* Fill Light: soft lavender twilight */}
-      <directionalLight position={[-4, 3, 3]} intensity={0.7} color="#c7d2fe" />
-      {/* Rim / Silhouette Light: creates the classy soft furry outline */}
-      <directionalLight position={[0, 4, -5]} intensity={1.8} color="#fef08a" />
+      <directionalLight ref={keyLight} position={[4, 6, 5]} intensity={1.5} color={activeTheme.keyLight} />
+      <directionalLight ref={fillLight} position={[-4, 3, 3]} intensity={0.7} color={activeTheme.fillLight} />
+      <directionalLight ref={rimLight} position={[0, 4, -5]} intensity={1.8} color={activeTheme.rimLight} />
 
       {/* Ground Contact Shadow: anchors Sunny to the world */}
       <ContactShadows position={[0, -1.82, 0]} opacity={0.45} scale={7} blur={2.2} far={4} />
@@ -588,7 +757,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
             <primitive object={mats.pink} attach="material" />
           </mesh>
           {/* Cozy Warm Lantern Glow Light */}
-          <pointLight position={[0, -0.26, 0]} intensity={10} color="#fef08a" distance={4.2} />
+          <pointLight ref={lanternLight} position={[0, -0.26, 0]} intensity={10} color={activeTheme.lanternLight} distance={4.2} />
         </group>
       </group>
 
@@ -697,7 +866,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
           <torusGeometry args={[1.5, 0.08, 12, 36]} />
           <primitive object={mats.accent} attach="material" />
         </mesh>
-        {/* Scattered Botanical Tea Petals */}
+        {/* Scattered Botanical Tea Petals (Themed) */}
         {[
           [0.85, 0.36, 0.6, 0.2],
           [-0.7, 0.36, 0.75, -0.4],
@@ -706,7 +875,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
         ].map(([px, py, pz, pr], idx) => (
           <mesh key={idx} position={[px, py, pz]} rotation={[0, pr, 0]} scale={[1, 0.2, 1.4]}>
             <sphereGeometry args={[0.06, 10, 10]} />
-            <primitive object={mats.accent} attach="material" />
+            <primitive object={mats.petalMat} attach="material" />
           </mesh>
         ))}
       </group>
@@ -834,7 +1003,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
             <sphereGeometry args={[1, 12, 12]} />
             <primitive object={mats.fireflyMat} attach="material" />
           </mesh>
-          <pointLight color="#fef08a" intensity={0.8} distance={1.2} />
+          <pointLight color={activeTheme.sparkleColor} intensity={0.8} distance={1.2} />
         </group>
       ))}
 
@@ -1144,7 +1313,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
             ? '#c7d2fe'
             : mood === 'bathing'
             ? '#7dd3fc'
-            : '#fef08a'
+            : activeTheme.sparkleColor
         }
       />
     </>
