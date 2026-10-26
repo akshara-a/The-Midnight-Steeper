@@ -44,6 +44,13 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
   const ambient = useRef<THREE.AmbientLight>(null);
   const seat = useRef<THREE.Group>(null);
 
+  // Package A: Environmental Props refs
+  const kettle = useRef<THREE.Group>(null);
+  const lantern = useRef<THREE.Group>(null);
+  const sprout = useRef<THREE.Group>(null);
+  const steamPuffsKettle = useRef<(THREE.Mesh | null)[]>([]);
+  const steamPuffsCup = useRef<(THREE.Mesh | null)[]>([]);
+
   const lastPoke = useRef(pokeCount);
   const squash = useRef(0);
   const nextBlink = useRef(2);
@@ -88,6 +95,26 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
         roughness: 0.35,
         emissive: '#0ea5e9',
         emissiveIntensity: 0.15,
+      }),
+      // Package A Materials:
+      iron: new THREE.MeshStandardMaterial({ color: '#232126', roughness: 0.65, metalness: 0.75 }),
+      coal: new THREE.MeshStandardMaterial({ color: '#ea580c', emissive: '#f97316', emissiveIntensity: 1.6 }),
+      stone: new THREE.MeshStandardMaterial({ color: '#475569', roughness: 0.9 }),
+      lanternPaper: new THREE.MeshStandardMaterial({
+        color: '#fffbeb',
+        emissive: '#fef08a',
+        emissiveIntensity: 0.85,
+        roughness: 0.6,
+      }),
+      lanternWood: new THREE.MeshStandardMaterial({ color: '#382216', roughness: 0.6 }),
+      branch: new THREE.MeshStandardMaterial({ color: '#6c4c37', roughness: 0.95 }),
+      leafGreen: new THREE.MeshStandardMaterial({ color: '#4ade80', roughness: 0.55 }),
+      terracotta: new THREE.MeshStandardMaterial({ color: '#c2410c', roughness: 0.85 }),
+      steam: new THREE.MeshStandardMaterial({
+        color: '#ffffff',
+        transparent: true,
+        opacity: 0.35,
+        roughness: 0.2,
       }),
     }),
     []
@@ -233,12 +260,46 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
     popTo(tub.current, bathing);
     popTo(duck.current, bathing);
     popTo(seat.current, !bathing);
+    popTo(kettle.current, !bathing);
+    popTo(sprout.current, !bathing);
 
     if (cup.current) cup.current.position.y = 0.92 + Math.sin(t * 3) * 0.06;
     if (duck.current) {
       duck.current.position.y = -0.55 + Math.sin(t * 3.2) * 0.05;
       duck.current.rotation.y = Math.sin(t * 1.8) * 0.25;
     }
+
+    // Package A: Overhead Paper Lantern swaying in the gentle breeze
+    if (lantern.current) {
+      lantern.current.rotation.z = Math.sin(t * 1.4) * 0.05;
+      lantern.current.rotation.x = Math.cos(t * 1.0) * 0.035;
+    }
+
+    // Package A: Curly rising steam from kettle spout
+    steamPuffsKettle.current.forEach((mesh, idx) => {
+      if (!mesh) return;
+      const offset = idx * 0.25;
+      const progress = ((t * 0.45 + offset) % 1.0);
+      mesh.position.y = 0.35 + progress * 0.75;
+      mesh.position.x = 0.28 + Math.sin(t * 2.2 + idx * 1.4) * 0.06 * (1 + progress);
+      mesh.position.z = Math.cos(t * 1.8 + idx) * 0.04;
+      const sc = 0.04 + progress * 0.14;
+      mesh.scale.set(sc, sc, sc);
+      mesh.visible = !bathing;
+    });
+
+    // Package A: Curly rising steam from teacup
+    steamPuffsCup.current.forEach((mesh, idx) => {
+      if (!mesh) return;
+      const offset = idx * 0.33;
+      const progress = ((t * 0.5 + offset) % 1.0);
+      mesh.position.y = 0.18 + progress * 0.65;
+      mesh.position.x = Math.sin(t * 2.5 + idx * 1.8) * 0.05 * (1 + progress);
+      mesh.position.z = Math.cos(t * 2.0 + idx) * 0.03;
+      const sc = 0.035 + progress * 0.12;
+      mesh.scale.set(sc, sc, sc);
+      mesh.visible = eating;
+    });
 
     if (ambient.current) ambient.current.intensity = damp(ambient.current.intensity, sleeping ? 0.6 : 1.1, 3, dt);
   });
@@ -257,6 +318,145 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
       {/* Ground Contact Shadow: anchors Sunny to the world */}
       <ContactShadows position={[0, -1.82, 0]} opacity={0.45} scale={7} blur={2.2} far={4} />
 
+      {/* Package A: Overhead Birch Branch & Swaying Paper Moon Lantern */}
+      <group position={[-2.7, 2.7, -0.6]}>
+        {/* Birch Branch Arch */}
+        <mesh position={[0.4, -0.15, 0]} rotation={[0, 0, -0.45]}>
+          <cylinderGeometry args={[0.07, 0.11, 1.4, 16]} />
+          <primitive object={mats.branch} attach="material" />
+        </mesh>
+        <mesh position={[1.1, -0.45, 0.1]} rotation={[0, 0, -0.75]}>
+          <cylinderGeometry args={[0.05, 0.07, 0.8, 16]} />
+          <primitive object={mats.branch} attach="material" />
+        </mesh>
+        {/* Delicate Birch Leaves */}
+        {[-0.2, 0.3, 0.8, 1.2].map((lx, i) => (
+          <mesh key={i} position={[lx, -0.1 - i * 0.25, 0.15]} rotation={[0.2, 0.4, -0.5 + i * 0.3]}>
+            <sphereGeometry args={[0.1, 10, 10]} />
+            <primitive object={mats.leafGreen} attach="material" />
+          </mesh>
+        ))}
+
+        {/* Swaying Lantern Group */}
+        <group ref={lantern} position={[1.35, -0.65, 0.15]}>
+          {/* Suspension Cord */}
+          <mesh position={[0, 0.3, 0]}>
+            <cylinderGeometry args={[0.008, 0.008, 0.6, 8]} />
+            <primitive object={mats.dark} attach="material" />
+          </mesh>
+          {/* Top Wooden Cap */}
+          <mesh position={[0, 0, 0]}>
+            <cylinderGeometry args={[0.18, 0.22, 0.06, 20]} />
+            <primitive object={mats.lanternWood} attach="material" />
+          </mesh>
+          {/* Ribbed Paper Lantern Body */}
+          <mesh position={[0, -0.26, 0]}>
+            <sphereGeometry args={[0.28, 24, 20]} />
+            <primitive object={mats.lanternPaper} attach="material" />
+          </mesh>
+          {/* Bottom Wooden Collar */}
+          <mesh position={[0, -0.52, 0]}>
+            <cylinderGeometry args={[0.16, 0.14, 0.05, 20]} />
+            <primitive object={mats.lanternWood} attach="material" />
+          </mesh>
+          {/* Silk Tassel */}
+          <mesh position={[0, -0.66, 0]}>
+            <coneGeometry args={[0.045, 0.22, 12]} />
+            <primitive object={mats.pink} attach="material" />
+          </mesh>
+          {/* Cozy Warm Lantern Glow Light */}
+          <pointLight position={[0, -0.26, 0]} intensity={10} color="#fef08a" distance={4.2} />
+        </group>
+      </group>
+
+      {/* Package A: Cast-Iron Japanese Tetsubin (Tea Kettle) & Warming Stove */}
+      <group ref={kettle} position={[1.9, -1.35, 0.35]}>
+        {/* Stone Trivet Base */}
+        <mesh position={[0, -0.06, 0]}>
+          <cylinderGeometry args={[0.42, 0.46, 0.1, 24]} />
+          <primitive object={mats.stone} attach="material" />
+        </mesh>
+        {/* Glowing Charcoal Fire Embers */}
+        <mesh position={[0, 0.01, 0]}>
+          <cylinderGeometry args={[0.34, 0.34, 0.03, 20]} />
+          <primitive object={mats.coal} attach="material" />
+        </mesh>
+        {/* Cast-Iron Kettle Body */}
+        <mesh position={[0, 0.22, 0]} scale={[1, 0.78, 1]}>
+          <sphereGeometry args={[0.28, 24, 24]} />
+          <primitive object={mats.iron} attach="material" />
+        </mesh>
+        {/* Kettle Lid & Gold Knob */}
+        <mesh position={[0, 0.42, 0]}>
+          <cylinderGeometry args={[0.15, 0.17, 0.04, 20]} />
+          <primitive object={mats.iron} attach="material" />
+        </mesh>
+        <mesh position={[0, 0.46, 0]}>
+          <sphereGeometry args={[0.035, 12, 12]} />
+          <primitive object={mats.gold} attach="material" />
+        </mesh>
+        {/* Curved Pour Spout */}
+        <mesh position={[0.26, 0.28, 0]} rotation={[0, 0, -Math.PI / 4]}>
+          <cylinderGeometry args={[0.035, 0.055, 0.22, 14]} />
+          <primitive object={mats.iron} attach="material" />
+        </mesh>
+        {/* Overhead Arched Iron Handle */}
+        <mesh position={[0, 0.38, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.24, 0.02, 10, 24, Math.PI]} />
+          <primitive object={mats.iron} attach="material" />
+        </mesh>
+
+        {/* Rising Curly Steam from Kettle Spout */}
+        {[0, 1, 2, 3].map((idx) => (
+          <mesh
+            key={idx}
+            ref={(el) => {
+              steamPuffsKettle.current[idx] = el;
+            }}
+            position={[0.34, 0.38, 0]}
+          >
+            <sphereGeometry args={[0.4, 12, 12]} />
+            <primitive object={mats.steam} attach="material" />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Package A: Potted Botanical Herb Sprout & Terracotta Pot */}
+      <group ref={sprout} position={[-1.85, -1.38, 0.4]}>
+        {/* Terracotta Pot */}
+        <mesh position={[0, 0, 0]}>
+          <cylinderGeometry args={[0.2, 0.14, 0.24, 20]} />
+          <primitive object={mats.terracotta} attach="material" />
+        </mesh>
+        {/* Pot Rim */}
+        <mesh position={[0, 0.12, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.2, 0.028, 10, 24]} />
+          <primitive object={mats.terracotta} attach="material" />
+        </mesh>
+        {/* Rich Soil */}
+        <mesh position={[0, 0.08, 0]}>
+          <cylinderGeometry args={[0.18, 0.18, 0.03, 16]} />
+          <primitive object={mats.dark} attach="material" />
+        </mesh>
+        {/* Delicate Green Sprout Stem */}
+        <mesh position={[0, 0.22, 0]}>
+          <cylinderGeometry args={[0.018, 0.025, 0.24, 10]} />
+          <primitive object={mats.leafGreen} attach="material" />
+        </mesh>
+        {/* 3 Curved Tea Leaves */}
+        {[-0.4, 0.4, 0].map((rot, i) => (
+          <mesh
+            key={i}
+            position={[i === 0 ? -0.06 : i === 1 ? 0.06 : 0, 0.28 + i * 0.04, i === 2 ? 0.06 : 0]}
+            rotation={[0.3, 0.2 + i * 0.8, rot]}
+            scale={[0.8, 1.2, 0.3]}
+          >
+            <sphereGeometry args={[0.08, 12, 12]} />
+            <primitive object={mats.leafGreen} attach="material" />
+          </mesh>
+        ))}
+      </group>
+
       {/* Polished Natural Wood Tea Stump / Log Seat */}
       <group ref={seat} position={[0, -1.5, 0]}>
         {/* Main Log Bark */}
@@ -274,6 +474,18 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
           <torusGeometry args={[1.5, 0.08, 12, 36]} />
           <primitive object={mats.accent} attach="material" />
         </mesh>
+        {/* Scattered Botanical Tea Petals */}
+        {[
+          [0.85, 0.36, 0.6, 0.2],
+          [-0.7, 0.36, 0.75, -0.4],
+          [0.95, 0.36, -0.45, 0.8],
+          [-0.9, 0.36, -0.5, 1.2],
+        ].map(([px, py, pz, pr], idx) => (
+          <mesh key={idx} position={[px, py, pz]} rotation={[0, pr, 0]} scale={[1, 0.2, 1.4]}>
+            <sphereGeometry args={[0.06, 10, 10]} />
+            <primitive object={mats.accent} attach="material" />
+          </mesh>
+        ))}
       </group>
 
       {/* Celestial Crescent Moon & Star (Bedtime) */}
@@ -618,6 +830,20 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
             <torusGeometry args={[0.085, 0.025, 12, 20]} />
             <primitive object={mats.ceramic} attach="material" />
           </mesh>
+
+          {/* Rising Steam from Teacup */}
+          {[0, 1, 2].map((idx) => (
+            <mesh
+              key={idx}
+              ref={(el) => {
+                steamPuffsCup.current[idx] = el;
+              }}
+              position={[0, 0.18, 0]}
+            >
+              <sphereGeometry args={[0.3, 10, 10]} />
+              <primitive object={mats.steam} attach="material" />
+            </mesh>
+          ))}
         </group>
 
         {/* Luxury Bedtime Pillow & Waffle-Knit Blanket */}
@@ -637,22 +863,6 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
           </mesh>
         </group>
       </group>
-
-      {/* Floating Starlight Spheres & Crystals */}
-      <Float speed={1.2} rotationIntensity={0.6} floatIntensity={0.8}>
-        <group position={[-2.8, 1.8, -0.5]}>
-          <mesh scale={0.28}>
-            <octahedronGeometry args={[1, 0]} />
-            <primitive object={mats.accent} attach="material" />
-          </mesh>
-        </group>
-        <group position={[2.9, 1.6, -0.8]}>
-          <mesh scale={0.24}>
-            <icosahedronGeometry args={[1, 0]} />
-            <primitive object={mats.accent} attach="material" />
-          </mesh>
-        </group>
-      </Float>
 
       {/* Radiant Golden Celestial Sparkles */}
       <Sparkles
