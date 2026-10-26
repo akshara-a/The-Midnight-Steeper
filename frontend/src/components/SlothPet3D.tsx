@@ -21,6 +21,17 @@ interface SlothPet3DProps {
 
 const damp = THREE.MathUtils.damp;
 
+// Initial positions and harmonic trajectories for drifting celestial fireflies (Package D)
+const FIREFLIES_CONFIG = [
+  { base: [1.4, -0.4, 0.9], speed: 0.9, phase: 0.0 },
+  { base: [-1.5, -0.6, 0.8], speed: 1.1, phase: 1.5 },
+  { base: [1.8, 0.4, 0.5], speed: 0.75, phase: 2.8 },
+  { base: [-1.2, 0.8, -0.2], speed: 1.25, phase: 4.1 },
+  { base: [0.6, 1.8, 0.4], speed: 0.85, phase: 5.2 },
+  { base: [-0.8, 1.6, 0.6], speed: 1.05, phase: 3.4 },
+  { base: [0.0, -1.0, 1.2], speed: 0.7, phase: 2.1 },
+];
+
 function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: SlothPet3DProps) {
   const root = useRef<THREE.Group>(null);
   const body = useRef<THREE.Group>(null);
@@ -67,12 +78,19 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
   // Package B: Camera Bedtime Framing & Parallax State
   const camLookAtY = useRef(0.95);
 
+  // Package D: Bath Water Ripples & Firefly References
+  const bathRipples = useRef<(THREE.Mesh | null)[]>([]);
+  const fireflyRefs = useRef<(THREE.Group | null)[]>([]);
+  const fireflyScatter = useRef<{ x: number; y: number }[]>(
+    FIREFLIES_CONFIG.map(() => ({ x: 0, y: 0 }))
+  );
+
   const lastPoke = useRef(pokeCount);
   const squash = useRef(0);
   const nextBlink = useRef(2);
   const blinkUntil = useRef(0);
 
-  // Package B: Upgraded Physical Materials with Velvet Sheen
+  // High-fidelity physical and procedural materials
   const mats = useMemo(
     () => ({
       fur: new THREE.MeshPhysicalMaterial({
@@ -157,6 +175,16 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
         opacity: 0.35,
         roughness: 0.2,
       }),
+      // Package D Materials:
+      rippleMat: new THREE.MeshBasicMaterial({
+        color: '#bae6fd',
+        transparent: true,
+        opacity: 0.6,
+        side: THREE.DoubleSide,
+      }),
+      fireflyMat: new THREE.MeshBasicMaterial({
+        color: '#fef08a',
+      }),
     }),
     []
   );
@@ -195,7 +223,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
     // Package B: 3D Window Shadowbox Parallax & Cinematic Bedtime Zoom
     const targetCamX = sleeping ? pointer.x * 0.25 : pointer.x * 0.55;
     const targetCamY = sleeping ? 1.05 + pointer.y * 0.15 : 1.35 + pointer.y * 0.35;
-    const targetCamZ = sleeping ? 8.1 : 9.2; // Smooth camera zoom into Sunny during bedtime!
+    const targetCamZ = sleeping ? 8.1 : 9.2;
     const targetLookY = sleeping ? 0.75 : 0.95;
 
     camera.position.x = damp(camera.position.x, targetCamX, 4, dt);
@@ -209,11 +237,10 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
     if (pokeCount !== lastPoke.current) {
       lastPoke.current = pokeCount;
       squash.current = 1;
-      // Package C: Jolt spring physics on poke
       pompomSpring.current.vel += 9.5;
       earSpringL.current.vel += 6.5;
       earSpringR.current.vel -= 6.5;
-      yawnActive.current = false; // Interrupt stretch immediately
+      yawnActive.current = false;
     }
     squash.current = Math.max(0, squash.current - dt * 1.8);
     const s = squash.current;
@@ -237,11 +264,10 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
     let yawnSquint = 0;
 
     if (yawnActive.current) {
-      yawnProgress.current += dt / 4.6; // 4.6 seconds of blissful sloth stretch
+      yawnProgress.current += dt / 4.6;
       const yp = yawnProgress.current;
 
       if (yp < 0.35) {
-        // Slow stretch extension
         const k = Math.sin((yp / 0.35) * (Math.PI / 2));
         yawnArmL = k * -2.25;
         yawnArmR = k * 2.25;
@@ -249,7 +275,6 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
         yawnMouth = k * 0.85;
         yawnSquint = k;
       } else if (yp < 0.7) {
-        // Apex stretch with subtle contented tremor
         const tremor = Math.sin(t * 24) * 0.025;
         yawnArmL = -2.25 + tremor;
         yawnArmR = 2.25 - tremor;
@@ -257,7 +282,6 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
         yawnMouth = 0.85;
         yawnSquint = 1;
       } else if (yp < 1.0) {
-        // Soft settling sigh of satisfaction
         const k = 1 - Math.sin(((yp - 0.7) / 0.3) * (Math.PI / 2));
         yawnArmL = k * -2.25;
         yawnArmR = k * 2.25;
@@ -290,7 +314,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
       body.current.scale.set(1 + breath, 1.03 + breath * 1.2, 0.98 + breath);
     }
 
-    // Head tracking (sleepy / gentle / yawn)
+    // Head tracking
     if (head.current) {
       head.current.rotation.y = damp(
         head.current.rotation.y,
@@ -303,7 +327,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
       head.current.position.y = 1.42 + Math.sin(t * 1.8) * 0.012;
     }
 
-    // Package C: Ear & Pompom Spring Physics Simulation
+    // Ear & Pompom Spring Physics Simulation
     const headRotY = head.current ? head.current.rotation.y : 0;
     const earTarget = headRotY * 0.3;
     const earJiggleL = stepSpring(earSpringL.current, earTarget, 75, 7.5, dt);
@@ -341,7 +365,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
       }
     });
 
-    // Mouth animation (talking, eating, cheering, yawning)
+    // Mouth animation
     const open = talking
       ? 0.35 + 0.65 * Math.abs(Math.sin(t * 16))
       : eating
@@ -359,7 +383,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
       openMouth.current.scale.set(1, 0.3 + open * 0.9, 1);
     }
 
-    // Arms (playing, bathing, talking, eating, yawning)
+    // Arms
     if (armL.current) {
       const targetL = playing
         ? -2.1 + Math.sin(t * 6) * 0.25
@@ -414,7 +438,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
       duck.current.rotation.y = Math.sin(t * 1.8) * 0.25;
     }
 
-    // Package A: Overhead Paper Lantern swaying in the gentle breeze
+    // Package A: Overhead Paper Lantern swaying
     if (lantern.current) {
       lantern.current.rotation.z = Math.sin(t * 1.4) * 0.05;
       lantern.current.rotation.x = Math.cos(t * 1.0) * 0.035;
@@ -444,6 +468,60 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
       const sc = 0.035 + progress * 0.12;
       mesh.scale.set(sc, sc, sc);
       mesh.visible = eating;
+    });
+
+    // Package D: Concentric Bath Wave Ripples expanding from the rubber ducky
+    bathRipples.current.forEach((mesh, idx) => {
+      if (!mesh) return;
+      if (!bathing) {
+        mesh.visible = false;
+        return;
+      }
+      mesh.visible = true;
+      const offset = idx * 0.33;
+      const prog = (t * 0.55 + offset) % 1.0;
+      const sc = 0.2 + prog * 2.4;
+      mesh.scale.set(sc, sc, 1);
+      const alpha = Math.sin(prog * Math.PI) * 0.45;
+      mesh.scale.set(sc, sc, sc);
+      if (mesh.material && 'opacity' in mesh.material) {
+        (mesh.material as THREE.Material & { opacity: number }).opacity = alpha;
+      }
+    });
+
+    // Package D: Interactive Drifting Fireflies / Bio-luminescent Embers
+    const scenePointerX = pointer.x * 2.6;
+    const scenePointerY = pointer.y * 1.8;
+
+    fireflyRefs.current.forEach((group, idx) => {
+      if (!group) return;
+      const cfg = FIREFLIES_CONFIG[idx];
+      const scatter = fireflyScatter.current[idx];
+
+      // Natural harmonic floating orbit
+      const orbitX = cfg.base[0] + Math.sin(t * cfg.speed + cfg.phase) * 0.45;
+      const orbitY = cfg.base[1] + Math.cos(t * cfg.speed * 1.25 + cfg.phase) * 0.35;
+      const orbitZ = cfg.base[2] + Math.sin(t * cfg.speed * 0.75 + cfg.phase) * 0.4;
+
+      // Pointer interactive evasion (soft scatter on hover/tap)
+      const dx = orbitX - scenePointerX;
+      const dy = orbitY - scenePointerY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < 1.1) {
+        const repelForce = (1.1 - dist) * 1.4;
+        scatter.x = damp(scatter.x, (dx / (dist + 0.001)) * repelForce, 5, dt);
+        scatter.y = damp(scatter.y, (dy / (dist + 0.001)) * repelForce, 5, dt);
+      } else {
+        scatter.x = damp(scatter.x, 0, 2.5, dt);
+        scatter.y = damp(scatter.y, 0, 2.5, dt);
+      }
+
+      group.position.set(orbitX + scatter.x, orbitY + scatter.y, orbitZ);
+
+      // Organic pulsing glow
+      const pulse = 0.035 + (Math.sin(t * 3.5 + cfg.phase) * 0.5 + 0.5) * 0.025;
+      group.scale.set(pulse, pulse, pulse);
     });
 
     if (ambient.current) ambient.current.intensity = damp(ambient.current.intensity, sleeping ? 0.6 : 1.1, 3, dt);
@@ -705,6 +783,21 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
             <primitive object={mats.bubbleWhite} attach="material" />
           </mesh>
         ))}
+
+        {/* Package D: Animated Concentric Bath Wave Ripples */}
+        {[0, 1, 2].map((idx) => (
+          <mesh
+            key={idx}
+            ref={(el) => {
+              bathRipples.current[idx] = el;
+            }}
+            position={[1.05, 0.33, 0.7]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <ringGeometry args={[0.08, 0.14, 32]} />
+            <primitive object={mats.rippleMat} attach="material" />
+          </mesh>
+        ))}
       </group>
 
       {/* Floating Rubber Ducky */}
@@ -728,6 +821,22 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
           <primitive object={mats.dark} attach="material" />
         </mesh>
       </group>
+
+      {/* Package D: Drifting Interactive Celestial Fireflies / Glowing Embers */}
+      {FIREFLIES_CONFIG.map((_, idx) => (
+        <group
+          key={idx}
+          ref={(el) => {
+            fireflyRefs.current[idx] = el;
+          }}
+        >
+          <mesh>
+            <sphereGeometry args={[1, 12, 12]} />
+            <primitive object={mats.fireflyMat} attach="material" />
+          </mesh>
+          <pointLight color="#fef08a" intensity={0.8} distance={1.2} />
+        </group>
+      ))}
 
       {/* Main Sloth Character: Sunny */}
       <group
@@ -912,7 +1021,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
             <primitive object={mats.dark} attach="material" />
           </mesh>
 
-          {/* Open Mouth (Talking / Cheering / Yawning) */}
+          {/* Open Mouth */}
           <mesh ref={openMouth} position={[0, -0.3, 0.91]} visible={false}>
             <sphereGeometry args={[0.1, 16, 16]} />
             <primitive object={mats.mouth} attach="material" />
