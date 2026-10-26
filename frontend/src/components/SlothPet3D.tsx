@@ -2,7 +2,7 @@
 
 import { useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, Sparkles } from '@react-three/drei';
+import { Float, Sparkles, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 
 export type PetMood = 'idle' | 'talking' | 'sleeping' | 'happy' | 'eating' | 'bathing' | 'playing';
@@ -20,23 +20,10 @@ interface SlothPet3DProps {
 }
 
 const damp = THREE.MathUtils.damp;
-const CANDY = ['#ff6b9d', '#ffd93d', '#6bcbff', '#9b8cff', '#7dffb3', '#ff9a5a'];
-
-// Floating decorations: [x, y, z, shape, colorIndex, size]
-const DECOR: [number, number, number, 'ico' | 'octa' | 'torus' | 'bubble', number, number][] = [
-  [-3.1, 1.6, -0.5, 'ico', 0, 0.3],
-  [3.0, 1.9, -0.8, 'octa', 1, 0.32],
-  [-2.8, -0.4, 0.2, 'torus', 2, 0.26],
-  [3.2, 0.2, 0.3, 'ico', 3, 0.26],
-  [-1.9, 2.6, -1.2, 'bubble', 4, 0.28],
-  [2.1, 2.7, -1.0, 'torus', 5, 0.24],
-  [-3.4, 0.7, -1, 'octa', 3, 0.22],
-  [3.5, 1.0, -1.2, 'bubble', 2, 0.3],
-];
 
 function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: SlothPet3DProps) {
   const root = useRef<THREE.Group>(null);
-  const body = useRef<THREE.Mesh>(null);
+  const body = useRef<THREE.Group>(null);
   const head = useRef<THREE.Group>(null);
   const eyeL = useRef<THREE.Group>(null);
   const eyeR = useRef<THREE.Group>(null);
@@ -51,37 +38,61 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
   const showerCap = useRef<THREE.Group>(null);
   const tub = useRef<THREE.Group>(null);
   const duck = useRef<THREE.Group>(null);
-  const blanket = useRef<THREE.Mesh>(null);
+  const blanket = useRef<THREE.Group>(null);
   const pillow = useRef<THREE.Mesh>(null);
-  const moon = useRef<THREE.Mesh>(null);
+  const moon = useRef<THREE.Group>(null);
   const ambient = useRef<THREE.AmbientLight>(null);
+  const seat = useRef<THREE.Group>(null);
 
   const lastPoke = useRef(pokeCount);
   const squash = useRef(0);
   const nextBlink = useRef(2);
   const blinkUntil = useRef(0);
 
-  // Shared materials so the fur and accent colors can glide to new values
+  // High-fidelity materials with tailored roughness and specular qualities
   const mats = useMemo(
     () => ({
-      fur: new THREE.MeshStandardMaterial({ roughness: 0.85 }),
-      belly: new THREE.MeshStandardMaterial({ roughness: 0.9 }),
-      patch: new THREE.MeshStandardMaterial({ roughness: 0.7 }),
-      accent: new THREE.MeshStandardMaterial({ roughness: 0.6, emissiveIntensity: 0.25 }),
-      white: new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.3 }),
-      dark: new THREE.MeshStandardMaterial({ color: '#2b1d3a', roughness: 0.4 }),
-      pink: new THREE.MeshStandardMaterial({ color: '#ff9ec4', roughness: 0.8, emissive: '#ff6fa5', emissiveIntensity: 0.25 }),
-      claw: new THREE.MeshStandardMaterial({ color: '#fff4d6', roughness: 0.5 }),
-      mouth: new THREE.MeshStandardMaterial({ color: '#7a1f3d', roughness: 0.6 }),
-      moon: new THREE.MeshStandardMaterial({ color: '#fff3b0', emissive: '#ffe680', emissiveIntensity: 1.2 }),
-      water: new THREE.MeshStandardMaterial({ color: '#4dc3ff', roughness: 0.1, transparent: true, opacity: 0.82, emissive: '#1692ff', emissiveIntensity: 0.25 }),
-      duck: new THREE.MeshStandardMaterial({ color: '#ffd000', roughness: 0.4 }),
-      orange: new THREE.MeshStandardMaterial({ color: '#ff6600', roughness: 0.5 }),
-      bubbleWhite: new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.15, transparent: true, opacity: 0.9 }),
-      showerCapMat: new THREE.MeshStandardMaterial({ color: '#38bdf8', roughness: 0.4, emissive: '#0284c7', emissiveIntensity: 0.2 }),
+      fur: new THREE.MeshStandardMaterial({ roughness: 0.92, metalness: 0.02 }),
+      belly: new THREE.MeshStandardMaterial({ color: '#fef3c7', roughness: 0.94, metalness: 0.0 }),
+      patch: new THREE.MeshStandardMaterial({ roughness: 0.88 }),
+      accent: new THREE.MeshStandardMaterial({ roughness: 0.55, emissiveIntensity: 0.2 }),
+      white: new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.2, metalness: 0.05 }),
+      ceramic: new THREE.MeshStandardMaterial({ color: '#fdfbf7', roughness: 0.15, metalness: 0.08 }),
+      dark: new THREE.MeshStandardMaterial({ color: '#261b2e', roughness: 0.45 }),
+      nose: new THREE.MeshStandardMaterial({ color: '#1e1424', roughness: 0.6 }),
+      pink: new THREE.MeshStandardMaterial({ color: '#fca5a5', roughness: 0.85 }),
+      claw: new THREE.MeshStandardMaterial({ color: '#fef9e7', roughness: 0.35, metalness: 0.05 }),
+      gold: new THREE.MeshStandardMaterial({ color: '#eab308', roughness: 0.28, metalness: 0.85 }),
+      woodBark: new THREE.MeshStandardMaterial({ color: '#5a3d28', roughness: 0.95 }),
+      woodTop: new THREE.MeshStandardMaterial({ color: '#bfa07a', roughness: 0.85 }),
+      mouth: new THREE.MeshStandardMaterial({ color: '#881337', roughness: 0.6 }),
+      moon: new THREE.MeshStandardMaterial({ color: '#fffbeb', emissive: '#fef08a', emissiveIntensity: 1.1 }),
+      water: new THREE.MeshStandardMaterial({
+        color: '#38bdf8',
+        roughness: 0.05,
+        transparent: true,
+        opacity: 0.8,
+        emissive: '#0284c7',
+        emissiveIntensity: 0.2,
+      }),
+      duck: new THREE.MeshStandardMaterial({ color: '#facc15', roughness: 0.35 }),
+      orange: new THREE.MeshStandardMaterial({ color: '#f97316', roughness: 0.4 }),
+      bubbleWhite: new THREE.MeshStandardMaterial({
+        color: '#ffffff',
+        roughness: 0.1,
+        transparent: true,
+        opacity: 0.88,
+      }),
+      showerCapMat: new THREE.MeshStandardMaterial({
+        color: '#7dd3fc',
+        roughness: 0.35,
+        emissive: '#0ea5e9',
+        emissiveIntensity: 0.15,
+      }),
     }),
     []
   );
+
   const furTarget = useMemo(() => new THREE.Color(furColor), [furColor]);
   const accentTarget = useMemo(() => new THREE.Color(accentColor), [accentColor]);
   const tmp = useMemo(() => new THREE.Color(), []);
@@ -95,14 +106,14 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
     const bathing = mood === 'bathing';
     const playing = mood === 'playing';
 
-    // Colors glide toward their targets
+    // Smooth material transitions
     mats.fur.color.lerp(furTarget, 0.1);
-    mats.belly.color.copy(mats.fur.color).lerp(tmp.set('#ffffff'), 0.6);
-    mats.patch.color.copy(mats.fur.color).multiplyScalar(0.45);
+    mats.belly.color.copy(mats.fur.color).lerp(tmp.set('#fffbeb'), 0.72);
+    mats.patch.color.copy(mats.fur.color).multiplyScalar(0.42);
     mats.accent.color.lerp(accentTarget, 0.1);
     mats.accent.emissive.copy(mats.accent.color);
 
-    // Poke: squash and wobble
+    // Poke reaction
     if (pokeCount !== lastPoke.current) {
       lastPoke.current = pokeCount;
       squash.current = 1;
@@ -111,43 +122,69 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
     const s = squash.current;
     const wobble = Math.sin((1 - s) * 16) * s;
 
+    // Root movement
     if (root.current) {
-      const hop = (happy || playing) ? Math.abs(Math.sin(t * (playing ? 4.5 : 3.2))) * 0.28 : 0;
-      const bathBob = bathing ? Math.sin(t * 2.2) * 0.08 - 0.25 : 0;
-      root.current.position.y = damp(root.current.position.y, (sleeping ? -0.2 : 0) + hop + bathBob + s * 0.12, 8, dt);
+      const hop = happy || playing ? Math.abs(Math.sin(t * (playing ? 4.5 : 3.2))) * 0.25 : 0;
+      const bathBob = bathing ? Math.sin(t * 2.2) * 0.06 - 0.22 : 0;
+      root.current.position.y = damp(root.current.position.y, (sleeping ? -0.18 : 0) + hop + bathBob + s * 0.1, 8, dt);
       root.current.scale.set(1 - wobble * 0.08, 1 + wobble * 0.14, 1 - wobble * 0.08);
-      root.current.rotation.z = damp(root.current.rotation.z, sleeping ? 0.1 : (playing ? Math.sin(t * 3.5) * 0.08 : Math.sin(t * 1.3) * 0.02), 4, dt);
+      root.current.rotation.z = damp(
+        root.current.rotation.z,
+        sleeping ? 0.08 : playing ? Math.sin(t * 3.5) * 0.07 : Math.sin(t * 1.2) * 0.015,
+        4,
+        dt
+      );
     }
+
+    // Breathing rhythm
     if (body.current) {
-      const breath = Math.sin(t * (sleeping ? 1.1 : 1.9)) * 0.025;
-      body.current.scale.set(1 + breath, 1.05 + breath * 1.4, 0.95 + breath);
+      const breath = Math.sin(t * (sleeping ? 1.0 : 1.8)) * 0.02;
+      body.current.scale.set(1 + breath, 1.03 + breath * 1.2, 0.98 + breath);
     }
 
-    // Head follows the finger unless asleep
+    // Head tracking (sleepy / gentle)
     if (head.current) {
-      head.current.rotation.y = damp(head.current.rotation.y, sleeping ? 0 : (bathing ? Math.sin(t * 1.5) * 0.15 : pointer.x * 0.4), 5, dt);
-      head.current.rotation.x = damp(head.current.rotation.x, sleeping ? 0.3 : (bathing ? -0.1 : -pointer.y * 0.22), 5, dt);
-      head.current.position.y = 1.45 + Math.sin(t * 1.9) * 0.015;
+      head.current.rotation.y = damp(
+        head.current.rotation.y,
+        sleeping ? 0 : bathing ? Math.sin(t * 1.4) * 0.12 : pointer.x * 0.35,
+        5,
+        dt
+      );
+      head.current.rotation.x = damp(
+        head.current.rotation.x,
+        sleeping ? 0.25 : bathing ? -0.08 : -pointer.y * 0.18,
+        5,
+        dt
+      );
+      head.current.position.y = 1.42 + Math.sin(t * 1.8) * 0.012;
     }
 
-    // Blinking and sleepy eyes
+    // Blinking
     if (t > nextBlink.current) {
-      blinkUntil.current = t + 0.14;
-      nextBlink.current = t + 2.5 + ((Math.sin(t * 12.9898) + 1) / 2) * 2.5;
+      blinkUntil.current = t + 0.15;
+      nextBlink.current = t + 2.5 + ((Math.sin(t * 13) + 1) / 2) * 3.0;
     }
-    const closed = sleeping || (bathing && Math.sin(t * 1.5) > 0.3) ? 1 : (t < blinkUntil.current ? 1 : 0);
+    const closed = sleeping || (bathing && Math.sin(t * 1.4) > 0.4) ? 1 : t < blinkUntil.current ? 1 : 0;
     [eyeL, eyeR].forEach((e) => {
-      if (e.current) e.current.scale.y = damp(e.current.scale.y, 1 - 0.93 * closed, 30, dt);
+      if (e.current) e.current.scale.y = damp(e.current.scale.y, 1 - 0.94 * closed, 30, dt);
     });
     [pupilL, pupilR].forEach((p) => {
       if (p.current) {
-        p.current.position.x = damp(p.current.position.x, pointer.x * 0.035, 8, dt);
-        p.current.position.y = damp(p.current.position.y, pointer.y * 0.03, 8, dt);
+        p.current.position.x = damp(p.current.position.x, pointer.x * 0.03, 8, dt);
+        p.current.position.y = damp(p.current.position.y, pointer.y * 0.025, 8, dt);
       }
     });
 
-    // Mouth: smile at rest, open when talking, eating or cheering
-    const open = talking ? 0.35 + 0.65 * Math.abs(Math.sin(t * 16)) : eating ? 0.5 : (happy || playing) ? 0.45 : bathing ? 0.2 : 0;
+    // Mouth animation
+    const open = talking
+      ? 0.35 + 0.65 * Math.abs(Math.sin(t * 16))
+      : eating
+      ? 0.5
+      : happy || playing
+      ? 0.4
+      : bathing
+      ? 0.2
+      : 0;
     if (smile.current) smile.current.visible = open < 0.08;
     if (openMouth.current) {
       openMouth.current.visible = open >= 0.08;
@@ -157,30 +194,30 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
     // Arms
     if (armL.current) {
       const targetL = playing
-        ? -2.1 + Math.sin(t * 6) * 0.3
+        ? -2.1 + Math.sin(t * 6) * 0.25
         : bathing
-        ? -0.55 + Math.sin(t * 3.5) * 0.18
+        ? -0.6 + Math.sin(t * 3.2) * 0.15
         : talking
-        ? -0.9 + Math.sin(t * 6) * 0.25
+        ? -0.85 + Math.sin(t * 6) * 0.2
         : -0.28;
       armL.current.rotation.z = damp(armL.current.rotation.z, targetL, 6, dt);
     }
     if (armR.current) {
       const targetR = playing
-        ? 2.1 - Math.cos(t * 6) * 0.3
+        ? 2.1 - Math.cos(t * 6) * 0.25
         : bathing
-        ? 0.55 - Math.cos(t * 3.5) * 0.18
+        ? 0.6 - Math.cos(t * 3.2) * 0.15
         : happy
-        ? 2.3 + Math.sin(t * 8) * 0.35
+        ? 2.2 + Math.sin(t * 8) * 0.3
         : eating
-        ? 1.7
+        ? 1.65
         : talking
-        ? 0.9 - Math.sin(t * 5) * 0.25
+        ? 0.85 - Math.sin(t * 5) * 0.2
         : 0.28;
       armR.current.rotation.z = damp(armR.current.rotation.z, targetR, 6, dt);
     }
 
-    // Props pop in and out
+    // Props transitions
     const popTo = (obj: THREE.Object3D | null, on: boolean) => {
       if (!obj) return;
       const v = damp(obj.scale.x, on ? 1 : 0, 7, dt);
@@ -195,85 +232,148 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
     popTo(showerCap.current, bathing);
     popTo(tub.current, bathing);
     popTo(duck.current, bathing);
+    popTo(seat.current, !bathing);
 
-    if (cup.current) cup.current.position.y = 0.95 + Math.sin(t * 3) * 0.08;
+    if (cup.current) cup.current.position.y = 0.92 + Math.sin(t * 3) * 0.06;
     if (duck.current) {
-      duck.current.position.y = -0.55 + Math.sin(t * 3.5) * 0.06;
-      duck.current.rotation.y = Math.sin(t * 1.8) * 0.3;
+      duck.current.position.y = -0.55 + Math.sin(t * 3.2) * 0.05;
+      duck.current.rotation.y = Math.sin(t * 1.8) * 0.25;
     }
 
-    if (ambient.current) ambient.current.intensity = damp(ambient.current.intensity, sleeping ? 0.55 : 1.15, 3, dt);
+    if (ambient.current) ambient.current.intensity = damp(ambient.current.intensity, sleeping ? 0.6 : 1.1, 3, dt);
   });
 
   return (
     <>
-      <ambientLight ref={ambient} intensity={1.15} />
-      <directionalLight position={[3, 5, 6]} intensity={1.6} />
-      <pointLight position={[-4, 2, 3]} intensity={25} color="#ff9ad5" />
-      <pointLight position={[4, 1, 2]} intensity={20} color="#7fd8ff" />
+      {/* Pixar-style Studio 3-Point Lighting */}
+      <ambientLight ref={ambient} intensity={1.1} />
+      {/* Key Light: warm sunlight */}
+      <directionalLight position={[4, 6, 5]} intensity={1.5} color="#fff7ed" />
+      {/* Fill Light: soft lavender twilight */}
+      <directionalLight position={[-4, 3, 3]} intensity={0.7} color="#c7d2fe" />
+      {/* Rim / Silhouette Light: creates the classy soft furry outline */}
+      <directionalLight position={[0, 4, -5]} intensity={1.8} color="#fef08a" />
 
-      {/* Cozy rug */}
-      <mesh position={[0, -1.78, 0]} rotation={[0, 0, 0]}>
-        <cylinderGeometry args={[2.3, 2.3, 0.1, 48]} />
-        <primitive object={mats.accent} attach="material" />
-      </mesh>
-      <mesh position={[0, -1.7, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[1.95, 0.05, 8, 48]} />
-        <primitive object={mats.white} attach="material" />
-      </mesh>
+      {/* Ground Contact Shadow: anchors Sunny to the world */}
+      <ContactShadows position={[0, -1.82, 0]} opacity={0.45} scale={7} blur={2.2} far={4} />
 
-      {/* Moon appears at bedtime */}
-      <mesh ref={moon} position={[-2.7, 2.4, -1.5]} scale={0}>
-        <sphereGeometry args={[0.6, 32, 32]} />
-        <primitive object={mats.moon} attach="material" />
-      </mesh>
+      {/* Polished Natural Wood Tea Stump / Log Seat */}
+      <group ref={seat} position={[0, -1.5, 0]}>
+        {/* Main Log Bark */}
+        <mesh position={[0, 0, 0]}>
+          <cylinderGeometry args={[1.7, 1.85, 0.65, 36]} />
+          <primitive object={mats.woodBark} attach="material" />
+        </mesh>
+        {/* Top Growth Rings */}
+        <mesh position={[0, 0.33, 0]}>
+          <cylinderGeometry args={[1.68, 1.68, 0.02, 36]} />
+          <primitive object={mats.woodTop} attach="material" />
+        </mesh>
+        {/* Cozy Woven Outer Cushion Ring */}
+        <mesh position={[0, 0.35, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[1.5, 0.08, 12, 36]} />
+          <primitive object={mats.accent} attach="material" />
+        </mesh>
+      </group>
 
-      {/* Bathtub and Water */}
+      {/* Celestial Crescent Moon & Star (Bedtime) */}
+      <group ref={moon} position={[-2.6, 2.5, -1.5]} scale={0}>
+        <mesh>
+          <sphereGeometry args={[0.55, 32, 32]} />
+          <primitive object={mats.moon} attach="material" />
+        </mesh>
+        {/* Little golden star companion */}
+        <mesh position={[0.75, -0.3, 0.2]} scale={0.25}>
+          <octahedronGeometry args={[0.6, 0]} />
+          <primitive object={mats.gold} attach="material" />
+        </mesh>
+      </group>
+
+      {/* Luxury Clawfoot Bathtub (Bath Mode) */}
       <group ref={tub} position={[0, -1.05, 0]} scale={0}>
-        {/* Outer Tub rim */}
-        <mesh position={[0, 0, 0]} rotation={[0, 0, 0]}>
-          <cylinderGeometry args={[1.75, 1.45, 0.9, 36]} />
+        {/* White Porcelain Tub Body */}
+        <mesh position={[0, 0, 0]}>
+          <cylinderGeometry args={[1.8, 1.45, 0.95, 40]} />
+          <primitive object={mats.ceramic} attach="material" />
+        </mesh>
+        {/* Rolled Porcelain Rim */}
+        <mesh position={[0, 0.48, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[1.78, 0.08, 16, 40]} />
           <primitive object={mats.white} attach="material" />
         </mesh>
-        {/* Tub inner water surface */}
-        <mesh position={[0, 0.32, 0]} rotation={[0, 0, 0]}>
-          <cylinderGeometry args={[1.65, 1.65, 0.05, 36]} />
+        {/* Antique Gold Lion-Paw Claw Feet */}
+        {[-1.25, 1.25].map((x) =>
+          [-0.8, 0.8].map((z) => (
+            <group key={`${x}-${z}`} position={[x * 0.9, -0.52, z * 0.9]}>
+              <mesh rotation={[0, 0, 0]}>
+                <cylinderGeometry args={[0.08, 0.14, 0.22, 12]} />
+                <primitive object={mats.gold} attach="material" />
+              </mesh>
+              <mesh position={[x > 0 ? 0.04 : -0.04, -0.1, 0]}>
+                <sphereGeometry args={[0.09, 12, 12]} />
+                <primitive object={mats.gold} attach="material" />
+              </mesh>
+            </group>
+          ))
+        )}
+        {/* Vintage Swan-Neck Gold Faucet */}
+        <group position={[0, 0.65, -1.75]} rotation={[0, Math.PI, 0]}>
+          <mesh position={[0, 0, 0]} rotation={[0, 0, 0]}>
+            <cylinderGeometry args={[0.04, 0.05, 0.35, 16]} />
+            <primitive object={mats.gold} attach="material" />
+          </mesh>
+          <mesh position={[0, 0.22, 0.1]} rotation={[Math.PI / 3, 0, 0]}>
+            <cylinderGeometry args={[0.035, 0.035, 0.22, 16]} />
+            <primitive object={mats.gold} attach="material" />
+          </mesh>
+        </group>
+        {/* Translucent Bath Water */}
+        <mesh position={[0, 0.32, 0]}>
+          <cylinderGeometry args={[1.68, 1.68, 0.04, 40]} />
           <primitive object={mats.water} attach="material" />
         </mesh>
-        {/* Foamy Soap Bubbles on water surface */}
-        {[-0.9, -0.4, 0.3, 0.8, -0.1].map((bx, idx) => (
-          <mesh key={idx} position={[bx, 0.38, (idx % 2 === 0 ? 0.6 : -0.5)]}>
-            <sphereGeometry args={[0.18 + (idx % 3) * 0.06, 16, 16]} />
+        {/* Iridescent Foam Bubble Clusters */}
+        {[
+          [-0.85, 0.38, 0.55, 0.2],
+          [-0.35, 0.38, -0.6, 0.24],
+          [0.4, 0.38, 0.65, 0.22],
+          [0.85, 0.38, -0.4, 0.18],
+          [-0.1, 0.38, 0.8, 0.16],
+          [0.7, 0.38, 0.35, 0.19],
+        ].map(([bx, by, bz, br], idx) => (
+          <mesh key={idx} position={[bx, by, bz]}>
+            <sphereGeometry args={[br, 16, 16]} />
             <primitive object={mats.bubbleWhite} attach="material" />
           </mesh>
         ))}
       </group>
 
-      {/* Floating Rubber Ducky for bath time */}
+      {/* Floating Rubber Ducky */}
       <group ref={duck} position={[1.05, -0.55, 0.7]} scale={0}>
         <mesh>
-          <sphereGeometry args={[0.22, 16, 16]} />
+          <sphereGeometry args={[0.2, 20, 20]} />
           <primitive object={mats.duck} attach="material" />
         </mesh>
-        <mesh position={[0.08, 0.16, 0.05]}>
-          <sphereGeometry args={[0.14, 16, 16]} />
+        <mesh position={[0.08, 0.15, 0.04]}>
+          <sphereGeometry args={[0.13, 20, 20]} />
           <primitive object={mats.duck} attach="material" />
         </mesh>
-        {/* Beak */}
-        <mesh position={[0.24, 0.14, 0.05]} rotation={[0, 0, -Math.PI / 2]}>
-          <coneGeometry args={[0.07, 0.14, 12]} />
+        {/* Ducky Beak */}
+        <mesh position={[0.22, 0.13, 0.04]} rotation={[0, 0, -Math.PI / 2]}>
+          <coneGeometry args={[0.065, 0.13, 16]} />
           <primitive object={mats.orange} attach="material" />
         </mesh>
-        {/* Eye */}
-        <mesh position={[0.13, 0.2, 0.14]} scale={0.7}>
-          <sphereGeometry args={[0.025, 8, 8]} />
+        {/* Ducky Eye */}
+        <mesh position={[0.12, 0.19, 0.13]} scale={0.7}>
+          <sphereGeometry args={[0.025, 10, 10]} />
           <primitive object={mats.dark} attach="material" />
         </mesh>
       </group>
 
+      {/* Main Sloth Character: Sunny */}
       <group
         ref={root}
-        position={[0, -0.7, 0]}
+        position={[0, -0.65, 0]}
         onPointerDown={(e) => {
           e.stopPropagation();
           onPoke();
@@ -281,194 +381,294 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
         onPointerOver={() => (document.body.style.cursor = 'pointer')}
         onPointerOut={() => (document.body.style.cursor = 'auto')}
       >
-        {/* Body */}
-        <mesh ref={body}>
-          <sphereGeometry args={[1, 40, 40]} />
-          <primitive object={mats.fur} attach="material" />
-        </mesh>
-        <mesh position={[0, -0.1, 0.62]} scale={[1, 1, 0.55]}>
-          <sphereGeometry args={[0.74, 32, 32]} />
-          <primitive object={mats.belly} attach="material" />
-        </mesh>
-
-        {/* Legs */}
-        {[-0.5, 0.5].map((x) => (
-          <mesh key={x} position={[x, -0.95, 0.3]} scale={[1, 0.7, 1.2]}>
-            <sphereGeometry args={[0.36, 24, 24]} />
-            <primitive object={mats.patch} attach="material" />
+        {/* Sculpted Anatomical Body */}
+        <group ref={body}>
+          {/* Main Torso: organic pear shape with shoulders */}
+          <mesh position={[0, 0.05, 0]} scale={[0.98, 1.15, 0.92]}>
+            <sphereGeometry args={[1, 48, 48]} />
+            <primitive object={mats.fur} attach="material" />
           </mesh>
+          {/* Soft Cream Fur Chest Bib */}
+          <mesh position={[0, 0.02, 0.62]} scale={[0.9, 1.05, 0.45]}>
+            <sphereGeometry args={[0.76, 36, 36]} />
+            <primitive object={mats.belly} attach="material" />
+          </mesh>
+        </group>
+
+        {/* Seated Hind Thighs and Paws */}
+        {[-0.52, 0.52].map((x) => (
+          <group key={x} position={[x, -0.88, 0.35]}>
+            <mesh scale={[1, 0.72, 1.15]}>
+              <sphereGeometry args={[0.38, 24, 24]} />
+              <primitive object={mats.fur} attach="material" />
+            </mesh>
+            {/* 3 Little Hind Claws */}
+            {[-0.08, 0, 0.08].map((cx) => (
+              <mesh key={cx} position={[cx, -0.15, 0.38]} rotation={[Math.PI / 2, 0, 0]}>
+                <coneGeometry args={[0.03, 0.12, 10]} />
+                <primitive object={mats.claw} attach="material" />
+              </mesh>
+            ))}
+          </group>
         ))}
 
-        {/* Arms with claws */}
-        <group ref={armL} position={[-0.95, 0.45, 0.3]} rotation={[0, 0, -0.28]}>
-          <mesh position={[0, -0.5, 0]}>
-            <capsuleGeometry args={[0.17, 0.75, 8, 16]} />
+        {/* Curved Sloth Forearms with Iconic Three Claws */}
+        <group ref={armL} position={[-0.92, 0.52, 0.25]} rotation={[0, 0, -0.28]}>
+          {/* Upper Arm & Elbow */}
+          <mesh position={[0, -0.48, 0]}>
+            <capsuleGeometry args={[0.16, 0.75, 12, 24]} />
             <primitive object={mats.fur} attach="material" />
           </mesh>
-          {[-0.08, 0, 0.08].map((x) => (
-            <mesh key={x} position={[x, -1.12, 0.05]} rotation={[0, 0, Math.PI]}>
-              <coneGeometry args={[0.04, 0.18, 8]} />
-              <primitive object={mats.claw} attach="material" />
-            </mesh>
-          ))}
-        </group>
-        <group ref={armR} position={[0.95, 0.45, 0.3]} rotation={[0, 0, 0.28]}>
-          <mesh position={[0, -0.5, 0]}>
-            <capsuleGeometry args={[0.17, 0.75, 8, 16]} />
+          {/* Paw Base */}
+          <mesh position={[0, -0.98, 0.04]} scale={[1, 0.8, 0.9]}>
+            <sphereGeometry args={[0.13, 16, 16]} />
             <primitive object={mats.fur} attach="material" />
           </mesh>
-          {[-0.08, 0, 0.08].map((x) => (
-            <mesh key={x} position={[x, -1.12, 0.05]} rotation={[0, 0, Math.PI]}>
-              <coneGeometry args={[0.04, 0.18, 8]} />
+          {/* 3 Curved Keratin Claws */}
+          {[-0.07, 0, 0.07].map((x) => (
+            <mesh key={x} position={[x, -1.16, 0.08]} rotation={[-0.25, 0, Math.PI]}>
+              <coneGeometry args={[0.035, 0.2, 12]} />
               <primitive object={mats.claw} attach="material" />
             </mesh>
           ))}
         </group>
 
-        {/* Head */}
-        <group ref={head} position={[0, 1.45, 0.15]}>
-          <mesh>
-            <sphereGeometry args={[0.85, 40, 40]} />
+        <group ref={armR} position={[0.92, 0.52, 0.25]} rotation={[0, 0, 0.28]}>
+          {/* Upper Arm & Elbow */}
+          <mesh position={[0, -0.48, 0]}>
+            <capsuleGeometry args={[0.16, 0.75, 12, 24]} />
             <primitive object={mats.fur} attach="material" />
           </mesh>
-          {/* Little ears */}
-          {[-0.72, 0.72].map((x) => (
-            <mesh key={x} position={[x, 0.2, 0]}>
-              <sphereGeometry args={[0.16, 16, 16]} />
+          {/* Paw Base */}
+          <mesh position={[0, -0.98, 0.04]} scale={[1, 0.8, 0.9]}>
+            <sphereGeometry args={[0.13, 16, 16]} />
+            <primitive object={mats.fur} attach="material" />
+          </mesh>
+          {/* 3 Curved Keratin Claws */}
+          {[-0.07, 0, 0.07].map((x) => (
+            <mesh key={x} position={[x, -1.16, 0.08]} rotation={[-0.25, 0, Math.PI]}>
+              <coneGeometry args={[0.035, 0.2, 12]} />
+              <primitive object={mats.claw} attach="material" />
+            </mesh>
+          ))}
+        </group>
+
+        {/* Sculpted Head */}
+        <group ref={head} position={[0, 1.42, 0.15]}>
+          {/* Cranial Vault */}
+          <mesh scale={[1, 1.05, 0.96]}>
+            <sphereGeometry args={[0.84, 48, 48]} />
+            <primitive object={mats.fur} attach="material" />
+          </mesh>
+
+          {/* Sloth Fur Crown / Tuft */}
+          <mesh position={[0, 0.86, -0.04]} scale={[0.8, 0.4, 0.6]}>
+            <sphereGeometry args={[0.2, 16, 16]} />
+            <primitive object={mats.fur} attach="material" />
+          </mesh>
+
+          {/* Little Velvety Ears */}
+          {[-0.76, 0.76].map((x) => (
+            <mesh key={x} position={[x, 0.18, -0.05]} rotation={[0, x > 0 ? 0.35 : -0.35, 0]} scale={[1, 1.2, 0.5]}>
+              <sphereGeometry args={[0.14, 20, 20]} />
               <primitive object={mats.patch} attach="material" />
             </mesh>
           ))}
-          {/* Cream face mask */}
-          <mesh position={[0, -0.05, 0.5]} scale={[0.95, 0.78, 0.5]}>
-            <sphereGeometry args={[0.85, 32, 32]} />
+
+          {/* Cream Facial Heart Mask */}
+          <mesh position={[0, -0.06, 0.52]} scale={[0.96, 0.82, 0.46]}>
+            <sphereGeometry args={[0.82, 40, 40]} />
             <primitive object={mats.belly} attach="material" />
           </mesh>
-          {/* Eye patches, eyes, pupils and sparkles */}
+
+          {/* Iconic Sloth Eye Bands (temple swoops) */}
           {[-1, 1].map((side) => (
-            <group key={side} position={[side * 0.34, 0.1, 0.84]}>
-              <mesh rotation={[0, 0, side * -0.35]} scale={[1, 1.5, 0.45]}>
-                <sphereGeometry args={[0.17, 20, 20]} />
+            <group key={side} position={[side * 0.35, 0.08, 0.83]}>
+              {/* Dark Fur Band */}
+              <mesh rotation={[0, side * 0.15, side * -0.38]} scale={[1.1, 1.6, 0.4]}>
+                <sphereGeometry args={[0.18, 24, 24]} />
                 <primitive object={mats.patch} attach="material" />
               </mesh>
+
+              {/* Eye & Pupil */}
               <group ref={side < 0 ? eyeL : eyeR} position={[0, 0, 0.04]}>
-                <mesh scale={[1, 1.15, 0.6]}>
-                  <sphereGeometry args={[0.115, 20, 20]} />
+                {/* Sclera */}
+                <mesh scale={[1, 1.12, 0.55]}>
+                  <sphereGeometry args={[0.11, 24, 24]} />
                   <primitive object={mats.white} attach="material" />
                 </mesh>
-                <group ref={side < 0 ? pupilL : pupilR} position={[0, 0, 0.05]}>
-                  <mesh scale={[1, 1.1, 0.6]}>
-                    <sphereGeometry args={[0.07, 16, 16]} />
+                {/* Deep Pupil */}
+                <group ref={side < 0 ? pupilL : pupilR} position={[0, 0, 0.045]}>
+                  <mesh scale={[1, 1.08, 0.5]}>
+                    <sphereGeometry args={[0.068, 20, 20]} />
                     <primitive object={mats.dark} attach="material" />
                   </mesh>
-                  <mesh position={[0.025, 0.03, 0.04]}>
-                    <sphereGeometry args={[0.02, 10, 10]} />
+                  {/* Soulful Dual Specular Catchlights */}
+                  <mesh position={[0.024, 0.028, 0.035]}>
+                    <sphereGeometry args={[0.018, 12, 12]} />
+                    <primitive object={mats.white} attach="material" />
+                  </mesh>
+                  <mesh position={[-0.015, -0.02, 0.035]}>
+                    <sphereGeometry args={[0.009, 10, 10]} />
                     <primitive object={mats.white} attach="material" />
                   </mesh>
                 </group>
               </group>
             </group>
           ))}
-          {/* Nose, smile, open mouth, cheeks */}
-          <mesh position={[0, -0.12, 0.98]} scale={[1.3, 0.9, 0.8]}>
-            <sphereGeometry args={[0.085, 16, 16]} />
+
+          {/* Rounded Sloth Snout & Nose */}
+          <group position={[0, -0.14, 0.96]}>
+            {/* Snout Bridge */}
+            <mesh position={[0, 0, -0.05]} scale={[1.1, 0.85, 0.5]}>
+              <sphereGeometry args={[0.14, 20, 20]} />
+              <primitive object={mats.belly} attach="material" />
+            </mesh>
+            {/* Black Nose */}
+            <mesh scale={[1.25, 0.85, 0.75]}>
+              <sphereGeometry args={[0.082, 20, 20]} />
+              <primitive object={mats.nose} attach="material" />
+            </mesh>
+            {/* Dual Nostril Indentations */}
+            {[-0.028, 0.028].map((nx) => (
+              <mesh key={nx} position={[nx, -0.02, 0.055]} scale={[0.6, 1, 0.5]}>
+                <sphereGeometry args={[0.014, 10, 10]} />
+                <primitive object={mats.dark} attach="material" />
+              </mesh>
+            ))}
+          </group>
+
+          {/* Gentle Smile Line */}
+          <mesh ref={smile} position={[0, -0.25, 0.94]} rotation={[0, 0, Math.PI]}>
+            <torusGeometry args={[0.125, 0.02, 10, 24, Math.PI]} />
             <primitive object={mats.dark} attach="material" />
           </mesh>
-          <mesh ref={smile} position={[0, -0.24, 0.96]} rotation={[0, 0, Math.PI]}>
-            <torusGeometry args={[0.13, 0.022, 8, 20, Math.PI]} />
-            <primitive object={mats.dark} attach="material" />
-          </mesh>
-          <mesh ref={openMouth} position={[0, -0.3, 0.93]} visible={false}>
+
+          {/* Open Mouth (Talking / Cheering) */}
+          <mesh ref={openMouth} position={[0, -0.3, 0.91]} visible={false}>
             <sphereGeometry args={[0.1, 16, 16]} />
             <primitive object={mats.mouth} attach="material" />
           </mesh>
-          {[-0.52, 0.52].map((x) => (
-            <mesh key={x} position={[x, -0.2, 0.74]} scale={[1.2, 0.8, 0.4]}>
-              <sphereGeometry args={[0.1, 16, 16]} />
+
+          {/* Rosy Cheeks */}
+          {[-0.54, 0.54].map((x) => (
+            <mesh key={x} position={[x, -0.18, 0.74]} scale={[1.2, 0.75, 0.35]}>
+              <sphereGeometry args={[0.11, 20, 20]} />
               <primitive object={mats.pink} attach="material" />
             </mesh>
           ))}
 
-          {/* Nightcap with a pompom for sleeping */}
-          <group ref={cap} position={[0.1, 0.78, 0]} rotation={[0, 0, -0.35]} scale={0}>
+          {/* Velvet Nightcap (Bedtime Mode) */}
+          <group ref={cap} position={[0.1, 0.78, 0]} rotation={[0, 0, -0.32]} scale={0}>
+            {/* Cap Cone */}
             <mesh>
-              <coneGeometry args={[0.6, 1.1, 24]} />
+              <coneGeometry args={[0.58, 1.15, 32]} />
               <primitive object={mats.accent} attach="material" />
             </mesh>
-            <mesh position={[0.12, 0.62, 0]}>
-              <sphereGeometry args={[0.14, 16, 16]} />
+            {/* White Trim Rim */}
+            <mesh position={[0, -0.52, 0]} rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[0.56, 0.07, 16, 32]} />
+              <primitive object={mats.white} attach="material" />
+            </mesh>
+            {/* Fluffy Pompom */}
+            <mesh position={[0.15, 0.65, 0]}>
+              <sphereGeometry args={[0.15, 20, 20]} />
               <primitive object={mats.white} attach="material" />
             </mesh>
           </group>
 
-          {/* Bubbly shower cap for bath time */}
-          <group ref={showerCap} position={[0, 0.75, 0.05]} scale={0}>
-            <mesh scale={[1.12, 0.6, 1.12]}>
-              <sphereGeometry args={[0.82, 32, 24]} />
+          {/* Bubbly Shower Cap (Bath Mode) */}
+          <group ref={showerCap} position={[0, 0.75, 0.04]} scale={0}>
+            <mesh scale={[1.14, 0.58, 1.14]}>
+              <sphereGeometry args={[0.82, 36, 28]} />
               <primitive object={mats.showerCapMat} attach="material" />
             </mesh>
-            {/* Suds on the cap */}
-            {[-0.3, 0.3, 0].map((bx, i) => (
-              <mesh key={i} position={[bx, 0.5, (i === 2 ? 0.3 : 0)]}>
-                <sphereGeometry args={[0.16, 14, 14]} />
-                <primitive object={mats.bubbleWhite} attach="material" />
-              </mesh>
-            ))}
+            {/* Ruffled Shower Cap Hem */}
+            <mesh position={[0, -0.22, 0]} rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[0.88, 0.06, 14, 36]} />
+              <primitive object={mats.white} attach="material" />
+            </mesh>
           </group>
         </group>
 
-        {/* Teacup for sipping */}
-        <group ref={cup} position={[0.62, 0.95, 1.1]} scale={0}>
-          <mesh>
-            <cylinderGeometry args={[0.22, 0.16, 0.26, 24]} />
-            <primitive object={mats.white} attach="material" />
+        {/* Vintage Ceramic Teacup & Saucer (Sipping Mode) */}
+        <group ref={cup} position={[0.58, 0.92, 1.05]} scale={0}>
+          {/* Saucer */}
+          <mesh position={[0, -0.16, 0]}>
+            <cylinderGeometry args={[0.3, 0.2, 0.03, 32]} />
+            <primitive object={mats.ceramic} attach="material" />
           </mesh>
+          {/* Cup Body */}
+          <mesh>
+            <cylinderGeometry args={[0.22, 0.16, 0.28, 32]} />
+            <primitive object={mats.ceramic} attach="material" />
+          </mesh>
+          {/* Gold Rim */}
+          <mesh position={[0, 0.14, 0]} rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[0.22, 0.015, 12, 32]} />
+            <primitive object={mats.gold} attach="material" />
+          </mesh>
+          {/* Steaming Botanical Tea Liquid */}
           <mesh position={[0, 0.1, 0]}>
-            <cylinderGeometry args={[0.19, 0.19, 0.04, 24]} />
+            <cylinderGeometry args={[0.2, 0.2, 0.04, 32]} />
             <primitive object={mats.accent} attach="material" />
           </mesh>
+          {/* Delicate Handle */}
           <mesh position={[0.24, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
-            <torusGeometry args={[0.08, 0.025, 8, 16]} />
-            <primitive object={mats.white} attach="material" />
+            <torusGeometry args={[0.085, 0.025, 12, 20]} />
+            <primitive object={mats.ceramic} attach="material" />
           </mesh>
         </group>
 
-        {/* Pillow and blanket for bedtime */}
-        <mesh ref={pillow} position={[0, 1.2, -0.7]} scale={0}>
-          <sphereGeometry args={[0.9, 24, 24]} />
+        {/* Luxury Bedtime Pillow & Waffle-Knit Blanket */}
+        <mesh ref={pillow} position={[0, 1.15, -0.65]} scale={0}>
+          <sphereGeometry args={[0.92, 32, 32]} />
           <primitive object={mats.white} attach="material" />
         </mesh>
-        <mesh ref={blanket} position={[0, -0.45, 0.6]} rotation={[0, 0, Math.PI / 2]} scale={0}>
-          <capsuleGeometry args={[0.55, 1.5, 12, 24]} />
-          <primitive object={mats.accent} attach="material" />
-        </mesh>
+        <group ref={blanket} position={[0, -0.42, 0.65]} scale={0}>
+          <mesh rotation={[0, 0, Math.PI / 2]}>
+            <capsuleGeometry args={[0.58, 1.55, 16, 32]} />
+            <primitive object={mats.accent} attach="material" />
+          </mesh>
+          {/* Turned-down Plush Trim */}
+          <mesh position={[0, 0.52, 0.05]} rotation={[0, 0, Math.PI / 2]}>
+            <capsuleGeometry args={[0.1, 1.5, 12, 24]} />
+            <primitive object={mats.white} attach="material" />
+          </mesh>
+        </group>
       </group>
 
-      {/* Floating candy decorations */}
-      {DECOR.map(([x, y, z, shape, ci, size], i) => (
-        <Float key={i} speed={1.4 + (i % 3) * 0.4} rotationIntensity={1.2} floatIntensity={1.4}>
-          <mesh position={[x, y, z]}>
-            {shape === 'ico' && <icosahedronGeometry args={[size, 0]} />}
-            {shape === 'octa' && <octahedronGeometry args={[size, 0]} />}
-            {shape === 'torus' && <torusGeometry args={[size, size * 0.35, 12, 24]} />}
-            {shape === 'bubble' && <sphereGeometry args={[size, 24, 24]} />}
-            <meshStandardMaterial
-              color={CANDY[ci]}
-              emissive={CANDY[ci]}
-              emissiveIntensity={0.35}
-              roughness={0.35}
-              transparent={shape === 'bubble'}
-              opacity={shape === 'bubble' ? 0.7 : 1}
-            />
+      {/* Floating Starlight Spheres & Crystals */}
+      <Float speed={1.2} rotationIntensity={0.6} floatIntensity={0.8}>
+        <group position={[-2.8, 1.8, -0.5]}>
+          <mesh scale={0.28}>
+            <octahedronGeometry args={[1, 0]} />
+            <primitive object={mats.accent} attach="material" />
           </mesh>
-        </Float>
-      ))}
+        </group>
+        <group position={[2.9, 1.6, -0.8]}>
+          <mesh scale={0.24}>
+            <icosahedronGeometry args={[1, 0]} />
+            <primitive object={mats.accent} attach="material" />
+          </mesh>
+        </group>
+      </Float>
 
+      {/* Radiant Golden Celestial Sparkles */}
       <Sparkles
-        count={starlightGlow && starlightGlow > 60 ? 75 : (mood === 'sleeping' ? 28 : (mood === 'bathing' ? 60 : 45))}
+        count={starlightGlow && starlightGlow > 60 ? 80 : mood === 'sleeping' ? 32 : mood === 'bathing' ? 65 : 48}
         scale={[7, 5, 3]}
-        size={starlightGlow && starlightGlow > 75 ? 6 : (mood === 'sleeping' ? 3 : (mood === 'bathing' ? 6 : 5))}
+        size={starlightGlow && starlightGlow > 75 ? 6 : mood === 'sleeping' ? 3 : mood === 'bathing' ? 6 : 4.5}
         speed={mood === 'bathing' ? 0.7 : 0.4}
-        color={starlightGlow && starlightGlow > 70 ? '#fde047' : (mood === 'sleeping' ? '#cfe0ff' : (mood === 'bathing' ? '#a5f3fc' : '#fff1a8'))}
+        color={
+          starlightGlow && starlightGlow > 70
+            ? '#fde047'
+            : mood === 'sleeping'
+            ? '#c7d2fe'
+            : mood === 'bathing'
+            ? '#7dd3fc'
+            : '#fef08a'
+        }
       />
     </>
   );
@@ -477,7 +677,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
 export default function SlothPet3D(props: SlothPet3DProps) {
   return (
     <Canvas
-      camera={{ position: [0, 1.3, 9.6], fov: 36 }}
+      camera={{ position: [0, 1.35, 9.2], fov: 35 }}
       dpr={[1, 2]}
       gl={{ alpha: true, antialias: true }}
       onCreated={({ gl, camera }) => {
