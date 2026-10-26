@@ -51,18 +51,59 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
   const steamPuffsKettle = useRef<(THREE.Mesh | null)[]>([]);
   const steamPuffsCup = useRef<(THREE.Mesh | null)[]>([]);
 
+  // Package C: Spring Physics Refs (Ears & Nightcap Pompom)
+  const earL = useRef<THREE.Group>(null);
+  const earR = useRef<THREE.Group>(null);
+  const pompom = useRef<THREE.Group>(null);
+  const earSpringL = useRef({ pos: 0, vel: 0 });
+  const earSpringR = useRef({ pos: 0, vel: 0 });
+  const pompomSpring = useRef({ pos: 0, vel: 0 });
+
+  // Package C: Sloth Yawn & Stretch Idle Cycle
+  const nextYawnTime = useRef(16);
+  const yawnActive = useRef(false);
+  const yawnProgress = useRef(0);
+
+  // Package B: Camera Bedtime Framing & Parallax State
+  const camLookAtY = useRef(0.95);
+
   const lastPoke = useRef(pokeCount);
   const squash = useRef(0);
   const nextBlink = useRef(2);
   const blinkUntil = useRef(0);
 
-  // High-fidelity materials with tailored roughness and specular qualities
+  // Package B: Upgraded Physical Materials with Velvet Sheen
   const mats = useMemo(
     () => ({
-      fur: new THREE.MeshStandardMaterial({ roughness: 0.92, metalness: 0.02 }),
-      belly: new THREE.MeshStandardMaterial({ color: '#fef3c7', roughness: 0.94, metalness: 0.0 }),
-      patch: new THREE.MeshStandardMaterial({ roughness: 0.88 }),
-      accent: new THREE.MeshStandardMaterial({ roughness: 0.55, emissiveIntensity: 0.2 }),
+      fur: new THREE.MeshPhysicalMaterial({
+        roughness: 0.82,
+        metalness: 0.02,
+        sheen: 0.95,
+        sheenRoughness: 0.45,
+        sheenColor: new THREE.Color('#fde047'),
+      }),
+      belly: new THREE.MeshPhysicalMaterial({
+        color: '#fef3c7',
+        roughness: 0.88,
+        metalness: 0.0,
+        sheen: 0.65,
+        sheenRoughness: 0.5,
+        sheenColor: new THREE.Color('#ffffff'),
+      }),
+      patch: new THREE.MeshPhysicalMaterial({
+        roughness: 0.85,
+        metalness: 0.02,
+        sheen: 0.4,
+        sheenRoughness: 0.55,
+        sheenColor: new THREE.Color('#fde047'),
+      }),
+      accent: new THREE.MeshPhysicalMaterial({
+        roughness: 0.52,
+        sheen: 0.9,
+        sheenRoughness: 0.35,
+        sheenColor: new THREE.Color('#ffffff'),
+        emissiveIntensity: 0.2,
+      }),
       white: new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.2, metalness: 0.05 }),
       ceramic: new THREE.MeshStandardMaterial({ color: '#fdfbf7', roughness: 0.15, metalness: 0.08 }),
       dark: new THREE.MeshStandardMaterial({ color: '#261b2e', roughness: 0.45 }),
@@ -124,7 +165,15 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
   const accentTarget = useMemo(() => new THREE.Color(accentColor), [accentColor]);
   const tmp = useMemo(() => new THREE.Color(), []);
 
-  useFrame(({ clock, pointer }, dt) => {
+  // Hooke's Law Spring Physics Helper for Package C
+  const stepSpring = (spring: { pos: number; vel: number }, target: number, stiffness: number, dampingFactor: number, dt: number) => {
+    const force = -stiffness * (spring.pos - target) - dampingFactor * spring.vel;
+    spring.vel += force * dt;
+    spring.pos += spring.vel * dt;
+    return spring.pos;
+  };
+
+  useFrame(({ camera, clock, pointer }, dt) => {
     const t = clock.elapsedTime;
     const sleeping = mood === 'sleeping';
     const happy = mood === 'happy';
@@ -132,22 +181,94 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
     const eating = mood === 'eating';
     const bathing = mood === 'bathing';
     const playing = mood === 'playing';
+    const idle = mood === 'idle';
 
-    // Smooth material transitions
+    // Package B: Smooth Material & Velvet Sheen Transitions
     mats.fur.color.lerp(furTarget, 0.1);
+    mats.fur.sheenColor.copy(mats.fur.color).lerp(tmp.set('#ffffff'), 0.35);
     mats.belly.color.copy(mats.fur.color).lerp(tmp.set('#fffbeb'), 0.72);
     mats.patch.color.copy(mats.fur.color).multiplyScalar(0.42);
     mats.accent.color.lerp(accentTarget, 0.1);
     mats.accent.emissive.copy(mats.accent.color);
+    mats.accent.sheenColor.copy(mats.accent.color).lerp(tmp.set('#ffffff'), 0.4);
+
+    // Package B: 3D Window Shadowbox Parallax & Cinematic Bedtime Zoom
+    const targetCamX = sleeping ? pointer.x * 0.25 : pointer.x * 0.55;
+    const targetCamY = sleeping ? 1.05 + pointer.y * 0.15 : 1.35 + pointer.y * 0.35;
+    const targetCamZ = sleeping ? 8.1 : 9.2; // Smooth camera zoom into Sunny during bedtime!
+    const targetLookY = sleeping ? 0.75 : 0.95;
+
+    camera.position.x = damp(camera.position.x, targetCamX, 4, dt);
+    camera.position.y = damp(camera.position.y, targetCamY, 4, dt);
+    camera.position.z = damp(camera.position.z, targetCamZ, 3, dt);
+
+    camLookAtY.current = damp(camLookAtY.current, targetLookY, 4, dt);
+    camera.lookAt(0, camLookAtY.current, 0);
 
     // Poke reaction
     if (pokeCount !== lastPoke.current) {
       lastPoke.current = pokeCount;
       squash.current = 1;
+      // Package C: Jolt spring physics on poke
+      pompomSpring.current.vel += 9.5;
+      earSpringL.current.vel += 6.5;
+      earSpringR.current.vel -= 6.5;
+      yawnActive.current = false; // Interrupt stretch immediately
     }
     squash.current = Math.max(0, squash.current - dt * 1.8);
     const s = squash.current;
     const wobble = Math.sin((1 - s) * 16) * s;
+
+    // Package C: Languid Sloth Yawn & Stretch Idle Cycle
+    if (idle) {
+      if (!yawnActive.current && t > nextYawnTime.current) {
+        yawnActive.current = true;
+        yawnProgress.current = 0;
+      }
+    } else {
+      yawnActive.current = false;
+      nextYawnTime.current = t + 22 + ((Math.sin(t * 5) + 1) / 2) * 8;
+    }
+
+    let yawnArmL = 0;
+    let yawnArmR = 0;
+    let yawnHeadPitch = 0;
+    let yawnMouth = 0;
+    let yawnSquint = 0;
+
+    if (yawnActive.current) {
+      yawnProgress.current += dt / 4.6; // 4.6 seconds of blissful sloth stretch
+      const yp = yawnProgress.current;
+
+      if (yp < 0.35) {
+        // Slow stretch extension
+        const k = Math.sin((yp / 0.35) * (Math.PI / 2));
+        yawnArmL = k * -2.25;
+        yawnArmR = k * 2.25;
+        yawnHeadPitch = k * -0.24;
+        yawnMouth = k * 0.85;
+        yawnSquint = k;
+      } else if (yp < 0.7) {
+        // Apex stretch with subtle contented tremor
+        const tremor = Math.sin(t * 24) * 0.025;
+        yawnArmL = -2.25 + tremor;
+        yawnArmR = 2.25 - tremor;
+        yawnHeadPitch = -0.24;
+        yawnMouth = 0.85;
+        yawnSquint = 1;
+      } else if (yp < 1.0) {
+        // Soft settling sigh of satisfaction
+        const k = 1 - Math.sin(((yp - 0.7) / 0.3) * (Math.PI / 2));
+        yawnArmL = k * -2.25;
+        yawnArmR = k * 2.25;
+        yawnHeadPitch = k * -0.24;
+        yawnMouth = k * 0.85;
+        yawnSquint = k * 0.7;
+      } else {
+        yawnActive.current = false;
+        nextYawnTime.current = t + 24 + ((Math.cos(t * 7) + 1) / 2) * 12;
+      }
+    }
 
     // Root movement
     if (root.current) {
@@ -169,7 +290,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
       body.current.scale.set(1 + breath, 1.03 + breath * 1.2, 0.98 + breath);
     }
 
-    // Head tracking (sleepy / gentle)
+    // Head tracking (sleepy / gentle / yawn)
     if (head.current) {
       head.current.rotation.y = damp(
         head.current.rotation.y,
@@ -177,21 +298,39 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
         5,
         dt
       );
-      head.current.rotation.x = damp(
-        head.current.rotation.x,
-        sleeping ? 0.25 : bathing ? -0.08 : -pointer.y * 0.18,
-        5,
-        dt
-      );
+      const baseHeadX = sleeping ? 0.25 : bathing ? -0.08 : -pointer.y * 0.18;
+      head.current.rotation.x = damp(head.current.rotation.x, baseHeadX + yawnHeadPitch, 5, dt);
       head.current.position.y = 1.42 + Math.sin(t * 1.8) * 0.012;
     }
 
-    // Blinking
+    // Package C: Ear & Pompom Spring Physics Simulation
+    const headRotY = head.current ? head.current.rotation.y : 0;
+    const earTarget = headRotY * 0.3;
+    const earJiggleL = stepSpring(earSpringL.current, earTarget, 75, 7.5, dt);
+    const earJiggleR = stepSpring(earSpringR.current, -earTarget, 75, 7.5, dt);
+
+    if (earL.current) {
+      earL.current.rotation.z = earJiggleL * 0.35;
+      earL.current.rotation.y = -0.35 + earJiggleL * 0.25;
+    }
+    if (earR.current) {
+      earR.current.rotation.z = earJiggleR * 0.35;
+      earR.current.rotation.y = 0.35 + earJiggleR * 0.25;
+    }
+
+    const pompomOffset = stepSpring(pompomSpring.current, 0, 50, 5.5, dt);
+    if (pompom.current) {
+      pompom.current.position.x = 0.15 + pompomOffset * 0.04;
+      pompom.current.position.y = 0.65 + Math.sin(t * 2.5) * 0.02 + Math.abs(pompomOffset) * 0.025;
+      pompom.current.rotation.z = pompomOffset * 0.3;
+    }
+
+    // Blinking & Yawn Squint
     if (t > nextBlink.current) {
       blinkUntil.current = t + 0.15;
       nextBlink.current = t + 2.5 + ((Math.sin(t * 13) + 1) / 2) * 3.0;
     }
-    const closed = sleeping || (bathing && Math.sin(t * 1.4) > 0.4) ? 1 : t < blinkUntil.current ? 1 : 0;
+    const closed = sleeping || (bathing && Math.sin(t * 1.4) > 0.4) ? 1 : t < blinkUntil.current ? 1 : yawnSquint > 0.35 ? 1 : 0;
     [eyeL, eyeR].forEach((e) => {
       if (e.current) e.current.scale.y = damp(e.current.scale.y, 1 - 0.94 * closed, 30, dt);
     });
@@ -202,7 +341,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
       }
     });
 
-    // Mouth animation
+    // Mouth animation (talking, eating, cheering, yawning)
     const open = talking
       ? 0.35 + 0.65 * Math.abs(Math.sin(t * 16))
       : eating
@@ -211,6 +350,8 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
       ? 0.4
       : bathing
       ? 0.2
+      : yawnActive.current
+      ? yawnMouth
       : 0;
     if (smile.current) smile.current.visible = open < 0.08;
     if (openMouth.current) {
@@ -218,7 +359,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
       openMouth.current.scale.set(1, 0.3 + open * 0.9, 1);
     }
 
-    // Arms
+    // Arms (playing, bathing, talking, eating, yawning)
     if (armL.current) {
       const targetL = playing
         ? -2.1 + Math.sin(t * 6) * 0.25
@@ -226,6 +367,8 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
         ? -0.6 + Math.sin(t * 3.2) * 0.15
         : talking
         ? -0.85 + Math.sin(t * 6) * 0.2
+        : yawnActive.current
+        ? yawnArmL
         : -0.28;
       armL.current.rotation.z = damp(armL.current.rotation.z, targetL, 6, dt);
     }
@@ -240,6 +383,8 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
         ? 1.65
         : talking
         ? 0.85 - Math.sin(t * 5) * 0.2
+        : yawnActive.current
+        ? yawnArmR
         : 0.28;
       armR.current.rotation.z = damp(armR.current.rotation.z, targetR, 6, dt);
     }
@@ -518,13 +663,15 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
           [-0.8, 0.8].map((z) => (
             <group key={`${x}-${z}`} position={[x * 0.9, -0.52, z * 0.9]}>
               <mesh rotation={[0, 0, 0]}>
-                <cylinderGeometry args={[0.08, 0.14, 0.22, 12]} />
+                <sphereGeometry args={[0.13, 14, 14]} />
                 <primitive object={mats.gold} attach="material" />
               </mesh>
-              <mesh position={[x > 0 ? 0.04 : -0.04, -0.1, 0]}>
-                <sphereGeometry args={[0.09, 12, 12]} />
-                <primitive object={mats.gold} attach="material" />
-              </mesh>
+              {[-0.04, 0, 0.04].map((tx) => (
+                <mesh key={tx} position={[tx, -0.08, 0.08]} rotation={[0.4, 0, 0]}>
+                  <coneGeometry args={[0.025, 0.09, 8]} />
+                  <primitive object={mats.gold} attach="material" />
+                </mesh>
+              ))}
             </group>
           ))
         )}
@@ -593,7 +740,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
         onPointerOver={() => (document.body.style.cursor = 'pointer')}
         onPointerOut={() => (document.body.style.cursor = 'auto')}
       >
-        {/* Sculpted Anatomical Body */}
+        {/* Sculpted Anatomical Body with Velvet Fur */}
         <group ref={body}>
           {/* Main Torso: organic pear shape with shoulders */}
           <mesh position={[0, 0.05, 0]} scale={[0.98, 1.15, 0.92]}>
@@ -665,27 +812,36 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
           ))}
         </group>
 
-        {/* Sculpted Head */}
-        <group ref={head} position={[0, 1.42, 0.15]}>
-          {/* Cranial Vault */}
-          <mesh scale={[1, 1.05, 0.96]}>
-            <sphereGeometry args={[0.84, 48, 48]} />
+        {/* Expressive Anatomical Head */}
+        <group ref={head} position={[0, 1.42, 0]}>
+          {/* Cranial Vault (Skull) */}
+          <mesh scale={[1.08, 0.98, 1.05]}>
+            <sphereGeometry args={[0.88, 48, 48]} />
             <primitive object={mats.fur} attach="material" />
           </mesh>
 
-          {/* Sloth Fur Crown / Tuft */}
-          <mesh position={[0, 0.86, -0.04]} scale={[0.8, 0.4, 0.6]}>
-            <sphereGeometry args={[0.2, 16, 16]} />
-            <primitive object={mats.fur} attach="material" />
-          </mesh>
-
-          {/* Little Velvety Ears */}
-          {[-0.76, 0.76].map((x) => (
-            <mesh key={x} position={[x, 0.18, -0.05]} rotation={[0, x > 0 ? 0.35 : -0.35, 0]} scale={[1, 1.2, 0.5]}>
-              <sphereGeometry args={[0.14, 20, 20]} />
-              <primitive object={mats.patch} attach="material" />
+          {/* Package C: Velvety Ears with Spring Physics */}
+          <group ref={earL} position={[-0.76, 0.18, -0.05]} rotation={[0, -0.35, 0]}>
+            <mesh scale={[1, 1.2, 0.5]}>
+              <sphereGeometry args={[0.18, 16, 16]} />
+              <primitive object={mats.fur} attach="material" />
             </mesh>
-          ))}
+            <mesh position={[0.02, 0, 0.05]} scale={[0.7, 0.85, 0.4]}>
+              <sphereGeometry args={[0.12, 12, 12]} />
+              <primitive object={mats.belly} attach="material" />
+            </mesh>
+          </group>
+
+          <group ref={earR} position={[0.76, 0.18, -0.05]} rotation={[0, 0.35, 0]}>
+            <mesh scale={[1, 1.2, 0.5]}>
+              <sphereGeometry args={[0.18, 16, 16]} />
+              <primitive object={mats.fur} attach="material" />
+            </mesh>
+            <mesh position={[-0.02, 0, 0.05]} scale={[0.7, 0.85, 0.4]}>
+              <sphereGeometry args={[0.12, 12, 12]} />
+              <primitive object={mats.belly} attach="material" />
+            </mesh>
+          </group>
 
           {/* Cream Facial Heart Mask */}
           <mesh position={[0, -0.06, 0.52]} scale={[0.96, 0.82, 0.46]}>
@@ -693,10 +849,10 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
             <primitive object={mats.belly} attach="material" />
           </mesh>
 
-          {/* Iconic Sloth Eye Bands (temple swoops) */}
+          {/* Iconic Sloth Eye Bands and Eyes */}
           {[-1, 1].map((side) => (
-            <group key={side} position={[side * 0.35, 0.08, 0.83]}>
-              {/* Dark Fur Band */}
+            <group key={side} position={[side * 0.44, 0.02, 0.74]}>
+              {/* Slanted Eye Mask Patch */}
               <mesh rotation={[0, side * 0.15, side * -0.38]} scale={[1.1, 1.6, 0.4]}>
                 <sphereGeometry args={[0.18, 24, 24]} />
                 <primitive object={mats.patch} attach="material" />
@@ -756,7 +912,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
             <primitive object={mats.dark} attach="material" />
           </mesh>
 
-          {/* Open Mouth (Talking / Cheering) */}
+          {/* Open Mouth (Talking / Cheering / Yawning) */}
           <mesh ref={openMouth} position={[0, -0.3, 0.91]} visible={false}>
             <sphereGeometry args={[0.1, 16, 16]} />
             <primitive object={mats.mouth} attach="material" />
@@ -782,11 +938,13 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow }: 
               <torusGeometry args={[0.56, 0.07, 16, 32]} />
               <primitive object={mats.white} attach="material" />
             </mesh>
-            {/* Fluffy Pompom */}
-            <mesh position={[0.15, 0.65, 0]}>
-              <sphereGeometry args={[0.15, 20, 20]} />
-              <primitive object={mats.white} attach="material" />
-            </mesh>
+            {/* Package C: Fluffy Pompom with Spring Inertia */}
+            <group ref={pompom} position={[0.15, 0.65, 0]}>
+              <mesh>
+                <sphereGeometry args={[0.15, 20, 20]} />
+                <primitive object={mats.white} attach="material" />
+              </mesh>
+            </group>
           </group>
 
           {/* Bubbly Shower Cap (Bath Mode) */}
