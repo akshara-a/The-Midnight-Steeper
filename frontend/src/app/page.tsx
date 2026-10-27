@@ -90,6 +90,29 @@ function Confetti() {
   );
 }
 
+const THEME_DETAILS: Record<DioramaTheme, { tag: string; swatches: string[] }> = {
+  classic: {
+    tag: '🏮 Golden Fireflies · Cozy Hearth Embers',
+    swatches: ['#ea580c', '#fef08a', '#232126', '#4ade80'],
+  },
+  sakura: {
+    tag: '🌸 3D Drifting Petals · Cherry Blossom Mist',
+    swatches: ['#fb7185', '#fda4af', '#831843', '#86efac'],
+  },
+  celestial: {
+    tag: '✨ Cosmic Aurora · Diamond Starbursts & Meteors',
+    swatches: ['#38bdf8', '#818cf8', '#334155', '#67e8f9'],
+  },
+  autumn: {
+    tag: '🍂 Swirling Leaves · Warm Fireside Sparks',
+    swatches: ['#f59e0b', '#dc2626', '#78350f', '#ea580c'],
+  },
+  onsen: {
+    tag: '🫧 Translucent Bubbles · Soothing Hot Spring Steam',
+    swatches: ['#2dd4bf', '#14b8a6', '#134e4a', '#34d399'],
+  },
+};
+
 function Modal({
   title,
   onClose,
@@ -518,11 +541,12 @@ export default function SunnyTeaParty() {
   const comboIcons = (ingredients?: string[]) => (ingredients ?? []).map(iconFor).join('');
 
   return (
-    <main className={`relative min-h-screen ${night ? 'night' : ''}`}>
+    <main className={`relative min-h-screen ${night ? 'night' : ''} theme-${dioramaTheme}`}>
       <div className="sky sky-day" style={{ opacity: night ? 0 : 1 }} />
       <div className="sky sky-night" style={{ opacity: night ? 1 : 0 }} />
       <div className="sky-stars" style={{ opacity: night ? 1 : 0 }} />
-      <Fireflies night={night} />
+      <div className="theme-atmosphere-glow" aria-hidden="true" />
+      <Fireflies night={night} theme={dioramaTheme} />
 
       {/* Floating hearts, stars and friends */}
       <div className="fixed inset-0 pointer-events-none z-[56] overflow-hidden" aria-hidden="true">
@@ -556,8 +580,11 @@ export default function SunnyTeaParty() {
               </div>
               <div className="mt-1 h-2.5 w-36 rounded-full bg-black/10 overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-pink-400 via-amber-300 to-sky-400 transition-all duration-700"
-                  style={{ width: `${(currentXP / 1000) * 100}%` }}
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${(currentXP / 1000) * 100}%`,
+                    background: 'linear-gradient(90deg, #ff7aa2, var(--theme-accent, #a855f7), #38bdf8)',
+                  }}
                 />
               </div>
             </div>
@@ -580,10 +607,14 @@ export default function SunnyTeaParty() {
                 setShowThemeModal(true);
               }}
               aria-label="3D Diorama Atmosphere Themes"
-              className="btn-chunky purple w-11 h-11 sm:w-12 sm:h-12 text-xl flex items-center justify-center hover:scale-105"
-              title="🎨 3D Diorama Atmosphere Themes"
+              className="btn-chunky w-11 h-11 sm:w-12 sm:h-12 text-xl flex items-center justify-center hover:scale-105 transition-all"
+              style={{
+                background: 'var(--theme-accent, #9b7bff)',
+                boxShadow: '0 5px 0 var(--theme-accent-strong, #6c4fd1)',
+              }}
+              title={`🎨 Theme: ${DIORAMA_THEMES[dioramaTheme]?.name || '3D Atmosphere'}`}
             >
-              🎨
+              {DIORAMA_THEMES[dioramaTheme]?.icon || '🎨'}
             </button>
             <button
               onClick={() => {
@@ -634,7 +665,10 @@ export default function SunnyTeaParty() {
 
         {/* 3D stage: tap Sunny! */}
         <section
-          className="toy-card relative overflow-hidden h-[46vh] min-h-[310px] max-h-[460px]"
+          className="toy-card relative overflow-hidden h-[46vh] min-h-[310px] max-h-[460px] transition-all duration-700"
+          style={{
+            boxShadow: 'var(--theme-stage-glow, 0 0 28px rgba(168, 85, 247, 0.35))',
+          }}
           onPointerDown={(e) => {
             pointerRef.current = { x: e.clientX, y: e.clientY };
           }}
@@ -646,12 +680,16 @@ export default function SunnyTeaParty() {
               setShowThemeModal(true);
             }}
             aria-label="Change 3D Diorama Theme"
-            className="absolute bottom-3 right-3 z-20 btn-chunky purple py-1 px-2.5 sm:px-3 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95"
+            className="absolute bottom-3 right-3 z-20 btn-chunky py-1.5 px-3 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-lg hover:scale-105 active:scale-95 transition-all"
+            style={{
+              background: 'var(--theme-accent, #9b7bff)',
+              boxShadow: '0 4px 0 var(--theme-accent-strong, #6c4fd1), 0 8px 16px rgba(0,0,0,0.25)',
+            }}
             title="Switch 3D Diorama Atmosphere Theme"
           >
-            <span className="text-base sm:text-lg">{DIORAMA_THEMES[dioramaTheme]?.icon || '🎨'}</span>
+            <span className="text-base sm:text-lg animate-bounce-soft">{DIORAMA_THEMES[dioramaTheme]?.icon || '🎨'}</span>
             <span className="hidden sm:inline">{DIORAMA_THEMES[dioramaTheme]?.name || 'Theme'}</span>
-            <span className="text-[10px] opacity-75">🎨</span>
+            <span className="text-[10px] opacity-85 bg-white/20 px-1.5 py-0.5 rounded-full font-bold">🎨</span>
           </button>
 
           <SlothPet3D
@@ -1279,32 +1317,34 @@ export default function SunnyTeaParty() {
 
       {/* ---------- 3D DIORAMA THEME SELECTION MODAL ---------- */}
       {showThemeModal && (
-        <Modal title="🎨 Choose 3D Diorama Theme" onClose={() => setShowThemeModal(false)}>
+        <Modal title="🎨 Choose Atmosphere & Diorama Theme" onClose={() => setShowThemeModal(false)}>
           <div className="space-y-3.5">
             <p className="text-xs sm:text-sm text-[#3b2a63] font-medium leading-relaxed text-center">
-              Transform Sunny&apos;s tea party nook with seasonal lanterns, glowing embers, kettle styles, and atmospheric lighting!
+              Transform Sunny&apos;s tea party nook with seasonal lanterns, animated background particles, kettle styles, and atmospheric lighting!
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {(Object.values(DIORAMA_THEMES) as Array<typeof DIORAMA_THEMES[keyof typeof DIORAMA_THEMES]>).map((th) => {
+              {(Object.values(DIORAMA_THEMES) as Array<typeof DIORAMA_THEMES[keyof typeof DIORAMA_THEMES]>).map((th, index) => {
                 const isSelected = dioramaTheme === th.id;
+                const details = THEME_DETAILS[th.id];
                 return (
                   <button
                     key={th.id}
-                    onClick={() => {
+                    onClick={(e) => {
                       sounds.playClick();
                       setDioramaTheme(th.id);
+                      floatEmoji(th.icon, e.clientX || window.innerWidth / 2, e.clientY || window.innerHeight / 2);
                       try {
                         localStorage.setItem('midnight_theme', th.id);
                       } catch {}
                       say(`Welcome to the ${th.name}! ${th.icon}`);
                     }}
-                    className={`p-3 rounded-2xl border-2 text-left transition-all flex items-start gap-3 ${
+                    className={`p-3 rounded-2xl border-2 text-left transition-all flex items-start gap-3 relative overflow-hidden ${index === 4 ? 'sm:col-span-2' : ''} ${
                       isSelected
-                        ? 'bg-purple-600/25 border-purple-500 ring-2 ring-purple-300 scale-[1.02]'
-                        : 'bg-white/70 border-indigo-200 hover:border-indigo-400 hover:bg-white/90'
+                        ? 'bg-purple-600/25 border-purple-500 ring-2 ring-purple-300 scale-[1.02] shadow-md'
+                        : 'bg-white/70 border-indigo-200 hover:border-indigo-400 hover:bg-white/90 hover:scale-[1.01]'
                     }`}
                   >
-                    <span className="text-3xl">{th.icon}</span>
+                    <span className="text-3xl mt-0.5">{th.icon}</span>
                     <div className="min-w-0 flex-1">
                       <div className="font-bold text-sm sm:text-base text-[#3b2a63] flex items-center justify-between">
                         <span>{th.name}</span>
@@ -1314,8 +1354,25 @@ export default function SunnyTeaParty() {
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-[#3b2a63]/80 mt-0.5 leading-snug line-clamp-2">
+                      <div className="text-[11px] font-semibold text-purple-700/90 mt-0.5">
+                        {details?.tag}
+                      </div>
+                      <div className="text-xs text-[#3b2a63]/80 mt-1 leading-snug line-clamp-2">
                         {th.description}
+                      </div>
+                      {/* Mini Palette Swatch */}
+                      <div className="mt-2 flex items-center gap-1.5">
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-black/50">Palette:</span>
+                        <div className="flex items-center gap-1">
+                          {details?.swatches.map((color, idx) => (
+                            <span
+                              key={idx}
+                              className="w-3.5 h-3.5 rounded-full border border-black/20 shadow-xs inline-block"
+                              style={{ backgroundColor: color }}
+                              title={color}
+                            />
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </button>

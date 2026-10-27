@@ -18,12 +18,137 @@ body {
   user-select: none;
 }
 
-/* ===== Sky: day and night layers cross-fade when Sunny goes to bed ===== */
+/* ============================================================
+   3D DIORAMA THEME PALETTES & ATMOSPHERIC ENVIRONMENTS
+   ============================================================ */
+
+/* 1. Classic: Midnight Tea House */
+.theme-classic {
+  --theme-accent: #a855f7;
+  --theme-accent-strong: #7e22ce;
+  --theme-glow: rgba(168, 85, 247, 0.3);
+  --theme-card-bg: rgba(255, 255, 255, 0.85);
+  --theme-card-border: #ffffff;
+  --theme-card-shadow: 0 8px 0 rgba(120, 80, 200, 0.22), 0 18px 40px rgba(80, 40, 160, 0.18);
+  --theme-card-bg-night: rgba(32, 22, 78, 0.78);
+  --theme-card-border-night: rgba(190, 170, 255, 0.55);
+  --theme-card-shadow-night: 0 8px 0 rgba(10, 5, 50, 0.5), 0 18px 40px rgba(0, 0, 40, 0.45);
+  --theme-stage-glow: 0 0 28px rgba(168, 85, 247, 0.35);
+}
+
+/* 2. Sakura: Sakura Garden */
+.theme-sakura {
+  --theme-accent: #f472b6;
+  --theme-accent-strong: #db2777;
+  --theme-glow: rgba(244, 114, 182, 0.35);
+  --theme-card-bg: rgba(255, 245, 249, 0.88);
+  --theme-card-border: #fce7f3;
+  --theme-card-shadow: 0 8px 0 rgba(219, 39, 119, 0.16), 0 18px 40px rgba(244, 114, 182, 0.18);
+  --theme-card-bg-night: rgba(48, 16, 38, 0.82);
+  --theme-card-border-night: rgba(251, 113, 133, 0.55);
+  --theme-card-shadow-night: 0 8px 0 rgba(30, 5, 22, 0.55), 0 18px 40px rgba(225, 29, 72, 0.3);
+  --theme-stage-glow: 0 0 32px rgba(251, 113, 133, 0.4);
+}
+.theme-sakura .sky-day {
+  background:
+    radial-gradient(circle at 80% 15%, #ffd1ea 0%, transparent 45%),
+    radial-gradient(circle at 15% 35%, #ffc1e3 0%, transparent 45%),
+    linear-gradient(180deg, #ffe4e6 0%, #fce7f3 45%, #ffd6e7 75%, #fbcfe8 100%);
+}
+.theme-sakura .sky-night {
+  background:
+    radial-gradient(circle at 75% 20%, rgba(251, 113, 133, 0.4) 0%, transparent 55%),
+    radial-gradient(circle at 15% 65%, rgba(244, 63, 94, 0.28) 0%, transparent 50%),
+    linear-gradient(180deg, #2c0e22 0%, #4a1532 50%, #200818 100%);
+}
+
+/* 3. Celestial: Celestial Starlight */
+.theme-celestial {
+  --theme-accent: #38bdf8;
+  --theme-accent-strong: #0284c7;
+  --theme-glow: rgba(56, 189, 248, 0.38);
+  --theme-card-bg: rgba(245, 248, 255, 0.88);
+  --theme-card-border: #e0e7ff;
+  --theme-card-shadow: 0 8px 0 rgba(99, 102, 241, 0.2), 0 18px 40px rgba(56, 189, 248, 0.2);
+  --theme-card-bg-night: rgba(14, 20, 56, 0.84);
+  --theme-card-border-night: rgba(56, 189, 248, 0.55);
+  --theme-card-shadow-night: 0 8px 0 rgba(5, 10, 35, 0.6), 0 18px 40px rgba(14, 165, 233, 0.32);
+  --theme-stage-glow: 0 0 34px rgba(56, 189, 248, 0.45);
+}
+.theme-celestial .sky-day {
+  background:
+    radial-gradient(circle at 25% 15%, #bae6fd 0%, transparent 45%),
+    radial-gradient(circle at 75% 35%, #ddd6fe 0%, transparent 45%),
+    linear-gradient(180deg, #e0f2fe 0%, #c7d2fe 50%, #bae6fd 100%);
+}
+.theme-celestial .sky-night {
+  background:
+    radial-gradient(circle at 80% 15%, rgba(56, 189, 248, 0.45) 0%, transparent 50%),
+    radial-gradient(circle at 20% 30%, rgba(129, 140, 248, 0.35) 0%, transparent 50%),
+    radial-gradient(circle at 50% 80%, rgba(168, 85, 247, 0.3) 0%, transparent 50%),
+    linear-gradient(180deg, #090d20 0%, #15193d 50%, #060914 100%);
+}
+
+/* 4. Autumn: Autumn Fireside */
+.theme-autumn {
+  --theme-accent: #f59e0b;
+  --theme-accent-strong: #d97706;
+  --theme-glow: rgba(245, 158, 11, 0.35);
+  --theme-card-bg: rgba(255, 251, 242, 0.9);
+  --theme-card-border: #fef3c7;
+  --theme-card-shadow: 0 8px 0 rgba(217, 119, 6, 0.18), 0 18px 40px rgba(180, 83, 9, 0.16);
+  --theme-card-bg-night: rgba(45, 24, 10, 0.84);
+  --theme-card-border-night: rgba(245, 158, 11, 0.55);
+  --theme-card-shadow-night: 0 8px 0 rgba(25, 12, 5, 0.55), 0 18px 40px rgba(217, 119, 6, 0.32);
+  --theme-stage-glow: 0 0 30px rgba(245, 158, 11, 0.4);
+}
+.theme-autumn .sky-day {
+  background:
+    radial-gradient(circle at 80% 15%, #fef3c7 0%, transparent 45%),
+    radial-gradient(circle at 20% 35%, #fed7aa 0%, transparent 45%),
+    linear-gradient(180deg, #fef3c7 0%, #ffedd5 50%, #fed7aa 100%);
+}
+.theme-autumn .sky-night {
+  background:
+    radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.42) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(234, 88, 12, 0.38) 0%, transparent 50%),
+    linear-gradient(180deg, #260f05 0%, #451a08 55%, #1c0803 100%);
+}
+
+/* 5. Onsen: Zen Mineral Onsen */
+.theme-onsen {
+  --theme-accent: #2dd4bf;
+  --theme-accent-strong: #0f766e;
+  --theme-glow: rgba(45, 212, 191, 0.35);
+  --theme-card-bg: rgba(240, 253, 250, 0.9);
+  --theme-card-border: #ccfbf1;
+  --theme-card-shadow: 0 8px 0 rgba(13, 148, 136, 0.18), 0 18px 40px rgba(20, 184, 166, 0.16);
+  --theme-card-bg-night: rgba(10, 36, 36, 0.84);
+  --theme-card-border-night: rgba(45, 212, 191, 0.55);
+  --theme-card-shadow-night: 0 8px 0 rgba(5, 20, 20, 0.55), 0 18px 40px rgba(13, 148, 136, 0.32);
+  --theme-stage-glow: 0 0 30px rgba(45, 212, 191, 0.4);
+}
+.theme-onsen .sky-day {
+  background:
+    radial-gradient(circle at 20% 20%, #ccfbf1 0%, transparent 45%),
+    radial-gradient(circle at 80% 40%, #cffafe 0%, transparent 45%),
+    linear-gradient(180deg, #f0fdfa 0%, #ccfbf1 50%, #99f6e4 100%);
+}
+.theme-onsen .sky-night {
+  background:
+    radial-gradient(circle at 75% 20%, rgba(45, 212, 191, 0.35) 0%, transparent 50%),
+    radial-gradient(circle at 15% 70%, rgba(20, 184, 166, 0.35) 0%, transparent 50%),
+    linear-gradient(180deg, #071f1e 0%, #0d3835 55%, #051413 100%);
+}
+
+/* ============================================================
+   SKY & ATMOSPHERIC ANIMATED BACKDROPS
+   ============================================================ */
 .sky {
   position: fixed;
   inset: 0;
   z-index: 0;
-  transition: opacity 1.8s ease;
+  transition: opacity 1.8s ease, background 1.2s ease;
 }
 .sky-day {
   background:
@@ -52,19 +177,61 @@ body {
   transition: opacity 1.8s ease;
 }
 
-/* ===== Chunky toy-like surfaces ===== */
+/* Animated theme atmosphere glow overlay */
+.theme-atmosphere-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.65;
+  transition: opacity 1.5s ease;
+}
+
+.theme-sakura .theme-atmosphere-glow {
+  background: radial-gradient(circle at 50% 10%, rgba(251, 113, 133, 0.28), transparent 60%);
+  animation: sakuraPulse 8s ease-in-out infinite alternate;
+}
+
+.theme-celestial .theme-atmosphere-glow {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(56, 189, 248, 0.32), transparent 55%),
+    radial-gradient(ellipse at 75% 45%, rgba(168, 85, 247, 0.28), transparent 50%);
+  animation: auroraDrift 12s ease-in-out infinite alternate;
+}
+
+.theme-autumn .theme-atmosphere-glow {
+  background: radial-gradient(circle at 50% 90%, rgba(245, 158, 11, 0.32), transparent 65%);
+  animation: hearthFlicker 6s ease-in-out infinite alternate;
+}
+
+.theme-onsen .theme-atmosphere-glow {
+  background:
+    radial-gradient(ellipse at 50% 85%, rgba(45, 212, 191, 0.28), transparent 60%),
+    radial-gradient(ellipse at 80% 30%, rgba(94, 234, 212, 0.22), transparent 50%);
+  animation: mistFloat 10s ease-in-out infinite alternate;
+}
+
+.theme-classic .theme-atmosphere-glow {
+  background: radial-gradient(circle at 50% 85%, rgba(249, 115, 22, 0.2), transparent 60%);
+  animation: hearthFlicker 7s ease-in-out infinite alternate;
+}
+
+/* ============================================================
+   CHUNKY TOY-LIKE SURFACES & BUTTONS
+   ============================================================ */
 .toy-card {
-  background: rgba(255, 255, 255, 0.82);
-  border: 4px solid #fff;
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.82));
+  border: 4px solid var(--theme-card-border, #fff);
   border-radius: 28px;
-  box-shadow: 0 8px 0 rgba(120, 80, 200, 0.22), 0 18px 40px rgba(80, 40, 160, 0.18);
-  backdrop-filter: blur(6px);
+  box-shadow: var(--theme-card-shadow, 0 8px 0 rgba(120, 80, 200, 0.22), 0 18px 40px rgba(80, 40, 160, 0.18));
+  backdrop-filter: blur(8px);
+  transition: background 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease;
 }
 .night .toy-card {
-  background: rgba(40, 30, 100, 0.72);
-  border-color: rgba(190, 170, 255, 0.55);
+  background: var(--theme-card-bg-night, rgba(40, 30, 100, 0.72));
+  border-color: var(--theme-card-border-night, rgba(190, 170, 255, 0.55));
   color: #f3eeff;
-  box-shadow: 0 8px 0 rgba(10, 5, 50, 0.5), 0 18px 40px rgba(0, 0, 40, 0.4);
+  box-shadow: var(--theme-card-shadow-night, 0 8px 0 rgba(10, 5, 50, 0.5), 0 18px 40px rgba(0, 0, 40, 0.4));
 }
 
 .btn-chunky {
@@ -87,13 +254,17 @@ body {
 .btn-chunky.blue { --c: #5aa8ff; --c-dark: #3478d6; }
 .btn-chunky.yellow { --c: #ffc933; --c-dark: #d49a00; color: #5a3b00; text-shadow: none; }
 .btn-chunky.purple { --c: #9b7bff; --c-dark: #6c4fd1; }
+.btn-chunky.theme {
+  --c: var(--theme-accent, #9b7bff);
+  --c-dark: var(--theme-accent-strong, #6c4fd1);
+}
 
 /* Picker cards */
 .pick-card {
   position: relative;
   border-radius: 24px;
-  border: 4px solid #fff;
-  background: rgba(255, 255, 255, 0.9);
+  border: 4px solid var(--theme-card-border, #fff);
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.9));
   box-shadow: 0 6px 0 rgba(120, 80, 200, 0.2);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   cursor: pointer;
@@ -127,7 +298,29 @@ body {
   filter: drop-shadow(0 4px 0 #ffd1ea);
 }
 
-/* ===== Animations ===== */
+/* ============================================================
+   ANIMATIONS & KEYFRAMES
+   ============================================================ */
+@keyframes sakuraPulse {
+  0% { transform: scale(1) translateY(0); opacity: 0.5; }
+  100% { transform: scale(1.08) translateY(-10px); opacity: 0.78; }
+}
+@keyframes auroraDrift {
+  0% { transform: scale(1) rotate(0deg); opacity: 0.55; }
+  50% { transform: scale(1.08) rotate(1.2deg); opacity: 0.88; }
+  100% { transform: scale(1.02) rotate(-0.8deg); opacity: 0.65; }
+}
+@keyframes hearthFlicker {
+  0% { transform: scale(1); opacity: 0.45; }
+  50% { transform: scale(1.06); opacity: 0.75; }
+  100% { transform: scale(0.98); opacity: 0.5; }
+}
+@keyframes mistFloat {
+  0% { transform: translateX(0) scale(1); opacity: 0.45; }
+  50% { transform: translateX(25px) scale(1.06); opacity: 0.75; }
+  100% { transform: translateX(-15px) scale(1.02); opacity: 0.5; }
+}
+
 @keyframes bubbleIn { 0% { opacity: 0; transform: scale(0.6) translateY(10px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
 @keyframes wiggle { 0%,100% { rotate: 0deg; } 25% { rotate: -4deg; } 75% { rotate: 4deg; } }
 @keyframes zzz {
@@ -164,6 +357,6 @@ body {
 ::-webkit-scrollbar-thumb { background: #c9b6ff; border-radius: 9999px; border: 2px solid transparent; background-clip: padding-box; }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-zzz, .animate-bounce-soft, .animate-glow, .animate-blink, .confetti-piece { animation: none !important; }
+  .animate-zzz, .animate-bounce-soft, .animate-glow, .animate-blink, .confetti-piece, .theme-atmosphere-glow { animation: none !important; }
   .pick-card, .btn-chunky { transition: none; }
 }

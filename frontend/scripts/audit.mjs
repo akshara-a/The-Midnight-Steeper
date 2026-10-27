@@ -18,7 +18,6 @@ async function run() {
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-webgl', '--no-sandbox'],
   };
 
-  // Support custom executable path or standard system browser channel without hardcoded paths
   if (process.env.CHROME_PATH) {
     launchOptions.executablePath = process.env.CHROME_PATH;
   } else {
@@ -47,30 +46,70 @@ async function run() {
     console.log('Clicked Play!');
   }
 
-  // Wait for 3D stage Canvas
-  await page.waitForTimeout(3000);
-  await page.screenshot({ path: path.join(outDir, '02_awake_stage.png') });
-  console.log('Saved 02_awake_stage.png');
+  // 2. Awake stage (Classic Theme)
+  await page.waitForTimeout(2500);
+  await page.screenshot({ path: path.join(outDir, '02_awake_stage_classic.png') });
+  console.log('Saved 02_awake_stage_classic.png');
 
-  // Click Bath button
-  const bathButton = page.getByRole('button', { name: /Bath/i });
-  if (await bathButton.isVisible()) {
-    await bathButton.click();
-    console.log('Clicked Bath button');
-    await page.waitForTimeout(1500);
-    await page.screenshot({ path: path.join(outDir, '03_bath_stage.png') });
-    console.log('Saved 03_bath_stage.png');
-  }
+  // Helper to open theme modal
+  const openThemeModal = async () => {
+    const themeBtn = page.locator('button[aria-label*="Theme"]').first();
+    await themeBtn.click();
+    await page.waitForTimeout(600);
+  };
 
-  // Click Theme button
-  const themeButton = page.getByRole('button', { name: /Theme/i }).first();
-  if (await themeButton.isVisible()) {
-    await themeButton.click();
-    console.log('Opened Theme Modal');
-    await page.waitForTimeout(1000);
-    await page.screenshot({ path: path.join(outDir, '04_theme_modal.png') });
-    console.log('Saved 04_theme_modal.png');
-  }
+  // Helper to close theme modal
+  const closeThemeModal = async () => {
+    const closeBtn = page.locator('button[aria-label="Close"]');
+    if (await closeBtn.isVisible()) {
+      await closeBtn.click();
+      await page.waitForTimeout(800);
+    }
+  };
+
+  // 3. Open Theme Modal
+  await openThemeModal();
+  await page.screenshot({ path: path.join(outDir, '03_theme_modal.png') });
+  console.log('Saved 03_theme_modal.png');
+
+  // 4. Select Sakura Theme
+  await page.getByRole('button', { name: /Sakura Garden/i }).click();
+  console.log('Selected Sakura Theme');
+  await page.waitForTimeout(1000);
+  await closeThemeModal();
+  await page.waitForTimeout(2000);
+  await page.screenshot({ path: path.join(outDir, '04_theme_sakura_fullscreen.png') });
+  console.log('Saved 04_theme_sakura_fullscreen.png');
+
+  // 5. Select Celestial Starlight Theme
+  await openThemeModal();
+  await page.getByRole('button', { name: /Celestial Starlight/i }).click();
+  console.log('Selected Celestial Theme');
+  await page.waitForTimeout(1000);
+  await closeThemeModal();
+  await page.waitForTimeout(2000);
+  await page.screenshot({ path: path.join(outDir, '05_theme_celestial_fullscreen.png') });
+  console.log('Saved 05_theme_celestial_fullscreen.png');
+
+  // 6. Select Autumn Fireside Theme
+  await openThemeModal();
+  await page.getByRole('button', { name: /Autumn Fireside/i }).click();
+  console.log('Selected Autumn Theme');
+  await page.waitForTimeout(1000);
+  await closeThemeModal();
+  await page.waitForTimeout(2000);
+  await page.screenshot({ path: path.join(outDir, '06_theme_autumn_fullscreen.png') });
+  console.log('Saved 06_theme_autumn_fullscreen.png');
+
+  // 7. Select Zen Mineral Onsen Theme
+  await openThemeModal();
+  await page.getByRole('button', { name: /Zen Mineral Onsen/i }).click();
+  console.log('Selected Onsen Theme');
+  await page.waitForTimeout(1000);
+  await closeThemeModal();
+  await page.waitForTimeout(2000);
+  await page.screenshot({ path: path.join(outDir, '07_theme_onsen_fullscreen.png') });
+  console.log('Saved 07_theme_onsen_fullscreen.png');
 
   await browser.close();
   console.log(`Visual audit screenshots saved successfully to: ${outDir}`);
