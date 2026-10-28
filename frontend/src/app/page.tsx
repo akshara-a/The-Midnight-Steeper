@@ -1357,11 +1357,14 @@ export default function SunnyTeaParty() {
       {/* ---------- DRESS-UP WARDROBE CLOSET MODAL ---------- */}
       {showWardrobeModal && (
         <WardrobeModal
-          outfit={outfit}
-          onUpdateOutfit={handleUpdateOutfit}
+          currentOutfit={outfit}
+          onSaveOutfit={handleUpdateOutfit}
           onSay={say}
           onFloatEmoji={floatEmoji}
           onClose={() => setShowWardrobeModal(false)}
+          furColor={shownLeaf.color}
+          accentColor={shownTreat.color}
+          theme={dioramaTheme}
         />
       )}
 
