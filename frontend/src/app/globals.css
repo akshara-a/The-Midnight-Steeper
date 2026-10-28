@@ -227,6 +227,19 @@ body {
   backdrop-filter: blur(8px);
   transition: background 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease;
 }
+/* 3D stage: a softly lit room so the diorama has depth instead of a flat white card */
+.toy-card.stage-scene {
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(255, 248, 232, 0.95) 0%, rgba(255, 240, 222, 0.7) 45%, transparent 100%),
+    linear-gradient(180deg, #efe6ff 0%, #f8e9f1 55%, #fbe3cc 100%);
+  box-shadow: inset 0 0 60px rgba(90, 50, 150, 0.14), var(--theme-stage-glow, 0 0 28px rgba(168, 85, 247, 0.35));
+}
+.night .toy-card.stage-scene {
+  background:
+    radial-gradient(ellipse 65% 50% at 50% 45%, rgba(120, 100, 210, 0.45) 0%, transparent 100%),
+    linear-gradient(180deg, #1a1346 0%, #261a5c 60%, #3a2468 100%);
+  box-shadow: inset 0 0 70px rgba(0, 0, 30, 0.5), var(--theme-stage-glow, 0 0 28px rgba(168, 85, 247, 0.35));
+}
 .night .toy-card {
   background: var(--theme-card-bg-night, rgba(40, 30, 100, 0.72));
   border-color: var(--theme-card-border-night, rgba(190, 170, 255, 0.55));

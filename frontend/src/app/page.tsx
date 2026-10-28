@@ -691,10 +691,7 @@ export default function SunnyTeaParty() {
 
         {/* 3D stage: tap Sunny! */}
         <section
-          className="toy-card relative overflow-hidden h-[46vh] min-h-[310px] max-h-[460px] transition-all duration-700"
-          style={{
-            boxShadow: 'var(--theme-stage-glow, 0 0 28px rgba(168, 85, 247, 0.35))',
-          }}
+          className="toy-card stage-scene relative overflow-hidden h-[50vh] min-h-[330px] max-h-[500px] transition-all duration-700"
           onPointerDown={(e) => {
             pointerRef.current = { x: e.clientX, y: e.clientY };
           }}

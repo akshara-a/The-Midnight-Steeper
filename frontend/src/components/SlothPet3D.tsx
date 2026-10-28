@@ -169,6 +169,153 @@ interface SlothPet3DProps {
 
 const damp = THREE.MathUtils.damp;
 
+const FUR_LAYERS = 8;
+const NATURAL_FUR = '#7a502f';
+const NATURAL_CREAM = '#dbc8a2';
+const ALGAE_TINT = '#b0a070';
+
+/** Procedural, seamless fur strand textures (color mottling, bump and cut-out alpha for shell layers). */
+function makeFurTextures() {
+  const size = 512;
+  let seed = 7;
+  const rnd = () => {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  };
+  const canvas = () => {
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    return c;
+  };
+  const strand = (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    len: number,
+    ang: number,
+    width: number,
+    style: string
+  ) => {
+    ctx.strokeStyle = style;
+    ctx.lineWidth = width;
+    ctx.lineCap = 'round';
+    for (const ox of [-size, 0, size]) {
+      for (const oy of [-size, 0, size]) {
+        ctx.beginPath();
+        ctx.moveTo(x + ox, y + oy);
+        ctx.lineTo(x + ox + Math.cos(ang) * len, y + oy + Math.sin(ang) * len);
+        ctx.stroke();
+      }
+    }
+  };
+  const gray = (v: number, a = 1) => `rgba(${v},${v},${v},${a})`;
+  const vertical = () => Math.PI / 2 + (rnd() - 0.5) * 0.5;
+
+  const color = canvas();
+  const cctx = color.getContext('2d')!;
+  cctx.fillStyle = '#bcbcbc';
+  cctx.fillRect(0, 0, size, size);
+  for (let i = 0; i < 46; i++) {
+    const x = rnd() * size;
+    const y = rnd() * size;
+    const r = 40 + rnd() * 70;
+    const g = cctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, rnd() > 0.5 ? 'rgba(0,0,0,0.14)' : 'rgba(255,255,255,0.12)');
+    g.addColorStop(1, 'rgba(128,128,128,0)');
+    cctx.fillStyle = g;
+    cctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  for (let i = 0; i < 9000; i++) {
+    strand(cctx, rnd() * size, rnd() * size, 10 + rnd() * 18, vertical(), 1 + rnd() * 0.8, gray(110 + Math.floor(rnd() * 145), 0.35));
+  }
+
+  const bump = canvas();
+  const bctx = bump.getContext('2d')!;
+  bctx.fillStyle = gray(128);
+  bctx.fillRect(0, 0, size, size);
+  for (let i = 0; i < 12000; i++) {
+    strand(bctx, rnd() * size, rnd() * size, 8 + rnd() * 16, vertical(), 1.1, gray(rnd() > 0.5 ? 235 : 20, 0.5));
+  }
+
+  const alpha = canvas();
+  const actx = alpha.getContext('2d')!;
+  actx.fillStyle = '#000';
+  actx.fillRect(0, 0, size, size);
+  for (let i = 0; i < 12000; i++) {
+    strand(actx, rnd() * size, rnd() * size, 6 + rnd() * 14, vertical(), 1.3 + rnd() * 0.9, gray(70 + Math.floor(rnd() * 185)));
+  }
+
+  const make = (c: HTMLCanvasElement, srgb: boolean) => {
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.anisotropy = 4;
+    if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  };
+  return { color: make(color, true), bump: make(bump, false), alpha: make(alpha, false) };
+}
+
+function tileTexture(src: THREE.Texture, rx: number, ry: number) {
+  const t = src.clone();
+  t.repeat.set(rx, ry);
+  t.needsUpdate = true;
+  return t;
+}
+
+/** Stacked, slightly inflated copies of a mesh; each cut out by fur-strand alpha to fake volumetric fur. */
+function Shells({
+  geometry,
+  materials,
+  position,
+  rotation,
+  scale = [1, 1, 1],
+  grow = 0.012,
+  axial = 1,
+}: {
+  geometry: THREE.BufferGeometry;
+  materials: THREE.Material[];
+  position?: [number, number, number];
+  rotation?: [number, number, number];
+  scale?: [number, number, number];
+  grow?: number;
+  /** How much of the growth applies along the local Y axis (keeps limbs from lengthening) */
+  axial?: number;
+}) {
+  return (
+    <>
+      {materials.map((m, i) => {
+        const k = grow * (i + 1);
+        return (
+          <mesh
+            key={i}
+            geometry={geometry}
+            material={m}
+            position={position}
+            rotation={rotation}
+            scale={[scale[0] * (1 + k), scale[1] * (1 + k * axial), scale[2] * (1 + k)]}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+/** Two-segment curved keratin claw, pointing along local +Y. */
+function Claw({ material }: { material: THREE.Material }) {
+  return (
+    <>
+      <mesh position={[0, 0.1, 0]} material={material}>
+        <cylinderGeometry args={[0.02, 0.036, 0.2, 10]} />
+      </mesh>
+      <group position={[0, 0.2, 0]} rotation={[0.55, 0, 0]}>
+        <mesh position={[0, 0.09, 0]} material={material}>
+          <cylinderGeometry args={[0.002, 0.02, 0.18, 10]} />
+        </mesh>
+      </group>
+    </>
+  );
+}
+
 const FIREFLIES_CONFIG = [
   { base: [1.3, -0.5, 0.8], speed: 0.9, phase: 0.0 },
   { base: [-1.4, -0.6, 0.8], speed: 1.1, phase: 1.5 },
@@ -245,28 +392,85 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
   const nextBlink = useRef(2);
   const blinkUntil = useRef(0);
 
-  // Materials with Velvet Sheen
+  // Procedural fur: strand textures at two tiling densities (body vs. thin limbs)
+  const fur = useMemo(() => {
+    const base = makeFurTextures();
+    return {
+      bodyColor: tileTexture(base.color, 7, 5),
+      bodyBump: tileTexture(base.bump, 7, 5),
+      bodyAlpha: tileTexture(base.alpha, 7, 5),
+      limbAlpha: tileTexture(base.alpha, 2.5, 4),
+    };
+  }, []);
+
+  // One alpha-cut material per fur layer: dense near the skin, wispy at the tips
+  const shells = useMemo(() => {
+    const layers = (alphaMap: THREE.Texture) =>
+      Array.from({ length: FUR_LAYERS }, (_, i) => {
+        const m = new THREE.MeshStandardMaterial({ alphaMap, alphaTest: 0.2 + (i / FUR_LAYERS) * 0.62, roughness: 1 });
+        return m;
+      });
+    return { body: layers(fur.bodyAlpha), belly: layers(fur.bodyAlpha), limb: layers(fur.limbAlpha) };
+  }, [fur]);
+
+  const geo = useMemo(() => {
+    return {
+      torso: new THREE.SphereGeometry(0.95, 48, 48),
+      belly: new THREE.SphereGeometry(0.78, 36, 36),
+      thigh: new THREE.SphereGeometry(0.36, 24, 24),
+      shoulder: new THREE.SphereGeometry(0.22, 20, 20),
+      elbow: new THREE.SphereGeometry(0.15, 16, 16),
+      paw: new THREE.SphereGeometry(0.14, 18, 18),
+      upperArm: new THREE.CapsuleGeometry(0.16, 0.52, 12, 24),
+      forearm: new THREE.CapsuleGeometry(0.14, 0.42, 12, 24),
+      skull: new THREE.SphereGeometry(0.85, 48, 48),
+      face: new THREE.SphereGeometry(0.8, 40, 40),
+      // Fur shells hug the crown and sides but leave a front window open for the face
+      skullCrown: new THREE.SphereGeometry(0.85, 48, 16, 0, Math.PI * 2, 0, 1.0),
+      skullRing: new THREE.SphereGeometry(0.85, 48, 24, Math.PI / 2 + 0.95, Math.PI * 2 - 1.9, 1.0, Math.PI - 1.0),
+    };
+  }, []);
+
+  // Materials with soft fur sheen
   const mats = useMemo(
     () => ({
       fur: new THREE.MeshPhysicalMaterial({
-        roughness: 0.82,
-        metalness: 0.02,
-        sheen: 0.95,
-        sheenRoughness: 0.45,
-        sheenColor: new THREE.Color('#fde047'),
+        map: fur.bodyColor,
+        bumpMap: fur.bodyBump,
+        bumpScale: 2.2,
+        roughness: 1,
+        metalness: 0,
+        sheen: 0.12,
+        sheenRoughness: 0.7,
+        sheenColor: new THREE.Color('#ffffff'),
       }),
       belly: new THREE.MeshPhysicalMaterial({
-        color: '#fffbeb',
-        roughness: 0.88,
-        metalness: 0.0,
-        sheen: 0.65,
-        sheenRoughness: 0.5,
+        map: fur.bodyColor,
+        bumpMap: fur.bodyBump,
+        bumpScale: 2.0,
+        color: NATURAL_CREAM,
+        roughness: 1,
+        metalness: 0,
+        sheen: 0.12,
+        sheenRoughness: 0.7,
         sheenColor: new THREE.Color('#ffffff'),
       }),
       eyeBand: new THREE.MeshStandardMaterial({
-        color: '#2b1810',
-        roughness: 0.75,
+        map: fur.bodyColor,
+        bumpMap: fur.bodyBump,
+        bumpScale: 1.5,
+        color: '#33200f',
+        roughness: 1,
       }),
+      earInner: new THREE.MeshStandardMaterial({ color: '#8a6a58', roughness: 1 }),
+      eyeball: new THREE.MeshPhysicalMaterial({
+        color: '#3a2214',
+        roughness: 0.12,
+        clearcoat: 1,
+        clearcoatRoughness: 0.05,
+      }),
+      pupil: new THREE.MeshStandardMaterial({ color: '#050304', roughness: 0.2 }),
+      lip: new THREE.MeshStandardMaterial({ color: '#3d2a1e', roughness: 0.8 }),
       accent: new THREE.MeshPhysicalMaterial({
         roughness: 0.52,
         sheen: 0.9,
@@ -277,10 +481,10 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
       white: new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.2, metalness: 0.05 }),
       ceramic: new THREE.MeshStandardMaterial({ color: '#fdfbf7', roughness: 0.15, metalness: 0.08 }),
       dark: new THREE.MeshStandardMaterial({ color: '#1e1424', roughness: 0.45 }),
-      nose: new THREE.MeshStandardMaterial({ color: '#180e20', roughness: 0.5 }),
+      nose: new THREE.MeshPhysicalMaterial({ color: '#1a1210', roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.2 }),
       pink: new THREE.MeshStandardMaterial({ color: '#fca5a5', roughness: 0.85 }),
       tongue: new THREE.MeshStandardMaterial({ color: '#f472b6', roughness: 0.6 }),
-      claw: new THREE.MeshStandardMaterial({ color: '#fef9e7', roughness: 0.35, metalness: 0.08 }),
+      claw: new THREE.MeshStandardMaterial({ color: '#d6c9a8', roughness: 0.45, metalness: 0.05 }),
       pawPad: new THREE.MeshStandardMaterial({ color: '#231626', roughness: 0.85 }),
       gold: new THREE.MeshStandardMaterial({ color: '#eab308', roughness: 0.28, metalness: 0.85 }),
       deckBark: new THREE.MeshStandardMaterial({ color: '#452b1b', roughness: 0.95 }),
@@ -342,7 +546,8 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
     []
   );
 
-  const furTarget = useMemo(() => new THREE.Color(furColor), [furColor]);
+  // Sunny keeps a natural sloth coat; the chosen leaf only adds a gentle tint
+  const furTarget = useMemo(() => new THREE.Color(NATURAL_FUR).lerp(new THREE.Color(furColor), 0.05), [furColor]);
   const accentTarget = useMemo(() => new THREE.Color(accentColor), [accentColor]);
   const tmp = useMemo(() => new THREE.Color(), []);
 
@@ -386,8 +591,16 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
 
     // Sloth Fur & Accent Colors
     mats.fur.color.lerp(furTarget, 0.1);
-    mats.fur.sheenColor.copy(mats.fur.color).lerp(tmp.set('#ffffff'), 0.35);
-    mats.belly.color.copy(mats.fur.color).lerp(tmp.set('#fffbeb'), 0.72);
+    mats.fur.sheenColor.copy(mats.fur.color).lerp(tmp.set('#ffffff'), 0.3);
+    mats.belly.color.copy(mats.fur.color).lerp(tmp.set(NATURAL_CREAM), 0.62);
+    // Fur layers: shaded at the roots, lighter and faintly mossy at the tips
+    ([[shells.body, mats.fur.color], [shells.limb, mats.fur.color], [shells.belly, mats.belly.color]] as const).forEach(([layers, base]) => {
+      layers.forEach((m, i) => {
+        const k = i / (FUR_LAYERS - 1);
+        const sm = m as THREE.MeshStandardMaterial;
+        sm.color.copy(base).multiplyScalar(0.66 + 0.36 * k).lerp(tmp.set(ALGAE_TINT), 0.07 * k);
+      });
+    });
     mats.accent.color.lerp(accentTarget, 0.1);
     mats.accent.emissive.copy(mats.accent.color);
     mats.accent.sheenColor.copy(mats.accent.color).lerp(tmp.set('#ffffff'), 0.4);
@@ -396,7 +609,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
     const targetCamX = sleeping ? pointer.x * 0.25 : pointer.x * 0.45;
     const targetCamY = sleeping ? 1.05 + pointer.y * 0.15 : 1.35 + pointer.y * 0.25;
     const targetCamZ = sleeping ? 8.1 : 9.2;
-    const targetLookY = sleeping ? 0.75 : 0.95;
+    const targetLookY = sleeping ? 0.65 : 0.8;
 
     camera.position.x = damp(camera.position.x, targetCamX, 4, dt);
     camera.position.y = damp(camera.position.y, targetCamY, 4, dt);
@@ -695,7 +908,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
       group.scale.set(pulse, pulse, pulse);
     });
 
-    if (ambient.current) ambient.current.intensity = damp(ambient.current.intensity, sleeping ? 0.6 : 1.1, 3, dt);
+    if (ambient.current) ambient.current.intensity = damp(ambient.current.intensity, sleeping ? 0.5 : 0.75, 3, dt);
   });
 
   const activeTheme = DIORAMA_THEMES[theme] || DIORAMA_THEMES.classic;
@@ -703,10 +916,10 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
   return (
     <>
       {/* Pixar-style Studio 3-Point Lighting */}
-      <ambientLight ref={ambient} intensity={1.1} />
+      <ambientLight ref={ambient} intensity={0.75} />
       <directionalLight ref={keyLight} position={[4, 6, 5]} intensity={1.5} color={activeTheme.keyLight} />
       <directionalLight ref={fillLight} position={[-4, 3, 3]} intensity={0.7} color={activeTheme.fillLight} />
-      <directionalLight ref={rimLight} position={[0, 4, -5]} intensity={1.8} color={activeTheme.rimLight} />
+      <directionalLight ref={rimLight} position={[0, 4, -5]} intensity={1.2} color={activeTheme.rimLight} />
 
       {/* Ground Contact Shadow */}
       <ContactShadows position={[0, -1.68, 0]} opacity={0.5} scale={7.5} blur={2.2} far={4} />
@@ -895,7 +1108,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
         </group>
       </group>
 
-      {/* Main Sloth Character: Sunny (Anatomically Connected) */}
+      {/* Main Sloth Character: Sunny (shaggy shell-fur coat, natural markings) */}
       <group
         ref={root}
         position={[0, -0.72, 0]}
@@ -906,252 +1119,155 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
         onPointerOver={() => (document.body.style.cursor = 'pointer')}
         onPointerOut={() => (document.body.style.cursor = 'auto')}
       >
-        {/* Sculpted Anatomical Torso with Shoulders and Belly */}
+        {/* Torso: dense under-coat, shaggy shell fur, lighter chest */}
         <group ref={body}>
-          {/* Main Torso */}
-          <mesh position={[0, 0.1, 0]} scale={[0.96, 1.1, 0.9]}>
-            <sphereGeometry args={[0.95, 48, 48]} />
-            <primitive object={mats.fur} attach="material" />
-          </mesh>
-          {/* Cream Fur Belly Bib */}
-          <mesh position={[0, 0.08, 0.58]} scale={[0.88, 1.0, 0.42]}>
-            <sphereGeometry args={[0.78, 36, 36]} />
-            <primitive object={mats.belly} attach="material" />
-          </mesh>
-          {/* Anatomical Shoulder Girdle / Clavicle Crest (Bridges Torso to Arms) */}
-          <mesh position={[0, 0.76, 0.05]} rotation={[0, 0, Math.PI / 2]}>
+          <mesh geometry={geo.torso} position={[0, 0.1, 0]} scale={[0.96, 1.1, 0.9]} material={mats.fur} />
+          <Shells geometry={geo.torso} materials={shells.body} position={[0, 0.1, 0]} scale={[0.96, 1.1, 0.9]} grow={0.012} />
+          <mesh geometry={geo.belly} position={[0, 0.08, 0.58]} scale={[0.88, 1.0, 0.42]} material={mats.belly} />
+          <Shells geometry={geo.belly} materials={shells.belly} position={[0, 0.08, 0.58]} scale={[0.88, 1.0, 0.42]} grow={0.012} />
+          {/* Shoulder girdle bridging torso to arms */}
+          <mesh position={[0, 0.76, 0.05]} rotation={[0, 0, Math.PI / 2]} material={mats.fur}>
             <capsuleGeometry args={[0.24, 1.15, 16, 24]} />
-            <primitive object={mats.fur} attach="material" />
           </mesh>
         </group>
 
-        {/* Anatomical Neck Column (Bridges Torso to Skull, Eliminating Floating Gaps) */}
-        <mesh ref={neck} position={[0, 0.96, -0.02]}>
+        {/* Neck column */}
+        <mesh ref={neck} position={[0, 0.96, -0.02]} material={mats.fur}>
           <cylinderGeometry args={[0.48, 0.62, 0.44, 32]} />
-          <primitive object={mats.fur} attach="material" />
         </mesh>
 
-        {/* Hind Thighs and Paws Resting on Cushion */}
+        {/* Hind legs and feet resting on the cushion */}
         {[-0.5, 0.5].map((x) => (
           <group key={x} position={[x, -0.78, 0.32]}>
-            <mesh scale={[1, 0.72, 1.12]}>
-              <sphereGeometry args={[0.36, 24, 24]} />
-              <primitive object={mats.fur} attach="material" />
-            </mesh>
-            {/* Paw Sole */}
-            <mesh position={[0, -0.16, 0.28]} scale={[0.8, 0.3, 1]}>
+            <mesh geometry={geo.thigh} scale={[1, 0.72, 1.12]} material={mats.fur} />
+            <Shells geometry={geo.thigh} materials={shells.limb} scale={[1, 0.72, 1.12]} grow={0.03} />
+            <mesh position={[0, -0.16, 0.28]} scale={[0.8, 0.3, 1]} material={mats.pawPad}>
               <sphereGeometry args={[0.12, 14, 14]} />
-              <primitive object={mats.pawPad} attach="material" />
             </mesh>
-            {/* 3 Hind Claws */}
             {[-0.07, 0, 0.07].map((cx) => (
-              <mesh key={cx} position={[cx, -0.15, 0.38]} rotation={[Math.PI / 2, 0, 0]}>
-                <coneGeometry args={[0.028, 0.12, 10]} />
-                <primitive object={mats.claw} attach="material" />
-              </mesh>
+              <group key={cx} position={[cx, -0.14, 0.34]} rotation={[Math.PI / 2, 0, 0]} scale={0.55}>
+                <Claw material={mats.claw} />
+              </group>
             ))}
           </group>
         ))}
 
-        {/* Organic Curved Sloth Forearms with Ball-and-Socket Shoulders */}
-        <group ref={armL} position={[-0.82, 0.68, 0.15]} rotation={[0, 0, -0.32]}>
-          {/* Shoulder Ball Joint (Seamlessly Fused with Torso) */}
-          <mesh position={[0, 0, 0]}>
-            <sphereGeometry args={[0.22, 20, 20]} />
-            <primitive object={mats.fur} attach="material" />
-          </mesh>
-          {/* Upper Arm */}
-          <mesh position={[0, -0.3, 0]}>
-            <capsuleGeometry args={[0.16, 0.52, 12, 24]} />
-            <primitive object={mats.fur} attach="material" />
-          </mesh>
-          {/* Elbow Joint */}
-          <mesh position={[0, -0.6, 0.02]}>
-            <sphereGeometry args={[0.15, 16, 16]} />
-            <primitive object={mats.fur} attach="material" />
-          </mesh>
-          {/* Forearm (Gently Angled Forward) */}
-          <mesh position={[0, -0.84, 0.06]} rotation={[0.15, 0, 0]}>
-            <capsuleGeometry args={[0.14, 0.42, 12, 24]} />
-            <primitive object={mats.fur} attach="material" />
-          </mesh>
-          {/* Rounded Furry Paw / Wrist */}
-          <mesh position={[0, -1.08, 0.1]} scale={[1, 0.8, 0.9]}>
-            <sphereGeometry args={[0.14, 18, 18]} />
-            <primitive object={mats.fur} attach="material" />
-          </mesh>
-          {/* Palm Pad */}
-          <mesh position={[0, -1.1, 0.08]} scale={[0.8, 0.3, 0.9]}>
-            <sphereGeometry args={[0.09, 12, 12]} />
-            <primitive object={mats.pawPad} attach="material" />
-          </mesh>
-          {/* 3 Curved Keratin Claws Rooted into Knuckles */}
-          {[-0.065, 0, 0.065].map((x) => (
-            <mesh key={x} position={[x, -1.18, 0.14]} rotation={[-0.35, 0, Math.PI]}>
-              <coneGeometry args={[0.032, 0.22, 12]} />
-              <primitive object={mats.claw} attach="material" />
+        {/* Long shaggy sloth arms with ball-and-socket shoulders */}
+        {([
+          [armL, -1],
+          [armR, 1],
+        ] as const).map(([ref, sx]) => (
+          <group key={sx} ref={ref} position={[sx * 0.82, 0.68, 0.15]} rotation={[0, 0, sx * 0.32]}>
+            <mesh geometry={geo.shoulder} material={mats.fur} />
+            <mesh geometry={geo.upperArm} position={[0, -0.3, 0]} material={mats.fur} />
+            <Shells geometry={geo.upperArm} materials={shells.limb} position={[0, -0.3, 0]} grow={0.035} axial={0.3} />
+            <mesh geometry={geo.elbow} position={[0, -0.6, 0.02]} material={mats.fur} />
+            <mesh geometry={geo.forearm} position={[0, -0.84, 0.06]} rotation={[0.15, 0, 0]} material={mats.fur} />
+            <Shells geometry={geo.forearm} materials={shells.limb} position={[0, -0.84, 0.06]} rotation={[0.15, 0, 0]} grow={0.035} axial={0.3} />
+            <mesh geometry={geo.paw} position={[0, -1.08, 0.1]} scale={[1, 0.8, 0.9]} material={mats.fur} />
+            <mesh position={[0, -1.1, 0.08]} scale={[0.8, 0.3, 0.9]} material={mats.pawPad}>
+              <sphereGeometry args={[0.09, 12, 12]} />
             </mesh>
-          ))}
-        </group>
+            {/* Three long hooked claws */}
+            {[-0.065, 0, 0.065].map((x) => (
+              <group key={x} position={[x, -1.14, 0.13]} rotation={[0, 0, Math.PI]}>
+                <Claw material={mats.claw} />
+              </group>
+            ))}
+          </group>
+        ))}
 
-        <group ref={armR} position={[0.82, 0.68, 0.15]} rotation={[0, 0, 0.32]}>
-          {/* Shoulder Ball Joint */}
-          <mesh position={[0, 0, 0]}>
-            <sphereGeometry args={[0.22, 20, 20]} />
-            <primitive object={mats.fur} attach="material" />
-          </mesh>
-          {/* Upper Arm */}
-          <mesh position={[0, -0.3, 0]}>
-            <capsuleGeometry args={[0.16, 0.52, 12, 24]} />
-            <primitive object={mats.fur} attach="material" />
-          </mesh>
-          {/* Elbow Joint */}
-          <mesh position={[0, -0.6, 0.02]}>
-            <sphereGeometry args={[0.15, 16, 16]} />
-            <primitive object={mats.fur} attach="material" />
-          </mesh>
-          {/* Forearm */}
-          <mesh position={[0, -0.84, 0.06]} rotation={[0.15, 0, 0]}>
-            <capsuleGeometry args={[0.14, 0.42, 12, 24]} />
-            <primitive object={mats.fur} attach="material" />
-          </mesh>
-          {/* Rounded Furry Paw */}
-          <mesh position={[0, -1.08, 0.1]} scale={[1, 0.8, 0.9]}>
-            <sphereGeometry args={[0.14, 18, 18]} />
-            <primitive object={mats.fur} attach="material" />
-          </mesh>
-          {/* Palm Pad */}
-          <mesh position={[0, -1.1, 0.08]} scale={[0.8, 0.3, 0.9]}>
-            <sphereGeometry args={[0.09, 12, 12]} />
-            <primitive object={mats.pawPad} attach="material" />
-          </mesh>
-          {/* 3 Curved Keratin Claws Rooted into Knuckles */}
-          {[-0.065, 0, 0.065].map((x) => (
-            <mesh key={x} position={[x, -1.18, 0.14]} rotation={[-0.35, 0, Math.PI]}>
-              <coneGeometry args={[0.032, 0.22, 12]} />
-              <primitive object={mats.claw} attach="material" />
-            </mesh>
-          ))}
-        </group>
-
-        {/* Expressive Anatomical Head */}
+        {/* Head */}
         <group ref={head} position={[0, 1.28, 0]}>
-          {/* Cranial Vault (Skull) */}
-          <mesh scale={[1.06, 0.96, 1.04]}>
-            <sphereGeometry args={[0.85, 48, 48]} />
-            <primitive object={mats.fur} attach="material" />
-          </mesh>
+          {/* Skull */}
+          <mesh geometry={geo.skull} scale={[1.06, 0.96, 1.04]} material={mats.fur} />
+          {/* Fur fringe framing the face (front is left open for the features) */}
+          <Shells geometry={geo.skullCrown} materials={shells.body} scale={[1.06, 0.96, 1.04]} grow={0.012} />
+          <Shells geometry={geo.skullRing} materials={shells.body} scale={[1.06, 0.96, 1.04]} grow={0.012} />
 
-          {/* Soft Cream Facial Mask */}
-          <mesh position={[0, -0.05, 0.52]} scale={[0.94, 0.82, 0.46]}>
-            <sphereGeometry args={[0.8, 40, 40]} />
-            <primitive object={mats.belly} attach="material" />
-          </mesh>
+          {/* Pale facial mask */}
+          <mesh geometry={geo.face} position={[0, -0.05, 0.52]} scale={[0.94, 0.82, 0.46]} material={mats.belly} />
+          <Shells geometry={geo.face} materials={shells.belly.slice(0, 3)} position={[0, -0.05, 0.52]} scale={[0.94, 0.82, 0.46]} grow={0.007} />
 
-          {/* Spring Velvety Sloth Ears nestled at the sides of the cranium */}
-          <group ref={earL} position={[-0.72, 0.16, -0.1]} rotation={[0, -0.3, 0]}>
-            <mesh scale={[1, 1.2, 0.5]}>
-              <sphereGeometry args={[0.17, 16, 16]} />
-              <primitive object={mats.fur} attach="material" />
+          {/* Small furry ears tucked at the sides */}
+          <group ref={earL} position={[-0.74, 0.16, -0.1]} rotation={[0, -0.3, 0]}>
+            <mesh scale={[1, 1.2, 0.5]} material={mats.fur}>
+              <sphereGeometry args={[0.15, 16, 16]} />
             </mesh>
-            <mesh position={[0.02, 0, 0.04]} scale={[0.7, 0.85, 0.4]}>
-              <sphereGeometry args={[0.11, 12, 12]} />
-              <primitive object={mats.pink} attach="material" />
+            <mesh position={[0.02, 0, 0.04]} scale={[0.7, 0.85, 0.4]} material={mats.earInner}>
+              <sphereGeometry args={[0.09, 12, 12]} />
+            </mesh>
+          </group>
+          <group ref={earR} position={[0.74, 0.16, -0.1]} rotation={[0, 0.3, 0]}>
+            <mesh scale={[1, 1.2, 0.5]} material={mats.fur}>
+              <sphereGeometry args={[0.15, 16, 16]} />
+            </mesh>
+            <mesh position={[-0.02, 0, 0.04]} scale={[0.7, 0.85, 0.4]} material={mats.earInner}>
+              <sphereGeometry args={[0.09, 12, 12]} />
             </mesh>
           </group>
 
-          <group ref={earR} position={[0.72, 0.16, -0.1]} rotation={[0, 0.3, 0]}>
-            <mesh scale={[1, 1.2, 0.5]}>
-              <sphereGeometry args={[0.17, 16, 16]} />
-              <primitive object={mats.fur} attach="material" />
-            </mesh>
-            <mesh position={[-0.02, 0, 0.04]} scale={[0.7, 0.85, 0.4]}>
-              <sphereGeometry args={[0.11, 12, 12]} />
-              <primitive object={mats.pink} attach="material" />
-            </mesh>
-          </group>
-
-          {/* Classic Sloth Chocolate Eye Bands & Soulful Eyes */}
+          {/* Signature sloth eye stripes sweeping outward and down, with small glossy eyes */}
           {[-1, 1].map((side) => (
-            <group key={side} position={[side * 0.42, 0.02, 0.72]}>
-              {/* Rich Espresso Sloth Mask Band */}
-              <mesh rotation={[0, side * 0.15, side * -0.36]} scale={[1.1, 1.55, 0.4]}>
-                <sphereGeometry args={[0.17, 24, 24]} />
-                <primitive object={mats.eyeBand} attach="material" />
+            <group key={side} position={[side * 0.4, 0.02, 0.8]}>
+              <mesh position={[side * 0.1, -0.03, -0.02]} rotation={[0, side * 0.35, side * -0.42]} scale={[1.8, 0.68, 0.42]} material={mats.eyeBand}>
+                <sphereGeometry args={[0.17, 28, 24]} />
               </mesh>
 
-              {/* Eye & Pupil */}
-              <group ref={side < 0 ? eyeL : eyeR} position={[0, 0, 0.04]}>
-                <mesh scale={[1, 1.1, 0.55]}>
-                  <sphereGeometry args={[0.105, 24, 24]} />
-                  <primitive object={mats.white} attach="material" />
+              <group ref={side < 0 ? eyeL : eyeR} position={[0, 0, 0.06]}>
+                <mesh scale={[1, 1.05, 0.6]} material={mats.eyeball}>
+                  <sphereGeometry args={[0.07, 24, 24]} />
                 </mesh>
-                <group ref={side < 0 ? pupilL : pupilR} position={[0, 0, 0.04]}>
-                  <mesh scale={[1, 1.06, 0.5]}>
-                    <sphereGeometry args={[0.065, 20, 20]} />
-                    <primitive object={mats.dark} attach="material" />
+                <group ref={side < 0 ? pupilL : pupilR} position={[0, 0, 0.03]}>
+                  <mesh scale={[1, 1.05, 0.5]} material={mats.pupil}>
+                    <sphereGeometry args={[0.04, 20, 20]} />
                   </mesh>
-                  {/* Dual Specular Catchlights */}
-                  <mesh position={[0.022, 0.026, 0.035]}>
-                    <sphereGeometry args={[0.016, 12, 12]} />
-                    <primitive object={mats.white} attach="material" />
+                  <mesh position={[0.02, 0.022, 0.026]} material={mats.white}>
+                    <sphereGeometry args={[0.012, 12, 12]} />
                   </mesh>
-                  <mesh position={[-0.014, -0.018, 0.035]}>
-                    <sphereGeometry args={[0.008, 10, 10]} />
-                    <primitive object={mats.white} attach="material" />
+                  <mesh position={[-0.012, -0.014, 0.026]} material={mats.white}>
+                    <sphereGeometry args={[0.006, 10, 10]} />
                   </mesh>
                 </group>
               </group>
             </group>
           ))}
 
-          {/* Rounded Sloth Snout & Nose */}
+          {/* Broad, glossy sloth nose on a short muzzle */}
           <group position={[0, -0.14, 0.94]}>
-            <mesh position={[0, 0, -0.05]} scale={[1.1, 0.85, 0.5]}>
-              <sphereGeometry args={[0.14, 20, 20]} />
-              <primitive object={mats.belly} attach="material" />
+            <mesh position={[0, 0, -0.05]} scale={[1.1, 0.85, 0.5]} material={mats.belly}>
+              <sphereGeometry args={[0.15, 20, 20]} />
             </mesh>
-            <mesh scale={[1.2, 0.82, 0.7]}>
-              <sphereGeometry args={[0.08, 20, 20]} />
-              <primitive object={mats.nose} attach="material" />
+            <mesh scale={[1.35, 0.85, 0.75]} material={mats.nose}>
+              <sphereGeometry args={[0.08, 24, 24]} />
             </mesh>
-            {[-0.026, 0.026].map((nx) => (
-              <mesh key={nx} position={[nx, -0.018, 0.052]} scale={[0.6, 1, 0.5]}>
+            {[-0.03, 0.03].map((nx) => (
+              <mesh key={nx} position={[nx, -0.016, 0.054]} scale={[0.6, 1, 0.5]} material={mats.pupil}>
                 <sphereGeometry args={[0.013, 10, 10]} />
-                <primitive object={mats.dark} attach="material" />
               </mesh>
             ))}
           </group>
 
-          {/* Gentle Smile Line */}
-          <mesh ref={smile} position={[0, -0.24, 0.92]} rotation={[0, 0, Math.PI]}>
-            <torusGeometry args={[0.12, 0.018, 10, 24, Math.PI]} />
-            <primitive object={mats.dark} attach="material" />
+          {/* The famous sloth smile: thin, upturned, sitting under the muzzle */}
+          <mesh ref={smile} position={[0, -0.25, 0.9]} rotation={[0, 0, Math.PI]} material={mats.lip}>
+            <torusGeometry args={[0.13, 0.011, 10, 28, Math.PI * 0.9]} />
           </mesh>
 
           {/* Open Mouth with Tongue */}
           <group ref={openMouth} position={[0, -0.28, 0.89]} visible={false}>
-            <mesh>
+            <mesh material={mats.mouth}>
               <sphereGeometry args={[0.095, 16, 16]} />
-              <primitive object={mats.mouth} attach="material" />
             </mesh>
-            <mesh position={[0, -0.03, 0.04]} scale={[0.8, 0.5, 0.8]}>
+            <mesh position={[0, -0.03, 0.04]} scale={[0.8, 0.5, 0.8]} material={mats.tongue}>
               <sphereGeometry args={[0.065, 12, 12]} />
-              <primitive object={mats.tongue} attach="material" />
             </mesh>
           </group>
 
-          {/* Rosy Cheeks */}
-          {[-0.52, 0.52].map((x) => (
-            <mesh key={x} position={[x, -0.16, 0.72]} scale={[1.2, 0.75, 0.35]}>
-              <sphereGeometry args={[0.1, 20, 20]} />
-              <primitive object={mats.pink} attach="material" />
-            </mesh>
-          ))}
-
           {/* Interactive Wardrobe Dress-Up Accessories */}
           <WardrobeHat hat={wardrobe?.hat || 'none'} isBathing={mood === 'bathing'} accentColor={accentColor} />
-          <WardrobeGlasses glasses={wardrobe?.glasses || 'none'} />
+          <group position={[0, 0, 0.1]}>
+            <WardrobeGlasses glasses={wardrobe?.glasses || 'none'} />
+          </group>
           <WardrobeNeck neck={wardrobe?.neck || 'none'} />
 
           {/* Velvet Nightcap (Bedtime Mode) */}
