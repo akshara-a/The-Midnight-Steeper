@@ -4,6 +4,8 @@ import { useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Sparkles, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
+import { type WardrobeOutfit, DEFAULT_WARDROBE } from '@/lib/wardrobe';
+import { WardrobeHat, WardrobeGlasses, WardrobeNeck } from './Wardrobe3D';
 
 export type PetMood = 'idle' | 'talking' | 'sleeping' | 'happy' | 'eating' | 'bathing' | 'playing';
 
@@ -162,6 +164,7 @@ interface SlothPet3DProps {
   onPoke: () => void;
   starlightGlow?: number;
   theme?: DioramaTheme;
+  wardrobe?: WardrobeOutfit;
 }
 
 const damp = THREE.MathUtils.damp;
@@ -176,7 +179,7 @@ const FIREFLIES_CONFIG = [
   { base: [0.0, -0.8, 1.2], speed: 0.7, phase: 2.1 },
 ];
 
-function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, theme = 'classic' }: SlothPet3DProps) {
+function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, theme = 'classic', wardrobe = DEFAULT_WARDROBE }: SlothPet3DProps) {
   const root = useRef<THREE.Group>(null);
   const body = useRef<THREE.Group>(null);
   const head = useRef<THREE.Group>(null);
@@ -595,7 +598,8 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
       obj.scale.setScalar(v);
       obj.visible = v > 0.02;
     };
-    popTo(cap.current, sleeping);
+    const showNightcap = sleeping && (!wardrobe || wardrobe.hat === 'none' || wardrobe.hat === 'nightcap');
+    popTo(cap.current, showNightcap);
     popTo(blanket.current, sleeping);
     popTo(pillow.current, sleeping);
     popTo(moon.current, sleeping);
@@ -1144,6 +1148,11 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
               <primitive object={mats.pink} attach="material" />
             </mesh>
           ))}
+
+          {/* Interactive Wardrobe Dress-Up Accessories */}
+          <WardrobeHat hat={wardrobe?.hat || 'none'} isBathing={mood === 'bathing'} accentColor={accentColor} />
+          <WardrobeGlasses glasses={wardrobe?.glasses || 'none'} />
+          <WardrobeNeck neck={wardrobe?.neck || 'none'} />
 
           {/* Velvet Nightcap (Bedtime Mode) */}
           <group ref={cap} position={[0.08, 0.74, 0]} rotation={[0, 0, -0.32]} scale={0}>

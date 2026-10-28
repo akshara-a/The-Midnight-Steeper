@@ -28,6 +28,8 @@ import BathMode from '@/components/BathMode';
 import SnackMode from '@/components/SnackMode';
 import MiniGamesModal from '@/components/MiniGamesModal';
 import TalkingSlothModal from '@/components/TalkingSlothModal';
+import WardrobeModal from '@/components/WardrobeModal';
+import { type WardrobeOutfit, DEFAULT_WARDROBE } from '@/lib/wardrobe';
 import { AlchemistCrystalBall } from '@/components/AlchemistCrystalBall';
 import { TabPFNAttributionCard } from '@/components/TabPFNAttributionCard';
 import { DIORAMA_THEMES, type DioramaTheme, type PetMood } from '@/components/SlothPet3D';
@@ -179,12 +181,18 @@ export default function SunnyTeaParty() {
   const [showGrownups, setShowGrownups] = useState(false);
   const [dioramaTheme, setDioramaTheme] = useState<DioramaTheme>('classic');
   const [showThemeModal, setShowThemeModal] = useState(false);
+  const [outfit, setOutfit] = useState<WardrobeOutfit>(DEFAULT_WARDROBE);
+  const [showWardrobeModal, setShowWardrobeModal] = useState(false);
 
   useEffect(() => {
     try {
       const savedTheme = localStorage.getItem('midnight_theme') as DioramaTheme | null;
       if (savedTheme && DIORAMA_THEMES[savedTheme]) {
         setDioramaTheme(savedTheme);
+      }
+      const savedOutfit = localStorage.getItem('midnight_wardrobe');
+      if (savedOutfit) {
+        setOutfit(JSON.parse(savedOutfit));
       }
     } catch {}
   }, []);
@@ -193,6 +201,13 @@ export default function SunnyTeaParty() {
   const [sessionPicks, setSessionPicks] = useState(0);
   const [sessionBrews, setSessionBrews] = useState(0);
   const [sessionClaims, setSessionClaims] = useState(0);
+
+  const handleUpdateOutfit = (newOutfit: WardrobeOutfit) => {
+    setOutfit(newOutfit);
+    try {
+      localStorage.setItem('midnight_wardrobe', JSON.stringify(newOutfit));
+    } catch {}
+  };
 
   const sayTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const pokesRef = useRef(0);
@@ -619,6 +634,17 @@ export default function SunnyTeaParty() {
             <button
               onClick={() => {
                 sounds.playClick();
+                setShowWardrobeModal(true);
+              }}
+              aria-label="Sunny's Dress-Up Wardrobe"
+              className="btn-chunky purple w-11 h-11 sm:w-12 sm:h-12 text-xl flex items-center justify-center hover:scale-105"
+              title="👒 Sunny's Dress-Up Wardrobe (Hats, Glasses, Scarves)"
+            >
+              👒
+            </button>
+            <button
+              onClick={() => {
+                sounds.playClick();
                 setShowCrystalModal(true);
               }}
               aria-label="TabPFN AI Alchemist Forecast"
@@ -700,6 +726,7 @@ export default function SunnyTeaParty() {
             onPoke={onPoke}
             starlightGlow={currentBrew?.loot?.sensory?.starlight_glow ?? (lootModal?.sensory?.starlight_glow ?? (leaf.name === 'Moon Mint' || treat.name === 'Star Sugar' ? 85 : 50))}
             theme={dioramaTheme}
+            wardrobe={outfit}
           />
 
           {bubble && (
@@ -741,7 +768,7 @@ export default function SunnyTeaParty() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-5 gap-1.5 sm:gap-2.5">
+          <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
             <button
               onClick={() => {
                 sounds.playClick();
@@ -770,6 +797,18 @@ export default function SunnyTeaParty() {
             >
               <span className="text-2xl sm:text-3xl">🍓</span>
               <span className="text-xs sm:text-sm font-bold">Snack</span>
+            </button>
+
+            <button
+              onClick={() => {
+                sounds.playClick();
+                setShowWardrobeModal(true);
+              }}
+              aria-label="Dress up closet"
+              className="btn-chunky purple p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 hover:scale-105"
+            >
+              <span className="text-2xl sm:text-3xl">👒</span>
+              <span className="text-xs sm:text-sm font-bold">Closet</span>
             </button>
 
             <button
@@ -1313,6 +1352,17 @@ export default function SunnyTeaParty() {
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* ---------- DRESS-UP WARDROBE CLOSET MODAL ---------- */}
+      {showWardrobeModal && (
+        <WardrobeModal
+          outfit={outfit}
+          onUpdateOutfit={handleUpdateOutfit}
+          onSay={say}
+          onFloatEmoji={floatEmoji}
+          onClose={() => setShowWardrobeModal(false)}
+        />
       )}
 
       {/* ---------- 3D DIORAMA THEME SELECTION MODAL ---------- */}

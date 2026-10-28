@@ -51,15 +51,20 @@ async function run() {
   await page.screenshot({ path: path.join(outDir, '02_awake_stage_classic.png') });
   console.log('Saved 02_awake_stage_classic.png');
 
-  // Helper to open theme modal
-  const openThemeModal = async () => {
-    const themeBtn = page.locator('button[aria-label*="Theme"]').first();
-    await themeBtn.click();
+  // Helper to open wardrobe modal
+  const openWardrobeModal = async () => {
+    const closetBtn = page.getByRole('button', { name: /Closet/i }).first();
+    if (await closetBtn.isVisible()) {
+      await closetBtn.click();
+    } else {
+      const hdrClosetBtn = page.locator('button[aria-label*="Wardrobe"]').first();
+      await hdrClosetBtn.click();
+    }
     await page.waitForTimeout(600);
   };
 
-  // Helper to close theme modal
-  const closeThemeModal = async () => {
+  // Helper to close modals
+  const closeModal = async () => {
     const closeBtn = page.locator('button[aria-label="Close"]');
     if (await closeBtn.isVisible()) {
       await closeBtn.click();
@@ -67,49 +72,78 @@ async function run() {
     }
   };
 
-  // 3. Open Theme Modal
-  await openThemeModal();
-  await page.screenshot({ path: path.join(outDir, '03_theme_modal.png') });
-  console.log('Saved 03_theme_modal.png');
+  // 3. Open Wardrobe Modal
+  await openWardrobeModal();
+  console.log('Opened Wardrobe Modal');
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: path.join(outDir, '08_wardrobe_modal_hats.png') });
+  console.log('Saved 08_wardrobe_modal_hats.png');
 
-  // 4. Select Sakura Theme
-  await page.getByRole('button', { name: /Sakura Garden/i }).click();
-  console.log('Selected Sakura Theme');
-  await page.waitForTimeout(1000);
-  await closeThemeModal();
-  await page.waitForTimeout(2000);
-  await page.screenshot({ path: path.join(outDir, '04_theme_sakura_fullscreen.png') });
-  console.log('Saved 04_theme_sakura_fullscreen.png');
+  // 4. Equip Star Wizard Hat
+  const wizardBtn = page.getByRole('button', { name: /Star Wizard Hat/i });
+  if (await wizardBtn.isVisible()) {
+    await wizardBtn.click();
+    console.log('Equipped Star Wizard Hat');
+  }
 
-  // 5. Select Celestial Starlight Theme
-  await openThemeModal();
-  await page.getByRole('button', { name: /Celestial Starlight/i }).click();
-  console.log('Selected Celestial Theme');
-  await page.waitForTimeout(1000);
-  await closeThemeModal();
-  await page.waitForTimeout(2000);
-  await page.screenshot({ path: path.join(outDir, '05_theme_celestial_fullscreen.png') });
-  console.log('Saved 05_theme_celestial_fullscreen.png');
+  // 5. Switch to Glasses tab & equip Star Rocker Shades
+  const glassesTab = page.getByRole('button', { name: /Glasses/i });
+  if (await glassesTab.isVisible()) {
+    await glassesTab.click();
+    await page.waitForTimeout(400);
+    const shadesBtn = page.getByRole('button', { name: /Star Rocker Shades/i });
+    if (await shadesBtn.isVisible()) {
+      await shadesBtn.click();
+      console.log('Equipped Star Rocker Shades');
+    }
+  }
 
-  // 6. Select Autumn Fireside Theme
-  await openThemeModal();
-  await page.getByRole('button', { name: /Autumn Fireside/i }).click();
-  console.log('Selected Autumn Theme');
-  await page.waitForTimeout(1000);
-  await closeThemeModal();
-  await page.waitForTimeout(2000);
-  await page.screenshot({ path: path.join(outDir, '06_theme_autumn_fullscreen.png') });
-  console.log('Saved 06_theme_autumn_fullscreen.png');
+  // 6. Switch to Neckwear tab & equip Dapper Bow Tie
+  const neckTab = page.getByRole('button', { name: /Neckwear/i });
+  if (await neckTab.isVisible()) {
+    await neckTab.click();
+    await page.waitForTimeout(400);
+    const bowBtn = page.getByRole('button', { name: /Dapper Bow Tie/i });
+    if (await bowBtn.isVisible()) {
+      await bowBtn.click();
+      console.log('Equipped Dapper Bow Tie');
+    }
+  }
 
-  // 7. Select Zen Mineral Onsen Theme
-  await openThemeModal();
-  await page.getByRole('button', { name: /Zen Mineral Onsen/i }).click();
-  console.log('Selected Onsen Theme');
-  await page.waitForTimeout(1000);
-  await closeThemeModal();
+  // 7. Close Wardrobe Modal & Screenshot 3D Dressed-Up Sunny
+  await closeModal();
   await page.waitForTimeout(2000);
-  await page.screenshot({ path: path.join(outDir, '07_theme_onsen_fullscreen.png') });
-  console.log('Saved 07_theme_onsen_fullscreen.png');
+  await page.screenshot({ path: path.join(outDir, '09_sunny_dressed_up_wizard.png') });
+  console.log('Saved 09_sunny_dressed_up_wizard.png');
+
+  // 8. Re-open Wardrobe & Equip Royal Crown + Glasses + Scarf
+  await openWardrobeModal();
+  const hatsTab = page.getByRole('button', { name: /Hats/i });
+  if (await hatsTab.isVisible()) {
+    await hatsTab.click();
+    await page.waitForTimeout(300);
+    const crownBtn = page.getByRole('button', { name: /Tea Monarch Crown/i });
+    if (await crownBtn.isVisible()) await crownBtn.click();
+  }
+
+  if (await glassesTab.isVisible()) {
+    await glassesTab.click();
+    await page.waitForTimeout(300);
+    const specBtn = page.getByRole('button', { name: /Tea Scholar Spectacles/i });
+    if (await specBtn.isVisible()) await specBtn.click();
+  }
+
+  if (await neckTab.isVisible()) {
+    await neckTab.click();
+    await page.waitForTimeout(300);
+    const scarfBtn = page.getByRole('button', { name: /Chunky Wool Scarf/i });
+    if (await scarfBtn.isVisible()) await scarfBtn.click();
+  }
+
+  await closeModal();
+  await page.waitForTimeout(2000);
+  await page.screenshot({ path: path.join(outDir, '10_sunny_dressed_up_royal.png') });
+  console.log('Saved 10_sunny_dressed_up_royal.png');
 
   await browser.close();
   console.log(`Visual audit screenshots saved successfully to: ${outDir}`);
