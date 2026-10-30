@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Bath, Bird, Check, Droplets, Sparkles, Wind } from 'lucide-react';
+import { Bath, Check, Sparkles } from 'lucide-react';
 import { sounds } from '@/lib/soundEffects';
 import { BATH_LINES } from '@/lib/kidsContent';
-import { plain } from '@/components/ui';
 
 interface BathModeProps {
   onSay: (text: string) => void;
@@ -32,9 +31,9 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
   const [activeTool, setActiveTool] = useState<'soap' | 'shower' | 'duck' | 'bubble'>('soap');
   const [suds, setSuds] = useState<Sud[]>([]);
   const [floatingBubbles, setFloatingBubbles] = useState<Bubble[]>([
-    { id: 1, x: 25, y: 70, size: 48, speed: 1.2 },
-    { id: 2, x: 65, y: 80, size: 36, speed: 1.5 },
-    { id: 3, x: 80, y: 60, size: 54, speed: 1.0 },
+    { id: 1, x: 25, y: 70, size: 52, speed: 1.2 },
+    { id: 2, x: 65, y: 80, size: 42, speed: 1.5 },
+    { id: 3, x: 80, y: 60, size: 60, speed: 1.0 },
   ]);
   const [duckBounces, setDuckBounces] = useState(0);
   const [isSparklingClean, setIsSparklingClean] = useState(false);
@@ -52,14 +51,11 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
       id: Date.now() + Math.random(),
       x: Math.min(85, Math.max(15, x + (Math.random() * 8 - 4))),
       y: Math.min(80, Math.max(25, y + (Math.random() * 8 - 4))),
-      size: Math.floor(28 + Math.random() * 24),
+      size: Math.floor(32 + Math.random() * 26),
     };
 
     setSuds((prev) => [...prev.slice(-14), newSud]);
-    setCleanliness((prev) => {
-      const next = Math.min(85, prev + 5);
-      return next;
-    });
+    setCleanliness((prev) => Math.min(85, prev + 5));
 
     if (Math.random() > 0.6) {
       onSay(pickLine());
@@ -71,7 +67,6 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
     sounds.playWaterStream();
     sounds.playSplash();
 
-    // Wash away some suds
     setSuds((prev) => prev.slice(0, Math.max(0, prev.length - 4)));
 
     setCleanliness((prev) => {
@@ -102,7 +97,7 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
       id: Date.now() + Math.random(),
       x: 20 + Math.random() * 60,
       y: 90,
-      size: 38 + Math.random() * 30,
+      size: 44 + Math.random() * 32,
       speed: 1 + Math.random() * 0.8,
     };
     setFloatingBubbles((prev) => [...prev, newB]);
@@ -115,35 +110,37 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
   };
 
   const tools = [
-    { id: 'soap', label: 'Soap Up', Icon: Sparkles, color: 'var(--lavender)', onPick: () => {} },
-    { id: 'shower', label: 'Shower Rinse', Icon: Droplets, color: 'var(--berry)', onPick: useShower },
-    { id: 'duck', label: 'Rubber Duck', Icon: Bird, color: 'var(--daisy)', onPick: squeakDuck },
-    { id: 'bubble', label: 'Blow Bubbles', Icon: Wind, color: 'var(--mint)', onPick: blowBubble },
+    { id: 'soap', label: 'Soap Up', emoji: '🧼', color: '#a855f7', shadow: '#7e22ce', onPick: () => {} },
+    { id: 'shower', label: 'Shower Rinse', emoji: '🚿', color: '#06b6d4', shadow: '#0891b2', onPick: useShower },
+    { id: 'duck', label: 'Rubber Duck', emoji: '🐥', color: '#f59e0b', shadow: '#d97706', onPick: squeakDuck },
+    { id: 'bubble', label: 'Blow Bubbles', emoji: '🫧', color: '#10b981', shadow: '#059669', onPick: blowBubble },
   ] as const;
 
   const hints: Record<string, string> = {
-    soap: 'Tap Sunny to lather with fluffy soap bubbles!',
-    shower: 'Tap to spray warm water and rinse the suds!',
-    duck: 'Tap the rubber ducky to squeak and splash!',
-    bubble: 'Tap to blow shiny bubbles, then tap them to pop!',
+    soap: '🫧 Tap or rub Sunny to lather with fluffy soap bubbles!',
+    shower: '🚿 Spray warm water and rinse all the soapy suds!',
+    duck: '🐥 Squeak the rubber ducky to splash and giggle!',
+    bubble: '🫧 Tap to blow shiny floating bubbles, then pop them!',
   };
 
   return (
-    <div className="flex flex-col gap-3 w-full">
+    <div className="flex flex-col gap-3.5 w-full animate-modal">
       {/* Bath Top HUD */}
-      <div className="surface px-4 py-3 flex items-center justify-between gap-3">
+      <div className="surface px-4 py-3 flex items-center justify-between gap-3 rounded-3xl">
         <div className="flex items-center gap-3 min-w-0">
-          <Bath size={28} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--berry)' }} className="shrink-0" />
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-3xl bg-cyan-500/30 border-2 border-cyan-400/50 shadow-inner">
+            🛁
+          </div>
           <div className="min-w-0">
-            <div className="font-semibold text-base" style={{ color: 'var(--text)' }}>
-              Sunny&apos;s Bubble Bath
+            <div className="font-black text-lg text-amber-200">
+              Sunny&apos;s Bubble Bath! 🫧
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <div className="text-xs" style={{ color: 'var(--muted)' }}>
-                Cleanliness: {cleanliness}%
-              </div>
+              <span className="text-xs font-black text-cyan-200 uppercase tracking-wide">
+                Clean: {cleanliness}%
+              </span>
               <div
-                className="progress-line w-24"
+                className="progress-line w-28 sm:w-36 h-3.5"
                 role="progressbar"
                 aria-label="Cleanliness"
                 aria-valuemin={0}
@@ -156,18 +153,16 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
           </div>
         </div>
 
-        <button onClick={onClose} className="btn-pill primary px-4 text-sm sm:text-base shrink-0">
-          <Check size={18} strokeWidth={1.5} aria-hidden="true" /> Done Bathing
+        <button onClick={onClose} className="btn-pill primary px-5 py-2 text-sm sm:text-base font-black shrink-0">
+          <Check size={20} strokeWidth={3} aria-hidden="true" /> Done Bathing
         </button>
       </div>
 
       {/* Interactive Bathing Overlay Area (covers the 3D pet view) */}
       <div
-        className="relative w-full h-[220px] overflow-hidden cursor-pointer select-none"
+        className="relative w-full h-[220px] overflow-hidden cursor-pointer select-none rounded-3xl border-3 border-cyan-300/40 shadow-inner"
         style={{
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-strong)',
-          background: 'color-mix(in srgb, var(--berry) 10%, transparent)',
+          background: 'linear-gradient(180deg, rgba(6, 182, 212, 0.15) 0%, rgba(14, 116, 144, 0.3) 100%)',
         }}
         onClick={(e) => {
           if (activeTool === 'soap') applySoap(e);
@@ -178,8 +173,8 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
       >
         {/* Hint banner */}
         <div
-          className="absolute top-2 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs sm:text-sm text-center pointer-events-none z-20 max-w-[92%]"
-          style={{ background: 'var(--surface-solid)', color: 'var(--text)', border: '1px solid var(--border-strong)' }}
+          className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-black text-center pointer-events-none z-20 max-w-[92%] shadow-md"
+          style={{ background: 'rgba(25, 12, 65, 0.88)', color: '#ffd23f', border: '2px solid rgba(255, 255, 255, 0.3)' }}
         >
           {hints[activeTool]}
         </div>
@@ -195,11 +190,12 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
               width: `${s.size}px`,
               height: `${s.size}px`,
               transform: 'translate(-50%, -50%)',
-              background: 'rgba(255,255,255,0.8)',
-              border: '1.5px solid rgba(255,255,255,0.95)',
+              background: 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.95), rgba(220,240,255,0.85) 60%, rgba(200,225,255,0.7))',
+              border: '2px solid rgba(255,255,255,0.95)',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
             }}
           >
-            <span className="text-sm opacity-90">🫧</span>
+            <span className="text-sm">🫧</span>
           </div>
         ))}
 
@@ -211,33 +207,35 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
               e.stopPropagation();
               popBubble(b.id);
             }}
-            className="absolute rounded-full cursor-pointer hover:scale-110 active:scale-90 transition-transform duration-200 ease-out animate-pulse"
+            className="absolute rounded-full cursor-pointer hover:scale-110 active:scale-90 transition-transform duration-150 ease-out animate-pulse"
             style={{
               left: `${b.x}%`,
               top: `${b.y}%`,
-              width: `${Math.max(44, b.size)}px`,
-              height: `${Math.max(44, b.size)}px`,
+              width: `${Math.max(48, b.size)}px`,
+              height: `${Math.max(48, b.size)}px`,
               transform: 'translate(-50%, -50%)',
               background:
-                'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.55), rgba(143,180,255,0.3) 60%, rgba(255,158,196,0.3))',
-              border: '1.5px solid rgba(255,255,255,0.7)',
+                'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.85), rgba(125,211,252,0.4) 60%, rgba(244,114,182,0.4))',
+              border: '2.5px solid rgba(255,255,255,0.85)',
+              boxShadow: '0 0 16px rgba(125,211,252,0.6)',
             }}
             aria-label="Pop the bubble"
           >
-            <span className="absolute top-2 left-3 w-2 h-2 rounded-full bg-white/80" />
+            <span className="absolute top-2 left-3 w-2.5 h-2.5 rounded-full bg-white/90" />
+            <span className="text-xs">✨</span>
           </button>
         ))}
 
-        {/* Squeaky Rubber Duck in Tub (gameplay sprite) */}
+        {/* Squeaky Rubber Duck in Tub */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             squeakDuck();
           }}
-          className={`absolute bottom-3 right-4 text-4xl min-w-[56px] min-h-[56px] flex items-center justify-center rounded-full hover:scale-110 active:scale-95 transition-transform duration-200 ease-out cursor-pointer ${
-            duckBounces > 0 ? 'animate-bounce-soft' : ''
+          className={`absolute bottom-3 right-4 text-4xl w-14 h-14 flex items-center justify-center rounded-2xl hover:scale-110 active:scale-95 transition-transform duration-150 cursor-pointer shadow-lg ${
+            duckBounces > 0 ? 'animate-bounce' : ''
           }`}
-          style={{ background: 'var(--surface)', border: '1px solid var(--border-strong)' }}
+          style={{ background: 'linear-gradient(180deg, #fef08a 0%, #f59e0b 100%)', border: '2.5px solid #ffffff', boxShadow: '0 4px 0 #b45309' }}
           aria-label="Squeak the duck"
         >
           🐥
@@ -246,12 +244,15 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
         {isSparklingClean && (
           <div
             className="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
-            style={{ background: 'rgba(255,216,115,0.10)' }}
+            style={{ background: 'rgba(255,216,115,0.18)' }}
           >
-            <div className="surface px-5 py-3 text-center animate-pop" style={{ background: 'var(--surface-solid)' }}>
-              <Sparkles size={28} strokeWidth={1.5} aria-hidden="true" className="mx-auto" style={{ color: 'var(--daisy)' }} />
-              <div className="font-semibold text-lg mt-1" style={{ color: 'var(--text)' }}>
-                {plain('Sparkly Clean! +50 Stars!')}
+            <div className="surface px-6 py-4 text-center animate-pop rounded-3xl" style={{ background: 'rgba(25, 12, 65, 0.95)' }}>
+              <div className="text-4xl animate-bounce mb-1">✨🦥✨</div>
+              <div className="font-black text-xl text-amber-300">
+                Sparkly Clean! Hooray!
+              </div>
+              <div className="text-xs font-bold text-emerald-300 mt-1">
+                ⭐ +50 Stars Awarded!
               </div>
             </div>
           </div>
@@ -259,8 +260,8 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
       </div>
 
       {/* Bath Tools Toolbar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {tools.map(({ id, label, Icon, color, onPick }) => (
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        {tools.map(({ id, label, emoji, color, shadow, onPick }) => (
           <button
             key={id}
             onClick={() => {
@@ -270,11 +271,11 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
             }}
             data-selected={activeTool === id}
             aria-pressed={activeTool === id}
-            className="pick-card p-3 min-h-[72px] flex flex-col items-center justify-center gap-1.5"
+            className="pick-card p-3 min-h-[80px] flex flex-col items-center justify-center gap-1"
             style={{ ['--sel' as string]: color }}
           >
-            <Icon size={26} strokeWidth={1.5} aria-hidden="true" style={{ color }} />
-            <span className="text-xs sm:text-sm font-semibold">{label}</span>
+            <span className="text-3xl animate-bounce-soft">{emoji}</span>
+            <span className="text-xs sm:text-sm font-black text-white">{label}</span>
           </button>
         ))}
       </div>

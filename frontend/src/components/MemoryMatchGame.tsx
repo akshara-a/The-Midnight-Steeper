@@ -117,43 +117,52 @@ export default function MemoryMatchGame({ onScoreReward, onClose }: MemoryMatchG
   return (
     <div className="flex flex-col items-center w-full">
       {/* Game Header */}
-      <div className="w-full flex items-center justify-between mb-3 px-2">
+      {/* Game Header */}
+      <div className="w-full flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
-          <div className="text-xl font-semibold" style={{ color: 'var(--text)' }}>Forest Friends Match</div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="px-3 min-h-[36px] inline-flex items-center gap-1.5 rounded-full text-sm sm:text-base font-semibold" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}>
-            <Layers size={18} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--lavender)' }} /> Pairs: {matches}/{PAIRS.length}
+          <div className="text-xl sm:text-2xl font-black text-amber-200">
+            🃏 Forest Friends Match! 🐰
           </div>
-          <div className="px-3 min-h-[36px] inline-flex items-center gap-1.5 rounded-full text-sm sm:text-base font-semibold" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}>
-            Moves: {moves}
+        </div>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="px-3 py-1 rounded-2xl bg-purple-600/30 border-2 border-purple-400/50 shadow-sm inline-flex items-center gap-1.5 text-sm sm:text-base font-black text-purple-200">
+            ✨ Pairs: {matches}/{PAIRS.length}
+          </div>
+          <div className="px-3.5 py-1 rounded-2xl bg-amber-500/30 border-2 border-amber-400/60 shadow-sm inline-flex items-center gap-1.5 text-sm sm:text-base font-black text-amber-200">
+            🎯 Moves: {moves}
           </div>
         </div>
       </div>
 
       {/* Cards Grid */}
-      <div className="relative w-full p-3"
-        style={{ borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-strong)', background: 'linear-gradient(180deg, #1d1442, #33194f)' }}>
-        <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
+      <div className="relative w-full p-3.5 rounded-3xl border-3 border-purple-400/30 shadow-inner"
+        style={{ background: 'radial-gradient(ellipse at 50% 100%, #3b1d60 0%, #1a0e38 100%)' }}>
+        <div className="grid grid-cols-4 gap-2.5 sm:gap-3.5">
           {cards.map((c, idx) => (
             <button
               key={c.id}
               onClick={() => flipCard(idx)}
               disabled={c.isMatched || c.isFlipped}
               aria-label={c.isFlipped || c.isMatched ? c.name : 'Hidden card'}
-              className={`h-20 sm:h-24 min-h-[44px] text-3xl sm:text-4xl flex items-center justify-center transition-all duration-200 ease-out select-none cursor-pointer disabled:opacity-100 ${
-                c.isFlipped || c.isMatched ? '' : 'hover:-translate-y-0.5 active:scale-95'
+              className={`h-20 sm:h-24 min-h-[48px] text-3xl sm:text-4xl flex items-center justify-center transition-all duration-200 ease-out select-none cursor-pointer disabled:opacity-100 rounded-2xl ${
+                c.isFlipped || c.isMatched
+                  ? 'scale-105 shadow-md'
+                  : 'hover:-translate-y-1 active:scale-95 shadow-sm'
               }`}
               style={{
-                borderRadius: 'var(--radius)',
-                border: c.isMatched ? '1.5px solid var(--mint)' : c.isFlipped ? '1.5px solid var(--accent)' : '1.5px solid var(--border-strong)',
-                background: c.isFlipped || c.isMatched ? 'color-mix(in srgb, var(--accent) 22%, var(--surface-solid))' : 'var(--surface)',
+                border: c.isMatched ? '3px solid #34d399' : c.isFlipped ? '3px solid #facc15' : '2.5px solid rgba(255, 255, 255, 0.3)',
+                background: c.isMatched
+                  ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.4) 0%, rgba(5, 150, 105, 0.6) 100%)'
+                  : c.isFlipped
+                  ? 'linear-gradient(135deg, rgba(234, 179, 8, 0.35) 0%, rgba(202, 138, 4, 0.55) 100%)'
+                  : 'linear-gradient(145deg, rgba(88, 56, 185, 0.75) 0%, rgba(46, 24, 120, 0.85) 100%)',
+                boxShadow: c.isMatched ? '0 0 16px rgba(52, 211, 153, 0.6)' : '0 4px 0 rgba(0, 0, 0, 0.35)',
               }}
             >
               {c.isFlipped || c.isMatched ? (
-                <span className="animate-pop">{c.icon}</span>
+                <span className="animate-pop drop-shadow-md">{c.icon}</span>
               ) : (
-                <span className="text-2xl opacity-50" aria-hidden="true">🍃</span>
+                <span className="text-2xl drop-shadow-sm select-none" aria-hidden="true">⭐</span>
               )}
             </button>
           ))}
@@ -161,21 +170,21 @@ export default function MemoryMatchGame({ onScoreReward, onClose }: MemoryMatchG
 
         {/* Victory Screen */}
         {isWon && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-30 overflow-y-auto" style={{ background: 'rgba(10,6,28,0.7)', borderRadius: 'var(--radius-lg)' }}>
-            <div className="surface px-6 py-5 text-center max-w-xs w-full animate-pop" style={{ background: 'var(--surface-solid)' }}>
-              <Trophy size={36} strokeWidth={1.5} aria-hidden="true" className="mx-auto mb-2" style={{ color: 'var(--daisy)' }} />
-              <h3 className="text-2xl font-semibold" style={{ color: 'var(--text)' }}>You Found All Friends!</h3>
-              <div className="flex justify-center gap-1 my-3" role="img" aria-label={`${starsEarned} out of 3 stars`}>
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-30 overflow-y-auto rounded-3xl" style={{ background: 'rgba(10,6,28,0.85)', backdropFilter: 'blur(4px)' }}>
+            <div className="surface px-6 py-5 text-center max-w-xs w-full animate-pop rounded-3xl" style={{ background: 'var(--surface-solid)' }}>
+              <div className="text-5xl animate-bounce mb-1">🏆🎉</div>
+              <h3 className="text-2xl font-black text-amber-300">You Found All Friends!</h3>
+              <div className="flex justify-center gap-1.5 my-3" role="img" aria-label={`${starsEarned} out of 3 stars`}>
                 {[1, 2, 3].map((n) => (
-                  <Star key={n} size={28} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--daisy)' }} fill={n <= starsEarned ? 'var(--daisy)' : 'none'} />
+                  <Star key={n} size={32} strokeWidth={2} aria-hidden="true" style={{ color: '#fbbf24' }} fill={n <= starsEarned ? '#fbbf24' : 'none'} className="drop-shadow-md" />
                 ))}
               </div>
-              <p className="text-sm" style={{ color: 'var(--muted)' }}>Completed in {moves} moves!</p>
-              <p className="text-base font-semibold my-2" style={{ color: 'var(--mint)' }}>+{rewardXP} Stars XP!</p>
+              <p className="text-xs font-bold text-white/80">Completed in {moves} moves!</p>
+              <p className="text-xl font-black my-2 text-emerald-300">+{rewardXP} Stars XP! ⭐</p>
 
-              <div className="flex flex-col gap-2 mt-2">
-                <button onClick={restart} className="btn-pill primary px-5 text-base">
-                  <RotateCcw size={18} strokeWidth={1.5} aria-hidden="true" /> Play Again
+              <div className="flex flex-col gap-2.5 mt-2">
+                <button onClick={restart} className="btn-pill primary px-5 text-base font-black">
+                  <RotateCcw size={18} strokeWidth={2.5} aria-hidden="true" /> Play Again
                 </button>
                 <button
                   onClick={() => {
@@ -183,9 +192,9 @@ export default function MemoryMatchGame({ onScoreReward, onClose }: MemoryMatchG
                     onScoreReward(rewardXP);
                     onClose();
                   }}
-                  className="btn-pill px-5 text-sm"
+                  className="btn-pill px-5 text-sm font-black text-white"
                 >
-                  <Check size={18} strokeWidth={1.5} aria-hidden="true" /> Finish &amp; Claim Stars
+                  <Check size={18} strokeWidth={2.5} aria-hidden="true" /> Claim Stars &amp; Finish
                 </button>
               </div>
             </div>

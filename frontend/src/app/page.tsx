@@ -163,18 +163,18 @@ function Modal({
   useEscape(onClose);
   return (
     <div
-      className="fixed inset-0 z-[50] flex items-center justify-center p-3"
-      style={{ background: 'rgba(15,13,26,0.8)' }}
+      className="fixed inset-0 z-[50] flex items-center justify-center p-3 sm:p-4"
+      style={{ background: 'rgba(12, 6, 32, 0.85)', backdropFilter: 'blur(8px)' }}
       role="dialog"
       aria-modal="true"
       aria-label={plain(title)}
     >
       <div
-        className={`surface animate-modal w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} max-h-[92vh] overflow-y-auto p-5 sm:p-7 relative`}
-        style={{ background: 'var(--surface-solid)' }}
+        className={`surface animate-modal w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} max-h-[92vh] overflow-y-auto p-5 sm:p-7 relative rounded-3xl border-3 border-purple-400/35 shadow-2xl`}
+        style={{ background: 'linear-gradient(165deg, rgba(46, 26, 120, 0.96) 0%, rgba(22, 12, 70, 0.98) 100%)' }}
       >
-        <div className="flex items-start justify-between gap-3 mb-4">
-          <h2 className="text-2xl font-semibold pt-2">{plain(title)}</h2>
+        <div className="flex items-center justify-between gap-3 mb-5 pb-3 border-b-2 border-white/10">
+          <h2 className="text-2xl sm:text-3xl font-black text-amber-200 tracking-wide">{title}</h2>
           <CloseButton onClick={onClose} />
         </div>
         {children}
@@ -635,14 +635,23 @@ export default function SunnyTeaParty() {
         className="fixed top-0 inset-x-0 z-[45] transition-opacity duration-700"
         style={{
           opacity: !started ? 0 : night ? 0.6 : 1,
-          background: 'linear-gradient(to bottom, rgba(40,22,130,0.55) 50%, transparent)',
+          background: 'linear-gradient(to bottom, rgba(32,16,98,0.88) 60%, transparent)',
         }}
       >
         <div className="mx-auto max-w-3xl landscape:md:max-w-5xl px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <div className="min-w-0" aria-label={`Level ${playerLevel}, ${Math.round((currentXP / 1000) * 100)} percent to the next level`}>
-            <div className="text-sm font-semibold">Level {playerLevel}</div>
-            <div className="progress-line mt-1.5 w-24">
-              <span style={{ width: `${(currentXP / 1000) * 100}%` }} />
+          <div className="flex items-center gap-3" aria-label={`Level ${playerLevel}, ${Math.round((currentXP / 1000) * 100)} percent to the next level`}>
+            <div className="flex items-center justify-center gap-1 min-w-[56px] h-12 px-2.5 rounded-2xl bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 border-2 border-white shadow-[0_4px_0_#9a3412,0_6px_12px_rgba(0,0,0,0.3)] text-amber-950 font-black text-lg select-none">
+              <span>⭐</span><span>{playerLevel}</span>
+            </div>
+            <div className="flex flex-col min-w-0">
+              <div className="text-xs font-black tracking-wide text-amber-200 uppercase flex items-center gap-1.5">
+                <span>{getRank(playerLevel)}</span>
+                <span className="text-white/60">·</span>
+                <span className="text-amber-100/90">{Math.round(currentXP)}/1000 XP</span>
+              </div>
+              <div className="progress-line mt-1 w-28 sm:w-36 h-3.5" role="progressbar" aria-valuenow={Math.round((currentXP / 1000) * 100)}>
+                <span style={{ width: `${(currentXP / 1000) * 100}%` }} />
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -650,8 +659,9 @@ export default function SunnyTeaParty() {
               onClick={() => setVoiceOn((v) => !v)}
               aria-label={voiceOn ? 'Turn Sunny’s voice off' : 'Turn Sunny’s voice on'}
               className="icon-btn"
+              title={voiceOn ? 'Voice On' : 'Voice Off'}
             >
-              {voiceOn ? <Volume2 size={28} strokeWidth={1.75} style={{ color: 'var(--daisy)' }} aria-hidden="true" /> : <VolumeX size={28} strokeWidth={1.75} aria-hidden="true" />}
+              {voiceOn ? <Volume2 size={26} strokeWidth={2.2} style={{ color: 'var(--daisy)' }} aria-hidden="true" /> : <VolumeX size={26} strokeWidth={2.2} aria-hidden="true" />}
             </button>
             <button
               onClick={() => {
@@ -660,8 +670,9 @@ export default function SunnyTeaParty() {
               }}
               aria-label="For grown-ups"
               className="icon-btn"
+              title="Grown-ups Lock"
             >
-              <Users size={28} strokeWidth={1.75} style={{ color: 'var(--mint)' }} aria-hidden="true" />
+              <Users size={26} strokeWidth={2.2} style={{ color: 'var(--mint)' }} aria-hidden="true" />
             </button>
             <button
               onClick={() => {
@@ -670,17 +681,18 @@ export default function SunnyTeaParty() {
               }}
               aria-label="Open menu"
               className="icon-btn"
+              title="Game Menu"
             >
-              <MenuIcon size={28} strokeWidth={1.75} style={{ color: 'var(--rose)' }} aria-hidden="true" />
+              <MenuIcon size={26} strokeWidth={2.2} style={{ color: 'var(--rose)' }} aria-hidden="true" />
             </button>
           </div>
         </div>
       </header>
 
-      <div className="relative z-10 mx-auto w-full max-w-3xl landscape:md:max-w-5xl px-4 sm:px-6 pt-24 pb-36 flex flex-col gap-6 landscape:md:grid landscape:md:grid-cols-2 landscape:md:items-center">
-        {errorMsg && (
-          <div className="surface px-4 py-3 text-center landscape:md:col-span-2" role="alert" style={{ color: 'var(--danger)' }}>
-            {plain(errorMsg)}
+      <div className="relative z-10 mx-auto w-full max-w-3xl landscape:md:max-w-5xl px-4 sm:px-6 pt-24 pb-48 flex flex-col gap-6 landscape:md:grid landscape:md:grid-cols-2 landscape:md:items-center">
+        {errorMsg && started && (
+          <div className="surface px-4 py-2.5 text-center landscape:md:col-span-2 rounded-2xl flex items-center justify-center gap-2 font-bold text-rose-200 border-2 border-rose-400/40 bg-rose-950/70 shadow-md text-sm" role="alert">
+            <span>⚠️</span> <span>{plain(errorMsg)}</span>
           </div>
         )}
 
@@ -703,23 +715,28 @@ export default function SunnyTeaParty() {
           />
 
           {bubble && started && (
-            <div className="absolute top-1 left-1/2 -translate-x-1/2 w-[92%] max-w-sm z-20 pointer-events-none">
-              <div key={bubble.id} className="bubble px-3 py-2 text-center text-base leading-snug">
-                {plain(bubble.text)}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-20 pointer-events-none">
+              <div key={bubble.id} className="bubble px-4 py-2.5 text-center text-base sm:text-lg leading-snug">
+                <div className="text-[11px] font-black uppercase text-amber-800 tracking-wider mb-0.5">
+                  🦥 Sunny says:
+                </div>
+                {bubble.text}
               </div>
             </div>
           )}
 
           {mood === 'sleeping' && (
-            <div className="absolute left-[56%] top-[28%] text-2xl font-light pointer-events-none" aria-hidden="true" style={{ color: 'var(--muted)' }}>
-              <span className="absolute animate-zzz">z</span>
-              <span className="absolute animate-zzz" style={{ animationDelay: '1.3s' }}>z</span>
+            <div className="absolute left-[54%] top-[24%] text-3xl font-black pointer-events-none" aria-hidden="true" style={{ color: 'var(--accent)' }}>
+              <span className="absolute animate-zzz">💤</span>
+              <span className="absolute animate-zzz" style={{ animationDelay: '1.4s' }}>✨</span>
             </div>
           )}
 
           {started && (
-            <div className="absolute bottom-2 inset-x-0 text-center text-sm pointer-events-none" style={{ color: 'var(--muted)' }}>
-              {mood === 'sleeping' ? 'Sunny is sleeping' : mood === 'bathing' ? 'Bath time' : 'Tap Sunny'}
+            <div className="absolute bottom-2.5 inset-x-0 flex justify-center pointer-events-none">
+              <div className="inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-black/55 backdrop-blur-md border border-white/20 text-xs font-black text-amber-200 shadow-lg">
+                {mood === 'sleeping' ? '😴 Shhh... Sunny is sleeping soundly' : mood === 'bathing' ? '🫧 Splish splash! Warm bubble bath!' : '✨ Tap Sunny to cuddle or play! ✨'}
+              </div>
             </div>
           )}
         </section>
@@ -756,34 +773,48 @@ export default function SunnyTeaParty() {
 
         {/* ---------- IDLE: three easy steps for tea ---------- */}
         {petMode === 'tea' && isIdle && !tuck && (
-          <section className="animate-modal">
-            <div className="flex items-center justify-center gap-2 mb-5" role="img" aria-label={`Step ${step} of 3`}>
-              {[1, 2, 3].map((n) => (
-                <span
+          <section className="animate-modal surface p-4 sm:p-5">
+            <div className="flex items-center justify-center gap-2 mb-4" role="img" aria-label={`Step ${step} of 3`}>
+              {[
+                { n: 1, label: '🍃 Leaf', color: '#10b981' },
+                { n: 2, label: '🍬 Treat', color: '#ec4899' },
+                { n: 3, label: '😴 Nap', color: '#8b5cf6' },
+              ].map(({ n, label, color }) => (
+                <div
                   key={n}
-                  aria-hidden="true"
-                  className="h-1.5 rounded-full transition-all"
+                  className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all"
                   style={{
-                    width: n === step ? 28 : 8,
-                    background: n <= step ? ['var(--mint)', 'var(--daisy)', 'var(--rose)'][n - 1] : 'var(--border-strong)',
+                    background: n === step ? color : n < step ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.35)',
+                    color: '#ffffff',
+                    border: n === step ? '2px solid #ffffff' : '1.5px solid rgba(255,255,255,0.2)',
+                    boxShadow: n === step ? `0 3px 0 rgba(0,0,0,0.3), 0 0 14px ${color}` : 'none',
+                    transform: n === step ? 'scale(1.06)' : 'scale(1)',
                   }}
-                />
+                >
+                  {n < step ? '✓' : n} {label}
+                </div>
               ))}
             </div>
 
-            <div className="flex items-center justify-center gap-3 mb-5">
-              <h2 className="text-2xl sm:text-3xl font-light text-center">
-                {step === 1 && 'Pick a leaf or flower'}
-                {step === 2 && 'Pick a treat'}
-                {step === 3 && 'How long is Sunny’s nap?'}
+            <div className="flex items-center justify-center gap-2.5 mb-4">
+              <h2 className="text-2xl sm:text-3xl font-black text-center text-amber-100 drop-shadow-md">
+                {step === 1 && '✨ Pick a Leaf or Flower! 🌸'}
+                {step === 2 && '✨ Pick a Yummy Treat! 🍯'}
+                {step === 3 && '😴 How Long Should Sunny Nap? 🌙'}
               </h2>
-              <button onClick={() => say(STEP_PROMPTS[step])} aria-label="Hear this again" className="icon-btn shrink-0">
-                <Volume2 size={20} strokeWidth={1.5} aria-hidden="true" />
+              <button
+                onClick={() => say(STEP_PROMPTS[step])}
+                aria-label="Hear this again"
+                className="icon-btn shrink-0"
+                style={{ width: 44, height: 44 }}
+                title="Hear Sunny speak"
+              >
+                <Volume2 size={22} strokeWidth={2.2} style={{ color: 'var(--daisy)' }} aria-hidden="true" />
               </button>
             </div>
 
             {step === 1 && (
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {LEAVES.map((item) => (
                   <button
                     key={item.name}
@@ -791,19 +822,23 @@ export default function SunnyTeaParty() {
                     aria-pressed={leaf.name === item.name}
                     style={{ '--sel': item.color } as React.CSSProperties}
                     onClick={(e) => chooseLeaf(item, e)}
-                    className="pick-card px-2 py-4 flex flex-col items-center gap-2 text-center min-h-[140px]"
+                    className="pick-card px-2 py-3.5 flex flex-col items-center gap-1.5 text-center min-h-[148px]"
                   >
-                    <span style={{ color: item.color }}>
-                      <LeafArt name={item.name} size={72} />
-                    </span>
-                    <span className="text-base sm:text-lg font-semibold leading-tight">{item.name}</span>
+                    <LeafArt name={item.name} size={64} />
+                    <span className="text-base sm:text-lg font-black leading-tight text-white mt-1">{item.name}</span>
+                    <span className="text-[11px] sm:text-xs text-amber-100/80 font-semibold line-clamp-1">{item.blurb}</span>
+                    {leaf.name === item.name && (
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-white text-emerald-900 px-2 py-0.5 rounded-full shadow-sm mt-0.5">
+                        ✓ Picked!
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
             )}
 
             {step === 2 && (
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {TREATS.map((item) => (
                   <button
                     key={item.name}
@@ -811,12 +846,16 @@ export default function SunnyTeaParty() {
                     aria-pressed={treat.name === item.name}
                     style={{ '--sel': item.color } as React.CSSProperties}
                     onClick={(e) => chooseTreat(item, e)}
-                    className="pick-card px-2 py-4 flex flex-col items-center gap-2 text-center min-h-[140px]"
+                    className="pick-card px-2 py-3.5 flex flex-col items-center gap-1.5 text-center min-h-[148px]"
                   >
-                    <span style={{ color: item.color }}>
-                      <TreatIcon name={item.name} size={64} />
-                    </span>
-                    <span className="text-base sm:text-lg font-semibold leading-tight">{item.name}</span>
+                    <TreatIcon name={item.name} size={64} />
+                    <span className="text-base sm:text-lg font-black leading-tight text-white mt-1">{item.name}</span>
+                    <span className="text-[11px] sm:text-xs text-amber-100/80 font-semibold line-clamp-1">{item.blurb}</span>
+                    {treat.name === item.name && (
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-white text-rose-900 px-2 py-0.5 rounded-full shadow-sm mt-0.5">
+                        ✓ Picked!
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -824,7 +863,7 @@ export default function SunnyTeaParty() {
 
             {step === 3 && (
               <>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                   {NAPS.map((n) => (
                     <button
                       key={n.key}
@@ -836,27 +875,32 @@ export default function SunnyTeaParty() {
                         setNapKey(n.key);
                         say(`${n.label}! ${n.sub === 'all night' ? 'I will sleep all night.' : `I will nap for ${n.sub}.`}`);
                       }}
-                      className="pick-card px-3 py-4 flex flex-col items-center gap-1 text-center min-h-[110px]"
+                      className="pick-card px-3 py-3.5 flex flex-col items-center gap-1.5 text-center min-h-[120px]"
                     >
-                      <span style={{ color: 'var(--accent)' }}>
-                        <NapIcon id={n.key} size={48} />
-                      </span>
-                      <span className="text-base">{plain(n.label)}</span>
-                      <span className="text-sm" style={{ color: 'var(--muted)' }}>{n.sub}</span>
+                      <NapIcon id={n.key} size={50} />
+                      <span className="text-base font-black text-white">{n.label}</span>
+                      <span className="text-xs font-bold text-amber-200">{n.sub}</span>
+                      {napKey === n.key && (
+                        <span className="text-[10px] font-black uppercase tracking-wider bg-white text-purple-900 px-2 py-0.5 rounded-full shadow-sm mt-0.5">
+                          ✓ Chosen!
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
-                <div className="mt-5 text-center">
-                  <p className="text-base">
-                    Sunny hopes {target} {target === 1 ? 'friend visits' : 'friends visit'} during the {plain(nap.label).toLowerCase()}.
+                <div className="mt-4 p-3 rounded-2xl bg-black/35 border border-white/20 text-center">
+                  <p className="text-base font-bold text-amber-100">
+                    🐾 Sunny hopes <strong className="text-amber-300 font-black text-lg">{target}</strong> {target === 1 ? 'forest friend visits' : 'forest friends visit'} during nap time!
                   </p>
-                  <div className="mt-2 flex justify-center gap-1.5" aria-hidden="true">
+                  <div className="mt-2.5 flex justify-center gap-2" aria-hidden="true">
                     {Array.from({ length: target }, (_, i) => (
-                      <span key={i} className="h-2 w-2 rounded-full" style={{ background: 'var(--accent)' }} />
+                      <span key={i} className="text-xl animate-bounce-soft" style={{ animationDelay: `${i * 0.2}s` }}>
+                        {FRIENDS[i % FRIENDS.length].icon}
+                      </span>
                     ))}
                   </div>
-                  <p className="mt-2 text-sm" style={{ color: 'var(--muted)' }}>
-                    {napKey === 'demo' ? 'Demo mode: the full steep takes 10 seconds.' : 'Longer naps and yummier mixes bring more friends.'}
+                  <p className="mt-2 text-xs font-semibold text-white/70">
+                    {napKey === 'demo' ? '⚡ Demo Mode: Quick 10-second nap for easy testing!' : '🌟 Longer naps and sweeter recipes bring more magical friends!'}
                   </p>
                 </div>
               </>
@@ -865,7 +909,7 @@ export default function SunnyTeaParty() {
             <div className="mt-6 flex items-center justify-between gap-3">
               {step > 1 ? (
                 <button onClick={() => goStep(step - 1)} aria-label="Back" className="icon-btn" style={{ width: 56, height: 56 }}>
-                  <ArrowLeft size={24} strokeWidth={1.5} aria-hidden="true" />
+                  <ArrowLeft size={26} strokeWidth={2.2} aria-hidden="true" />
                 </button>
               ) : (
                 <span />
@@ -875,14 +919,14 @@ export default function SunnyTeaParty() {
                   onClick={() => goStep(step + 1)}
                   aria-label="Next step"
                   className="btn-pill primary"
-                  style={{ width: 56, height: 56, padding: 0 }}
+                  style={{ width: 58, height: 58, padding: 0 }}
                 >
-                  <ArrowRight size={24} strokeWidth={1.5} aria-hidden="true" />
+                  <ArrowRight size={28} strokeWidth={2.5} aria-hidden="true" />
                 </button>
               ) : (
-                <button onClick={handleTuckIn} disabled={isStarting} className="btn-pill primary px-8 text-lg" style={{ minHeight: 56 }}>
-                  <Moon size={20} strokeWidth={1.5} aria-hidden="true" />
-                  Tuck Sunny in
+                <button onClick={handleTuckIn} disabled={isStarting} className="btn-pill primary px-8 text-lg sm:text-xl font-black" style={{ minHeight: 58 }}>
+                  <Moon size={22} strokeWidth={2.5} aria-hidden="true" />
+                  🌙 Tuck Sunny In & Brew! 🍵
                 </button>
               )}
             </div>
@@ -891,20 +935,30 @@ export default function SunnyTeaParty() {
 
         {/* Bedtime moment while the tea starts */}
         {tuck && (
-          <section className="text-center py-6 animate-modal">
-            <h2 className="text-2xl font-light">{tuck === 'drink' ? 'Sunny is sipping tea' : 'Sleepy time'}</h2>
+          <section className="text-center py-6 surface animate-modal">
+            <div className="text-5xl animate-bounce-soft mb-2">🍵🦥</div>
+            <h2 className="text-2xl sm:text-3xl font-black text-amber-200">
+              {tuck === 'drink' ? 'Sipping Warm Tea... Yum! 🍵' : 'Sleepy Time! Goodnight... 💤'}
+            </h2>
           </section>
         )}
 
-        {/* ---------- BREWING: Sunny is asleep, the interface fades to a quiet goodnight ---------- */}
+        {/* ---------- BREWING: Sunny is asleep, cozy bedtime screen ---------- */}
         {isBrewing && !tuck && (
-          <section className="text-center py-6 animate-modal">
-            <h2 className="text-2xl font-light">Goodnight</h2>
-            <p className="mt-2 text-sm" style={{ color: 'var(--muted)' }}>
-              Sunny wakes in {formatTimer(remainingSeconds)}
+          <section className="text-center py-6 surface animate-modal">
+            <div className="text-5xl animate-bounce-soft mb-2">😴💤</div>
+            <h2 className="text-2xl sm:text-3xl font-black text-amber-200">Shhh... Sunny is Sleeping! 🌙</h2>
+            <p className="mt-1 text-sm sm:text-base font-bold text-white/90">
+              The cozy tea is steeping quietly under the stars.
             </p>
+            <div className="my-5 inline-block px-6 py-2.5 rounded-2xl bg-black/40 border-2 border-amber-300/40 shadow-inner">
+              <div className="text-xs uppercase font-black text-amber-300 tracking-wider">⏰ Waking Up In</div>
+              <div className="text-3xl sm:text-4xl font-black text-white tracking-widest mt-0.5 font-mono">
+                {formatTimer(remainingSeconds)}
+              </div>
+            </div>
             <div
-              className="progress-line mx-auto mt-4 w-40"
+              className="progress-line mx-auto w-48 sm:w-64 h-4"
               role="progressbar"
               aria-label="Sleep progress"
               aria-valuenow={Math.floor(brewProgress * 100)}
@@ -918,63 +972,96 @@ export default function SunnyTeaParty() {
               role="img"
               aria-label={`Friends at the party: ${served} of ${brewTarget}`}
             >
-              {Array.from({ length: Math.max(brewTarget, arrivals.length) }, (_, i) => (
-                <span
-                  key={i}
-                  className="h-2.5 w-2.5 rounded-full"
-                  style={i < served ? { background: 'var(--accent)' } : { border: '1.5px solid var(--muted)' }}
-                />
-              ))}
+              {Array.from({ length: Math.max(brewTarget, arrivals.length) }, (_, i) => {
+                const arrived = i < served;
+                const f = FRIENDS[i % FRIENDS.length];
+                return (
+                  <div
+                    key={i}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all"
+                    style={{
+                      background: arrived ? 'rgba(52, 211, 153, 0.35)' : 'rgba(255, 255, 255, 0.1)',
+                      border: arrived ? '2px solid #34d399' : '1.5px solid rgba(255, 255, 255, 0.2)',
+                      color: arrived ? '#a7f3d0' : 'rgba(255, 255, 255, 0.5)',
+                      boxShadow: arrived ? '0 0 10px rgba(52, 211, 153, 0.4)' : 'none',
+                    }}
+                  >
+                    <span>{f.icon}</span>
+                    <span>{f.name}</span>
+                    {arrived && <span>✓</span>}
+                  </div>
+                );
+              })}
             </div>
-            <p className="mt-3 h-5 text-sm" role="status" style={{ color: 'var(--muted)' }}>
-              {friendNote ? plain(friendNote) : ''}
+            <p className="mt-4 text-sm font-bold text-amber-200 min-h-6" role="status">
+              {friendNote ? friendNote : '🌟 Relax and listen to the soothing bedtime sounds...'}
             </p>
-            <p className="mt-6 text-sm" style={{ color: 'var(--muted)' }}>
-              Close the game now. Your tea will be ready when you wake up.
+            <p className="mt-4 text-xs font-semibold text-white/60">
+              Close the game now. Your tea party will be waiting when you wake up!
             </p>
           </section>
         )}
 
         {/* ---------- READY ---------- */}
         {isReady && !tuck && (
-          <section className="text-center py-4 animate-modal">
-            <Gift size={44} strokeWidth={1.5} className="mx-auto" style={{ color: 'var(--accent)' }} aria-hidden="true" />
-            <h2 className="mt-3 text-3xl font-light">Sunny woke up</h2>
-            <p className="mt-1 mb-5" style={{ color: 'var(--muted)' }}>
-              {served} {served === 1 ? 'friend' : 'friends'} came to the party.
+          <section className="text-center py-6 surface animate-modal">
+            <div className="text-6xl animate-bounce mb-2">🎁✨</div>
+            <h2 className="mt-2 text-3xl sm:text-4xl font-black text-amber-300 drop-shadow-md">
+              Hooray! Sunny Woke Up! 🦥🎉
+            </h2>
+            <p className="mt-2 text-base font-bold text-white/90">
+              {served} forest {served === 1 ? 'friend' : 'friends'} joined the bedtime tea party!
             </p>
-            <button onClick={handleClaim} disabled={isClaiming} className="btn-pill primary px-8 text-lg" style={{ minHeight: 56 }}>
-              {isClaiming ? 'Opening...' : 'Open the surprise'}
-            </button>
+            <div className="mt-6">
+              <button
+                onClick={handleClaim}
+                disabled={isClaiming}
+                className="btn-pill primary px-10 py-4 text-xl sm:text-2xl font-black min-h-[64px] animate-pulse"
+              >
+                <Gift size={28} strokeWidth={2.5} aria-hidden="true" />
+                {isClaiming ? 'Opening Surprise... 🎁' : 'OPEN THE SURPRISE! 🌟'}
+              </button>
+            </div>
           </section>
         )}
 
-        {/* Wishes: dots fill as tasks complete; tap or hover for the text */}
+        {/* Wishes: Today's Bedtime Quests */}
         {!isBedtimeActive && (
-          <section className="flex flex-col items-center" aria-label="Today's wishes">
-            <div className="flex items-center justify-center">
-              {wishes.map((w, wi) => (
-                <button
-                  key={w.label}
-                  onClick={() => setWishTip((t) => (t === w.label ? null : w.label))}
-                  aria-label={`${w.label}: ${w.done ? 'done' : 'not yet'}`}
-                  title={w.label}
-                  className="h-11 w-11 flex items-center justify-center"
-                >
-                  <span
-                    className="h-4 w-4 rounded-full transition-colors"
-                    style={
-                      w.done
-                        ? { background: WISH_COLORS[wi % WISH_COLORS.length], boxShadow: `0 0 12px color-mix(in srgb, ${WISH_COLORS[wi % WISH_COLORS.length]} 70%, transparent)` }
-                        : { border: `1.5px solid ${WISH_COLORS[wi % WISH_COLORS.length]}` }
-                    }
-                  />
-                </button>
-              ))}
+          <section className="surface p-4 rounded-3xl" aria-label="Today's Bedtime Quests">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">📋</span>
+                <h3 className="text-base font-black uppercase tracking-wider text-amber-200">
+                  Today&apos;s Bedtime Quests
+                </h3>
+              </div>
+              <span className="text-xs font-black bg-amber-400 text-amber-950 px-2.5 py-0.5 rounded-full shadow-sm">
+                ⭐ +50 XP Each
+              </span>
             </div>
-            <p className="h-5 text-sm" role="status" style={{ color: 'var(--muted)' }}>
-              {wishTip ? `${wishTip}${wishes.find((w) => w.label === wishTip)?.done ? ' · done' : ''}` : ''}
-            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {wishes.map((w, wi) => {
+                const questIcons = ['🍃', '🛁', '🛏️', '🎁'];
+                return (
+                  <div
+                    key={w.label}
+                    className="p-2.5 rounded-2xl flex items-center gap-2 text-left transition-all"
+                    style={{
+                      background: w.done ? 'rgba(16, 185, 129, 0.28)' : 'rgba(0, 0, 0, 0.28)',
+                      border: w.done ? '2px solid #34d399' : '1.5px solid rgba(255, 255, 255, 0.15)',
+                    }}
+                  >
+                    <span className="text-2xl shrink-0">{questIcons[wi % questIcons.length]}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-bold text-white leading-tight">{w.label}</div>
+                      <div className="text-[10px] font-black uppercase mt-0.5" style={{ color: w.done ? '#6ee7b7' : 'rgba(255,255,255,0.5)' }}>
+                        {w.done ? '✓ Completed!' : 'In Progress'}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </section>
         )}
         </div>
@@ -985,52 +1072,70 @@ export default function SunnyTeaParty() {
         <nav
           inert={!started}
           aria-label="Activities"
-          className="fixed z-30 inset-x-3 mx-auto max-w-md transition-opacity duration-700 surface"
+          className="fixed z-30 inset-x-3 mx-auto max-w-lg transition-opacity duration-700 surface"
           style={{
             opacity: started ? 1 : 0,
             bottom: 'max(0.75rem, env(safe-area-inset-bottom))',
-            borderRadius: 30,
-            background: 'rgba(36,24,110,0.78)',
+            borderRadius: 36,
+            background: 'linear-gradient(180deg, rgba(45, 24, 115, 0.94) 0%, rgba(25, 12, 75, 0.98) 100%)',
+            border: '3px solid rgba(255, 255, 255, 0.32)',
+            boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5), inset 0 2px 2px rgba(255, 255, 255, 0.4)',
           }}
         >
-          <div className="px-1.5 py-1.5 grid grid-cols-6">
+          <div className="px-2 py-2 grid grid-cols-6 gap-1.5">
             {[
-              { key: 'bath', label: 'Bath', Icon: Bath, active: petMode === 'bath', color: 'var(--berry)' },
-              { key: 'snack', label: 'Snack', Icon: Apple, active: petMode === 'snack', color: 'var(--rose)' },
-              { key: 'closet', label: 'Closet', Icon: Shirt, active: false, color: 'var(--lavender)' },
-              { key: 'games', label: 'Games', Icon: Gamepad2, active: false, color: 'var(--mint)' },
-              { key: 'talk', label: 'Talk', Icon: Mic, active: false, color: 'var(--daisy)' },
-              { key: 'tea', label: 'Tea & Bed', Icon: Coffee, active: petMode === 'tea', color: 'var(--orange)' },
-            ].map(({ key, label, Icon, active, color }) => (
+              { key: 'bath', label: 'Bath', emoji: '🛁', Icon: Bath, active: petMode === 'bath', color: '#06b6d4', shadow: '#0891b2' },
+              { key: 'snack', label: 'Snack', emoji: '🍓', Icon: Apple, active: petMode === 'snack', color: '#f43f5e', shadow: '#be123c' },
+              { key: 'closet', label: 'Closet', emoji: '👗', Icon: Shirt, active: false, color: '#a855f7', shadow: '#7e22ce' },
+              { key: 'games', label: 'Games', emoji: '🎮', Icon: Gamepad2, active: false, color: '#10b981', shadow: '#047857' },
+              { key: 'talk', label: 'Talk', emoji: '🎤', Icon: Mic, active: false, color: '#f59e0b', shadow: '#b45309' },
+              { key: 'tea', label: 'Tea & Bed', emoji: '🍵', Icon: Coffee, active: petMode === 'tea', color: '#ea580c', shadow: '#9a3412' },
+            ].map(({ key, label, emoji, Icon, active, color, shadow }) => (
               <button
                 key={key}
                 onClick={() => {
                   sounds.playClick();
                   if (key === 'bath') {
                     setPetMode('bath');
-                    say("Splish splash! Let's take a warm bubble bath!");
+                    say("Splish splash! Let's take a warm bubble bath! 🫧");
                   } else if (key === 'snack') {
                     setPetMode('snack');
-                    say('Yay, snack time! Pick a yummy treat for me!');
+                    say('Yay, snack time! Pick a yummy treat for me! 🍓');
                   } else if (key === 'closet') setShowWardrobeModal(true);
                   else if (key === 'games') setShowMiniGames(true);
                   else if (key === 'talk') setShowTalking(true);
                   else {
                     setPetMode('tea');
-                    say("Let's brew bedtime tea for our forest friends!");
+                    say("Let's brew bedtime tea for our forest friends! 🍵");
                   }
                 }}
                 aria-label={label}
                 aria-pressed={active}
-                className="flex flex-col items-center justify-center gap-1 min-h-[72px] rounded-2xl"
+                className="flex flex-col items-center justify-center gap-1 min-h-[74px] rounded-2xl transition-transform active:scale-90"
               >
                 <span
-                  className="flex h-12 w-12 items-center justify-center rounded-full transition-colors"
-                  style={active ? { background: color, color: '#1b1236', boxShadow: `0 0 20px color-mix(in srgb, ${color} 60%, transparent)` } : { color }}
+                  className="flex h-12 w-12 items-center justify-center rounded-2xl text-white font-black text-2xl transition-all"
+                  style={
+                    active
+                      ? {
+                          background: color,
+                          boxShadow: `0 4px 0 ${shadow}, 0 0 16px ${color}`,
+                          border: '2px solid #ffffff',
+                          transform: 'scale(1.1) translateY(-2px)',
+                        }
+                      : {
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          border: '1.5px solid rgba(255, 255, 255, 0.2)',
+                          boxShadow: '0 3px 0 rgba(0, 0, 0, 0.3)',
+                        }
+                  }
                 >
-                  <Icon size={28} strokeWidth={1.75} aria-hidden="true" />
+                  <span className="leading-none">{emoji}</span>
                 </span>
-                <span className="text-xs font-semibold leading-none" style={{ color: active ? 'var(--text)' : 'var(--muted)' }}>
+                <span
+                  className="text-[11px] font-black leading-none uppercase tracking-tight"
+                  style={{ color: active ? '#ffd23f' : 'rgba(255, 255, 255, 0.75)' }}
+                >
                   {label}
                 </span>
               </button>
@@ -1240,13 +1345,16 @@ export default function SunnyTeaParty() {
 
       {/* ---------- STICKER BOOK ---------- */}
       {showBook && (
-        <Modal title="My sticker book 📖" onClose={() => setShowBook(false)} wide>
+        <Modal title="📖 My Sticker Book! ✨" onClose={() => setShowBook(false)} wide>
           {invCount === 0 ? (
-            <p className="text-center text-lg py-8" style={{ color: 'var(--muted)' }}>
-              No stickers yet. Make your first tea with Sunny to get one.
-            </p>
+            <div className="text-center py-10">
+              <div className="text-5xl animate-bounce-soft mb-2">📖✨</div>
+              <p className="text-lg font-bold text-amber-100">
+                No stickers yet! Make your first cozy tea with Sunny to earn one!
+              </p>
+            </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
               {[...(user?.inventory ?? [])].reverse().map((item, idx) => {
                 const kid = rarityKid(item.rarity);
                 return (
@@ -1256,22 +1364,24 @@ export default function SunnyTeaParty() {
                       sounds.playPop();
                       setSelectedSticker(item as Loot);
                     }}
-                    className="pick-card p-3 text-center"
+                    className="pick-card p-3.5 text-center rounded-2xl flex flex-col items-center justify-between"
                     style={{ '--sel': kid.color } as React.CSSProperties}
-                    aria-label={`${kid.label} tea. Tap to view TabPFN sensory profile.`}
+                    aria-label={`${kid.label} tea. Tap to view details.`}
                   >
                     <div className="flex justify-center gap-1.5" style={{ color: kid.color }}>
                       {(item.ingredients ?? []).map((n) => (
-                        <IngredientArt key={n} name={n} size={34} />
+                        <IngredientArt key={n} name={n} size={38} />
                       ))}
                     </div>
-                    <div className="mt-1 font-semibold">{kid.label}</div>
-                    <div className="flex justify-center gap-0.5" style={{ color: kid.color }} aria-hidden="true">
+                    <div className="mt-2 font-black text-sm sm:text-base text-white">{item.item_name}</div>
+                    <div className="flex justify-center gap-1 mt-1" style={{ color: kid.color }} aria-hidden="true">
                       {Array.from({ length: kid.stars }, (_, k) => (
-                        <Star key={k} size={14} strokeWidth={1.5} fill="currentColor" />
+                        <Star key={k} size={16} strokeWidth={2} fill="currentColor" />
                       ))}
                     </div>
-                    <div className="text-xs mt-1" style={{ color: 'var(--muted)' }}>View AI profile</div>
+                    <span className="text-[11px] font-black uppercase tracking-wider mt-2 px-2.5 py-0.5 rounded-full text-white" style={{ background: kid.color }}>
+                      {kid.label}
+                    </span>
                   </button>
                 );
               })}
@@ -1513,16 +1623,32 @@ export default function SunnyTeaParty() {
       {/* ---------- TITLE SCREEN: wordmark over the live Sunny ---------- */}
       {!started && (
         <div
-          className="fixed inset-x-0 bottom-0 z-[60] flex flex-col items-center text-center px-5 pt-16 pb-10"
-          style={{ background: 'linear-gradient(to top, rgba(70,40,190,0.55) 55%, transparent)' }}
+          className="fixed inset-x-0 bottom-0 z-[60] flex flex-col items-center text-center px-5 pt-16 pb-12"
+          style={{ background: 'linear-gradient(to top, rgba(28,14,80,0.95) 60%, transparent)' }}
         >
-          <Moon size={30} strokeWidth={1.5} className="animate-bounce-soft" style={{ color: 'var(--daisy)' }} aria-hidden="true" />
-          <h1 className="wordmark mt-3 text-4xl sm:text-6xl">The Midnight Steeper</h1>
-          <button onClick={handleStart} className="btn-pill primary mt-8 px-12 text-xl" style={{ minHeight: 60 }}>
-            <Play size={22} strokeWidth={1.5} aria-hidden="true" />
-            Play
+          <div className="flex items-center gap-2 mb-2 animate-bounce-soft">
+            <span className="text-3xl">⭐</span>
+            <span className="text-4xl">🌙</span>
+            <span className="text-3xl">✨</span>
+          </div>
+          <h1 className="wordmark text-4xl sm:text-6xl font-black drop-shadow-xl">
+            The Midnight Steeper
+          </h1>
+          <p className="mt-2 text-base sm:text-lg font-black text-amber-200">
+            🦥 Cozy 3D Bedtime Tea Party with Sunny the Sloth! 🍵
+          </p>
+          <button
+            onClick={handleStart}
+            className="btn-pill primary mt-6 px-12 py-4 text-2xl font-black min-h-[66px] shadow-[0_8px_0_#9a3412,0_16px_30px_rgba(0,0,0,0.5)] hover:scale-105 active:scale-95 transition-transform"
+          >
+            <Play size={28} strokeWidth={3} aria-hidden="true" />
+            LET&apos;S PLAY! 🌟
           </button>
-          <p className="mt-6 text-sm" style={{ color: 'var(--muted)' }}>No ads · No accounts · Kid safe</p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs font-black uppercase text-amber-100/90 tracking-wide">
+            <span className="px-3.5 py-1 rounded-full bg-white/10 border border-white/20">✨ 100% Free</span>
+            <span className="px-3.5 py-1 rounded-full bg-white/10 border border-white/20">🔒 Kid Safe</span>
+            <span className="px-3.5 py-1 rounded-full bg-white/10 border border-white/20">🌙 Bedtime Story</span>
+          </div>
         </div>
       )}
     </main>

@@ -19,22 +19,31 @@ const GAMES = [
     id: 'bubble',
     emoji: '🫧',
     title: 'Bubble Pop!',
-    desc: 'Tap and pop floating bubbles & golden stars!',
-    color: 'var(--berry)',
+    desc: 'Tap and pop floating bubbles & shiny golden stars!',
+    color: '#06b6d4',
+    bg: 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(14, 116, 144, 0.45) 100%)',
+    btnColor: 'linear-gradient(180deg, #67e8f9 0%, #06b6d4 100%)',
+    btnShadow: '#0e7490',
   },
   {
     id: 'memory',
     emoji: '🃏',
     title: 'Friends Match',
-    desc: 'Find matching pairs of cute forest animals!',
-    color: 'var(--lavender)',
+    desc: 'Flip cards and find matching pairs of cute forest animals!',
+    color: '#a855f7',
+    bg: 'linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(126, 34, 206, 0.45) 100%)',
+    btnColor: 'linear-gradient(180deg, #d8b4fe 0%, #a855f7 100%)',
+    btnShadow: '#6b21a8',
   },
   {
     id: 'catcher',
     emoji: '🧺',
     title: 'Leaf Catcher',
-    desc: 'Slide the tea basket to catch falling berries!',
-    color: 'var(--mint)',
+    desc: 'Slide the cozy tea basket to catch falling berries & leaves!',
+    color: '#10b981',
+    bg: 'linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(4, 120, 87, 0.45) 100%)',
+    btnColor: 'linear-gradient(180deg, #6ee7b7 0%, #10b981 100%)',
+    btnShadow: '#047857',
   },
 ] as const;
 
@@ -46,12 +55,15 @@ export default function MiniGamesModal({ onScoreReward, onClose }: MiniGamesModa
       {selectedGame === null ? (
         <div className="flex flex-col gap-4">
           <div className="text-center">
-            <p className="text-base sm:text-lg" style={{ color: 'var(--text)' }}>
-              Pick a fun mini-game to play with Sunny and earn stars!
+            <h3 className="text-2xl font-black text-amber-200">
+              🎮 Sunny&apos;s Arcade! 🌟
+            </h3>
+            <p className="text-sm font-bold text-white/80 mt-1">
+              Pick a fun mini-game to play with Sunny and earn bonus stars!
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             {GAMES.map((g) => (
               <button
                 key={g.id}
@@ -59,24 +71,27 @@ export default function MiniGamesModal({ onScoreReward, onClose }: MiniGamesModa
                   sounds.playClick();
                   setSelectedGame(g.id);
                 }}
-                className="pick-card p-4 flex flex-col items-center text-center"
+                className="pick-card p-4.5 flex flex-col items-center text-center rounded-3xl"
                 style={{ ['--sel' as string]: g.color }}
               >
-                {/* game sprite: decorative emoji preview of the playfield */}
-                <div className="text-5xl animate-bounce-soft" aria-hidden="true">
+                <div className="w-18 h-18 rounded-3xl flex items-center justify-center text-5xl animate-bounce-soft shadow-inner my-2" style={{ background: g.bg, border: `2.5px solid ${g.color}` }}>
                   {g.emoji}
                 </div>
-                <div className="font-semibold text-lg mt-2" style={{ color: 'var(--text)' }}>
+                <div className="font-black text-xl mt-2 text-white">
                   {g.title}
                 </div>
-                <div className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
+                <div className="text-xs font-semibold mt-1 text-white/70 leading-relaxed px-1">
                   {g.desc}
                 </div>
                 <div
-                  className="mt-3 px-4 min-h-[44px] inline-flex items-center gap-1.5 rounded-full text-sm font-semibold"
-                  style={{ background: `color-mix(in srgb, ${g.color} 22%, transparent)`, color: 'var(--text)' }}
+                  className="mt-4 px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 text-white shadow-md transition-transform hover:scale-105"
+                  style={{
+                    background: g.btnColor,
+                    boxShadow: `0 4px 0 ${g.btnShadow}, 0 6px 12px rgba(0,0,0,0.3)`,
+                    border: '1.5px solid #ffffff',
+                  }}
                 >
-                  <Play size={16} strokeWidth={1.5} aria-hidden="true" /> Play Game
+                  <Play size={14} strokeWidth={3} aria-hidden="true" /> Play Game!
                 </div>
               </button>
             ))}
@@ -90,9 +105,9 @@ export default function MiniGamesModal({ onScoreReward, onClose }: MiniGamesModa
                 sounds.playClick();
                 setSelectedGame(null);
               }}
-              className="btn-pill px-4 text-sm"
+              className="btn-pill px-5 text-sm font-black text-white"
             >
-              <ArrowLeft size={18} strokeWidth={1.5} aria-hidden="true" /> Back to Games Menu
+              <ArrowLeft size={18} strokeWidth={2.5} aria-hidden="true" /> Back to Arcade Menu 🎮
             </button>
           </div>
 

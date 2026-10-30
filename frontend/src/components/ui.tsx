@@ -1,162 +1,145 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  Apple,
-  Cherry,
-  Citrus,
-  Clock,
-  Cloud,
-  Cookie,
-  Droplet,
-  Moon,
-  Star,
-  Sun,
-  X,
-  Zap,
-} from 'lucide-react';
+import { X, Lock, Sparkles } from 'lucide-react';
 
-/** Strip emoji from text that is shown on screen (speech output is left untouched). */
-export const plain = (s: string) =>
-  s
-    .replace(/[\p{Extended_Pictographic}️‍]/gu, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+/** Keep emojis and format text cleanly for kid-friendly display! */
+export const plain = (s: string) => s.replace(/\s+/g, ' ').trim();
 
-const stroke = {
-  fill: 'none',
-  stroke: 'currentColor',
-  strokeWidth: 1.5,
-  strokeLinecap: 'round',
-  strokeLinejoin: 'round',
-} as const;
+const LEAF_ITEMS: Record<string, { emoji: string; color: string; bg: string; border: string }> = {
+  'Moon Mint': { emoji: '🌿', color: '#10b981', bg: 'linear-gradient(135deg, #a7f3d0 0%, #10b981 100%)', border: '#059669' },
+  'Sleepy Lavender': { emoji: '🪻', color: '#8b5cf6', bg: 'linear-gradient(135deg, #ddd6fe 0%, #8b5cf6 100%)', border: '#6d28d9' },
+  'Sunny Daisy': { emoji: '🌼', color: '#f59e0b', bg: 'linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)', border: '#d97706' },
+  'Rose Petal': { emoji: '🌹', color: '#f43f5e', bg: 'linear-gradient(135deg, #fbcfe8 0%, #f43f5e 100%)', border: '#be123c' },
+  'Berry Bloom': { emoji: '🫐', color: '#3b82f6', bg: 'linear-gradient(135deg, #bfdbfe 0%, #3b82f6 100%)', border: '#1d4ed8' },
+  'Orange Blossom': { emoji: '🍊', color: '#f97316', bg: 'linear-gradient(135deg, #fed7aa 0%, #f97316 100%)', border: '#c2410c' },
+};
 
-/** Minimal line illustrations for the six tea leaves and flowers. */
+const TREAT_ITEMS: Record<string, { emoji: string; color: string; bg: string; border: string }> = {
+  'Honey Drop': { emoji: '🍯', color: '#f59e0b', bg: 'linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)', border: '#d97706' },
+  'Cookie Crumble': { emoji: '🍪', color: '#b45309', bg: 'linear-gradient(135deg, #fed7aa 0%, #b45309 100%)', border: '#78350f' },
+  'Strawberry Swirl': { emoji: '🍓', color: '#f43f5e', bg: 'linear-gradient(135deg, #fbcfe8 0%, #f43f5e 100%)', border: '#be123c' },
+  'Lemon Sparkle': { emoji: '🍋', color: '#eab308', bg: 'linear-gradient(135deg, #fef9c3 0%, #eab308 100%)', border: '#a16207' },
+  'Vanilla Cloud': { emoji: '☁️', color: '#0ea5e9', bg: 'linear-gradient(135deg, #e0f2fe 0%, #38bdf8 100%)', border: '#0369a1' },
+  'Star Sugar': { emoji: '⭐', color: '#a855f7', bg: 'linear-gradient(135deg, #f5d0fe 0%, #c084fc 100%)', border: '#7e22ce' },
+};
+
+const NAP_ITEMS: Record<string, { emoji: string; color: string; bg: string; border: string }> = {
+  demo: { emoji: '⚡', color: '#f59e0b', bg: 'linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)', border: '#d97706' },
+  quick: { emoji: '😴', color: '#6366f1', bg: 'linear-gradient(135deg, #bfdbfe 0%, #6366f1 100%)', border: '#4338ca' },
+  '1h': { emoji: '🐱', color: '#ec4899', bg: 'linear-gradient(135deg, #fed7aa 0%, #ec4899 100%)', border: '#be185d' },
+  '4h': { emoji: '☀️', color: '#f97316', bg: 'linear-gradient(135deg, #fef08a 0%, #f97316 100%)', border: '#c2410c' },
+  '12h': { emoji: '🌙', color: '#7c3aed', bg: 'linear-gradient(135deg, #c7d2fe 0%, #7c3aed 100%)', border: '#5b21b6' },
+};
+
+/** Joyful, bouncy candy badge for tea leaves and flowers. */
 export function LeafArt({ name, size = 56 }: Readonly<{ name: string; size?: number }>) {
-  let art: React.ReactNode;
-  switch (name) {
-    case 'Moon Mint':
-      art = (
-        <>
-          <path d="M24 43V9" />
-          <path d="M24 35c-6 0-10-3-11-8 6 0 10 3 11 8z" />
-          <path d="M24 35c6 0 10-3 11-8-6 0-10 3-11 8z" />
-          <path d="M24 25c-5 0-8-3-9-7 5 0 8 3 9 7z" />
-          <path d="M24 25c5 0 8-3 9-7-5 0-8 3-9 7z" />
-          <path d="M24 15c-3-2-3-6 0-10 3 4 3 8 0 10z" />
-        </>
-      );
-      break;
-    case 'Sleepy Lavender':
-      art = (
-        <>
-          <path d="M24 44V20" />
-          <ellipse cx="24" cy="11" rx="2.5" ry="4.5" />
-          <ellipse cx="19" cy="18" rx="2.5" ry="4.5" transform="rotate(-20 19 18)" />
-          <ellipse cx="29" cy="18" rx="2.5" ry="4.5" transform="rotate(20 29 18)" />
-          <ellipse cx="19.5" cy="27" rx="2.5" ry="4.5" transform="rotate(-20 19.5 27)" />
-          <ellipse cx="28.5" cy="27" rx="2.5" ry="4.5" transform="rotate(20 28.5 27)" />
-        </>
-      );
-      break;
-    case 'Sunny Daisy':
-      art = (
-        <>
-          <circle cx="24" cy="24" r="4.5" />
-          {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
-            <ellipse key={a} cx="24" cy="12" rx="3.2" ry="6" transform={`rotate(${a} 24 24)`} />
-          ))}
-        </>
-      );
-      break;
-    case 'Rose Petal':
-      art = (
-        <>
-          <path d="M24 38c-9 0-15-6-15-14 0-5 3-9 7-10 1-4 5-6 8-6s7 2 8 6c4 1 7 5 7 10 0 8-6 14-15 14z" />
-          <path d="M18 24c0-4 3-7 6-7s6 3 6 7-3 6-6 6c-2 0-4-1-4-3s1-3 3-3" />
-          <path d="M24 38v6" />
-          <path d="M24 42c-3-1-6-1-8 1 3 1 6 1 8-1z" />
-        </>
-      );
-      break;
-    case 'Berry Bloom':
-      art = (
-        <>
-          <circle cx="16" cy="29" r="7" />
-          <circle cx="31" cy="29" r="7" />
-          <circle cx="23.5" cy="18" r="7" />
-          <path d="M23.5 11c0-3 2-5 6-6" />
-        </>
-      );
-      break;
-    case 'Orange Blossom':
-      art = (
-        <>
-          <circle cx="24" cy="24" r="3" />
-          {[0, 72, 144, 216, 288].map((a) => (
-            <ellipse key={a} cx="24" cy="12.5" rx="5" ry="7" transform={`rotate(${a} 24 24)`} />
-          ))}
-        </>
-      );
-      break;
-    default:
-      art = <circle cx="24" cy="24" r="10" />;
-  }
+  const item = LEAF_ITEMS[name] ?? { emoji: '🍃', color: '#10b981', bg: 'linear-gradient(135deg, #a7f3d0 0%, #10b981 100%)', border: '#059669' };
   return (
-    <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden="true" {...stroke}>
-      {art}
-    </svg>
+    <div
+      className="relative inline-flex items-center justify-center rounded-2xl select-none transition-transform hover:scale-105"
+      style={{
+        width: size,
+        height: size,
+        background: item.bg,
+        border: `2.5px solid ${item.border}`,
+        boxShadow: `0 4px 0 ${item.border}, 0 6px 14px rgba(0,0,0,0.25), inset 0 2px 2px rgba(255,255,255,0.7)`,
+      }}
+      aria-hidden="true"
+    >
+      <span style={{ fontSize: `${Math.round(size * 0.58)}px`, lineHeight: 1 }} className="filter drop-shadow-sm">
+        {item.emoji}
+      </span>
+      <span className="absolute -top-1 -right-1 text-xs opacity-70">✨</span>
+    </div>
   );
 }
 
-const TREAT_ICONS: Record<string, typeof Star> = {
-  'Honey Drop': Droplet,
-  'Cookie Crumble': Cookie,
-  'Strawberry Swirl': Cherry,
-  'Lemon Sparkle': Citrus,
-  'Vanilla Cloud': Cloud,
-  'Star Sugar': Star,
-};
-
+/** Sweet candy badge for yummy treats. */
 export function TreatIcon({ name, size = 40 }: Readonly<{ name: string; size?: number }>) {
-  const Icon = TREAT_ICONS[name] ?? Apple;
-  return <Icon size={size} strokeWidth={1.5} aria-hidden="true" />;
+  const item = TREAT_ITEMS[name] ?? { emoji: '🍬', color: '#ec4899', bg: 'linear-gradient(135deg, #fbcfe8 0%, #ec4899 100%)', border: '#be185d' };
+  return (
+    <div
+      className="relative inline-flex items-center justify-center rounded-2xl select-none transition-transform hover:scale-105"
+      style={{
+        width: size,
+        height: size,
+        background: item.bg,
+        border: `2.5px solid ${item.border}`,
+        boxShadow: `0 4px 0 ${item.border}, 0 6px 14px rgba(0,0,0,0.25), inset 0 2px 2px rgba(255,255,255,0.7)`,
+      }}
+      aria-hidden="true"
+    >
+      <span style={{ fontSize: `${Math.round(size * 0.58)}px`, lineHeight: 1 }} className="filter drop-shadow-sm">
+        {item.emoji}
+      </span>
+      <span className="absolute -top-1 -right-1 text-xs opacity-70">✨</span>
+    </div>
+  );
 }
 
-const NAP_ICONS: Record<string, typeof Star> = {
-  demo: Zap,
-  quick: Clock,
-  '1h': Moon,
-  '4h': Sun,
-  '12h': Star,
-};
-
+/** Playful badge for nap times. */
 export function NapIcon({ id, size = 36 }: Readonly<{ id: string; size?: number }>) {
-  const Icon = NAP_ICONS[id] ?? Moon;
-  return <Icon size={size} strokeWidth={1.5} aria-hidden="true" />;
+  const item = NAP_ITEMS[id] ?? { emoji: '💤', color: '#8b5cf6', bg: 'linear-gradient(135deg, #ddd6fe 0%, #8b5cf6 100%)', border: '#6d28d9' };
+  return (
+    <div
+      className="relative inline-flex items-center justify-center rounded-2xl select-none transition-transform hover:scale-105"
+      style={{
+        width: size,
+        height: size,
+        background: item.bg,
+        border: `2.5px solid ${item.border}`,
+        boxShadow: `0 4px 0 ${item.border}, 0 6px 14px rgba(0,0,0,0.25), inset 0 2px 2px rgba(255,255,255,0.7)`,
+      }}
+      aria-hidden="true"
+    >
+      <span style={{ fontSize: `${Math.round(size * 0.58)}px`, lineHeight: 1 }} className="filter drop-shadow-sm">
+        {item.emoji}
+      </span>
+    </div>
+  );
 }
 
-/** Thin indeterminate progress bar used while the 3D scene loads. */
+/** Chunky candy progress bar used while 3D loads. */
 export function LoadingBar({ className = '' }: Readonly<{ className?: string }>) {
   return (
     <div
       role="progressbar"
       aria-label="Loading"
-      className={`h-[2px] w-40 overflow-hidden rounded-full ${className}`}
-      style={{ background: 'var(--border-strong)' }}
+      className={`h-4 w-48 overflow-hidden rounded-full p-0.5 ${className}`}
+      style={{
+        background: 'rgba(15, 8, 48, 0.8)',
+        border: '2px solid rgba(255, 255, 255, 0.35)',
+        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.4)',
+      }}
     >
       <div
-        className="h-full w-2/5 rounded-full"
-        style={{ background: 'var(--accent)', animation: 'loadbar 1.4s var(--ease) infinite' }}
+        className="h-full rounded-full"
+        style={{
+          width: '50%',
+          background: 'linear-gradient(90deg, #10b981, #facc15, #f43f5e)',
+          boxShadow: '0 0 10px #facc15',
+          animation: 'loadbar 1.2s var(--ease) infinite',
+        }}
       />
     </div>
   );
 }
 
+/** Bouncy candy ✖ close button */
 export function CloseButton({ onClick }: Readonly<{ onClick: () => void }>) {
   return (
-    <button onClick={onClick} aria-label="Close" className="icon-btn">
-      <X size={22} strokeWidth={1.5} aria-hidden="true" />
+    <button
+      onClick={onClick}
+      aria-label="Close"
+      className="inline-flex items-center justify-center w-11 h-11 rounded-full text-white font-black text-lg cursor-pointer transition-all hover:scale-110 active:scale-90"
+      style={{
+        background: 'linear-gradient(180deg, #fb7185 0%, #e11d48 100%)',
+        border: '2.5px solid #ffffff',
+        boxShadow: '0 4px 0 #9f1239, 0 6px 14px rgba(0,0,0,0.3)',
+      }}
+    >
+      <X size={22} strokeWidth={3} aria-hidden="true" />
     </button>
   );
 }
@@ -184,7 +167,7 @@ function makeSum() {
   return { a, b, answer, options: [...options].sort((x, y) => x - y) };
 }
 
-/** A simple grown-up gate: answer an addition question. */
+/** Playful grown-up lock */
 export function ParentGate({ onPass, onClose }: Readonly<{ onPass: () => void; onClose: () => void }>) {
   const [sum, setSum] = useState(makeSum);
   const [wrong, setWrong] = useState(false);
@@ -193,19 +176,23 @@ export function ParentGate({ onPass, onClose }: Readonly<{ onPass: () => void; o
   return (
     <div
       className="fixed inset-0 z-[52] flex items-center justify-center p-4"
-      style={{ background: 'rgba(15,13,26,0.8)' }}
+      style={{ background: 'rgba(12, 8, 30, 0.85)', backdropFilter: 'blur(6px)' }}
       role="dialog"
       aria-modal="true"
-      aria-label="Grown-ups only"
+      aria-label="Grown-ups only lock"
     >
       <div className="surface animate-modal w-full max-w-sm p-7 text-center" style={{ background: 'var(--surface-solid)' }}>
-        <p className="text-sm" style={{ color: 'var(--muted)' }}>
-          Grown-ups only
+        <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center text-white mb-2" style={{ background: 'linear-gradient(180deg, #818cf8, #4f46e5)', border: '2.5px solid #ffffff', boxShadow: '0 4px 0 #312e81' }}>
+          <Lock size={26} strokeWidth={2.5} />
+        </div>
+        <p className="text-sm font-bold uppercase tracking-wider text-amber-300">
+          🔒 Grown-ups Only!
         </p>
-        <h2 className="mt-2 text-3xl font-light">
+        <p className="text-xs text-white/70 mt-0.5">Solve the puzzle to enter the parent settings:</p>
+        <h2 className="mt-4 text-3xl font-black text-white">
           {sum.a} + {sum.b} = ?
         </h2>
-        <div className="mt-6 grid grid-cols-4 gap-2">
+        <div className="mt-6 grid grid-cols-4 gap-2.5">
           {sum.options.map((o) => (
             <button
               key={o}
@@ -216,17 +203,22 @@ export function ParentGate({ onPass, onClose }: Readonly<{ onPass: () => void; o
                   setSum(makeSum());
                 }
               }}
-              className="btn-pill min-h-14 text-xl"
+              className="btn-pill min-h-14 text-2xl font-black text-amber-100"
+              style={{
+                background: 'linear-gradient(180deg, #6366f1 0%, #4338ca 100%)',
+                border: '2px solid #a5b4fc',
+                boxShadow: '0 5px 0 #312e81',
+              }}
             >
               {o}
             </button>
           ))}
         </div>
-        <p className="mt-3 h-5 text-sm" role="status" style={{ color: 'var(--danger)' }}>
-          {wrong ? 'Not quite. Try this one.' : ''}
+        <p className="mt-3 h-5 text-sm font-bold text-rose-300" role="status">
+          {wrong ? 'Oops! Try this one instead ⭐' : ''}
         </p>
-        <button onClick={onClose} className="btn-pill mt-3 px-6">
-          Cancel
+        <button onClick={onClose} className="btn-pill mt-3 px-6 text-sm font-extrabold text-white">
+          Close
         </button>
       </div>
     </div>
@@ -235,7 +227,7 @@ export function ParentGate({ onPass, onClose }: Readonly<{ onPass: () => void; o
 
 const LEAF_NAMES = new Set(['Moon Mint', 'Sleepy Lavender', 'Sunny Daisy', 'Rose Petal', 'Berry Bloom', 'Orange Blossom']);
 
-/** Line art for any tea ingredient (leaf, flower or treat). */
-export function IngredientArt({ name, size = 40 }: Readonly<{ name: string; size?: number }>) {
+/** Rich sticker art for any tea ingredient (leaf, flower or treat). */
+export function IngredientArt({ name, size = 44 }: Readonly<{ name: string; size?: number }>) {
   return LEAF_NAMES.has(name) ? <LeafArt name={name} size={size} /> : <TreatIcon name={name} size={size} />;
 }

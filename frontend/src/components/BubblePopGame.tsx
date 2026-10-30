@@ -106,26 +106,26 @@ export default function BubblePopGame({ onScoreReward, onClose }: BubblePopGameP
   return (
     <div className="flex flex-col items-center w-full">
       {/* Game Header */}
-      <div className="w-full flex items-center justify-between mb-3 px-2">
+      <div className="w-full flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
-          <div className="text-xl font-semibold" style={{ color: 'var(--text)' }}>Bubble Pop Bash!</div>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="px-3 min-h-[36px] inline-flex items-center gap-1.5 rounded-full text-sm sm:text-base font-semibold" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} aria-label={`${timeLeft} seconds left`}>
-            <Hourglass size={18} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--berry)' }} /> {timeLeft}s
+          <div className="text-xl sm:text-2xl font-black text-amber-200">
+            🫧 Bubble Pop Bash! 🎈
           </div>
-          <div className="px-3 min-h-[36px] inline-flex items-center gap-1.5 rounded-full text-sm sm:text-base font-semibold" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} aria-label={`Score ${score}`}>
-            <Star size={18} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--daisy)' }} /> {score}
+        </div>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="px-3 py-1 rounded-2xl bg-cyan-600/30 border-2 border-cyan-400/50 shadow-sm inline-flex items-center gap-1.5 text-sm sm:text-base font-black text-cyan-200" aria-label={`${timeLeft} seconds left`}>
+            ⏰ {timeLeft}s
+          </div>
+          <div className="px-3.5 py-1 rounded-2xl bg-amber-500/30 border-2 border-amber-400/60 shadow-sm inline-flex items-center gap-1.5 text-sm sm:text-base font-black text-amber-200" aria-label={`Score ${score}`}>
+            ⭐ {score}
           </div>
         </div>
       </div>
 
       {/* Game Playfield */}
-      <div className="relative w-full h-[360px] max-h-[55vh] overflow-hidden select-none"
+      <div className="relative w-full h-[360px] max-h-[55vh] overflow-hidden select-none rounded-3xl border-3 border-purple-400/30 shadow-inner"
         style={{
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-strong)',
-          background: 'linear-gradient(180deg, #1d1442, #33194f 60%, #4a2060)',
+          background: 'radial-gradient(ellipse at 50% 100%, #3b1d60 0%, #1a0e38 100%)',
         }}>
         {bubbles.map((b) => (
           <button
@@ -153,23 +153,23 @@ export default function BubblePopGame({ onScoreReward, onClose }: BubblePopGameP
         ))}
 
         {gameOver && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-30 overflow-y-auto" style={{ background: 'rgba(10,6,28,0.7)' }}>
-            <div className="surface px-6 py-5 text-center max-w-xs w-full animate-pop" style={{ background: 'var(--surface-solid)' }}>
-              <PartyPopper size={36} strokeWidth={1.5} aria-hidden="true" className="mx-auto mb-2" style={{ color: 'var(--accent)' }} />
-              <h3 className="text-2xl font-semibold" style={{ color: 'var(--text)' }}>Time Up!</h3>
-              <div className="flex justify-center gap-1 my-3" role="img" aria-label={`${starsEarned} out of 3 stars`}>
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-30 overflow-y-auto" style={{ background: 'rgba(10,6,28,0.85)', backdropFilter: 'blur(4px)' }}>
+            <div className="surface px-6 py-5 text-center max-w-xs w-full animate-pop rounded-3xl" style={{ background: 'var(--surface-solid)' }}>
+              <div className="text-4xl animate-bounce mb-1">🎉🌟</div>
+              <h3 className="text-2xl font-black text-amber-300">Time&apos;s Up!</h3>
+              <div className="flex justify-center gap-1.5 my-3" role="img" aria-label={`${starsEarned} out of 3 stars`}>
                 {[1, 2, 3].map((n) => (
-                  <Star key={n} size={28} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--daisy)' }} fill={n <= starsEarned ? 'var(--daisy)' : 'none'} />
+                  <Star key={n} size={32} strokeWidth={2} aria-hidden="true" style={{ color: '#fbbf24' }} fill={n <= starsEarned ? '#fbbf24' : 'none'} className="drop-shadow-md" />
                 ))}
               </div>
-              <p className="text-lg font-semibold mb-1" style={{ color: 'var(--daisy)' }}>Score: {score} points</p>
-              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-                +{score} XP added to your tea party level!
+              <p className="text-xl font-black mb-1 text-amber-200">Score: {score} pts</p>
+              <p className="text-xs font-bold mb-4 text-emerald-300">
+                +{score} XP added to your level! ⭐
               </p>
 
-              <div className="flex flex-col gap-2">
-                <button onClick={restart} className="btn-pill primary px-5 text-base">
-                  <RotateCcw size={18} strokeWidth={1.5} aria-hidden="true" /> Play Again
+              <div className="flex flex-col gap-2.5">
+                <button onClick={restart} className="btn-pill primary px-5 text-base font-black">
+                  <RotateCcw size={18} strokeWidth={2.5} aria-hidden="true" /> Play Again
                 </button>
                 <button
                   onClick={() => {
@@ -177,9 +177,9 @@ export default function BubblePopGame({ onScoreReward, onClose }: BubblePopGameP
                     onScoreReward(score);
                     onClose();
                   }}
-                  className="btn-pill px-5 text-sm"
+                  className="btn-pill px-5 text-sm font-black text-white"
                 >
-                  <Check size={18} strokeWidth={1.5} aria-hidden="true" /> Finish &amp; Claim Stars
+                  <Check size={18} strokeWidth={2.5} aria-hidden="true" /> Claim Stars &amp; Finish
                 </button>
               </div>
             </div>

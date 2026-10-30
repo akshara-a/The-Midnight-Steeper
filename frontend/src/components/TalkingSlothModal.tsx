@@ -112,61 +112,76 @@ export default function TalkingSlothModal({ onSay, onSetTalking }: TalkingSlothM
   const StatusIcon = isPlayingBack ? Volume2 : Mic;
 
   const pads = [
-    { label: 'Tell Joke', Icon: Laugh, color: 'var(--lavender)', onClick: tellJoke },
-    { label: 'Giggle', Icon: Smile, color: 'var(--daisy)', onClick: sillyGiggle },
-    { label: 'Sloth Sneeze', Icon: Wind, color: 'var(--berry)', onClick: makeSneeze },
-    { label: 'Sing Song', Icon: Music, color: 'var(--mint)', onClick: singSong },
+    { label: 'Tell Joke', emoji: '🤣', color: '#a855f7', onClick: tellJoke },
+    { label: 'Giggle', emoji: '🤭', color: '#f59e0b', onClick: sillyGiggle },
+    { label: 'Sloth Sneeze', emoji: '🤧', color: '#06b6d4', onClick: makeSneeze },
+    { label: 'Sing Song', emoji: '🎵', color: '#10b981', onClick: singSong },
   ];
 
   return (
-    <div className="flex flex-col gap-4 w-full text-center">
-      <div className="text-base sm:text-lg" style={{ color: 'var(--text)' }}>
-        Talk to Sunny just like Talking Tom, or play funny sound effects!
+    <div className="flex flex-col gap-4 w-full text-center animate-modal">
+      <div className="text-sm sm:text-base font-bold text-amber-100">
+        Talk to Sunny just like Talking Tom, or tap funny sound effects! 🎙️✨
       </div>
 
       {/* Voice Record / Mimic Section */}
-      <div className="surface p-4 flex flex-col items-center">
+      <div className="surface p-5 flex flex-col items-center rounded-3xl">
         <div
-          className="mb-2 flex items-center justify-center rounded-full"
+          className={`mb-3 flex items-center justify-center rounded-3xl text-3xl shadow-lg transition-transform ${
+            isRecording ? 'animate-bounce scale-110' : isPlayingBack ? 'animate-pulse scale-105' : ''
+          }`}
           style={{
-            width: 56,
-            height: 56,
-            background: 'color-mix(in srgb, var(--rose) 18%, transparent)',
-            color: 'var(--rose)',
+            width: 64,
+            height: 64,
+            background: isRecording
+              ? 'linear-gradient(180deg, #f43f5e, #be123c)'
+              : isPlayingBack
+              ? 'linear-gradient(180deg, #10b981, #047857)'
+              : 'linear-gradient(180deg, #ec4899, #be185d)',
+            border: '2.5px solid #ffffff',
+            boxShadow: '0 4px 0 rgba(0,0,0,0.3)',
           }}
         >
-          <StatusIcon size={28} strokeWidth={1.5} aria-hidden="true" />
+          {isPlayingBack ? '🔊' : isRecording ? '🔴' : '🎤'}
         </div>
-        <h3 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>
+        <h3 className="font-black text-xl text-white">
           Talking Sloth Mimic
         </h3>
-        <p className="text-xs sm:text-sm mt-1 mb-3" style={{ color: 'var(--muted)' }} role="status">
+        <p className="text-xs sm:text-sm mt-1 mb-4 font-bold text-amber-200" role="status">
           {isPlayingBack
             ? 'Sunny is repeating what you said in a squeaky sloth voice!'
             : isRecording
-            ? 'Listening... say something into your microphone!'
-            : 'Hold or tap the mic button to speak, and Sunny repeats it back!'}
+            ? 'Listening... say something funny into your microphone!'
+            : 'Tap the big red mic to speak, and Sunny repeats it back!'}
         </p>
 
         {!isRecording ? (
-          <button onClick={startRecording} disabled={isPlayingBack} className="btn-pill primary px-6 text-base">
-            <Mic size={20} strokeWidth={1.5} aria-hidden="true" /> Start Talking
+          <button
+            onClick={startRecording}
+            disabled={isPlayingBack}
+            className="btn-pill primary px-8 text-lg font-black min-h-[58px]"
+          >
+            <Mic size={22} strokeWidth={2.5} aria-hidden="true" />
+            Start Talking! 🎙️
           </button>
         ) : (
-          <button onClick={stopRecording} className="btn-pill primary px-6 text-base">
-            <Square size={18} strokeWidth={1.5} aria-hidden="true" /> Stop &amp; Listen to Sunny
+          <button
+            onClick={stopRecording}
+            className="btn-pill px-8 text-lg font-black min-h-[58px] text-white animate-pulse"
+            style={{
+              background: 'linear-gradient(180deg, #f43f5e 0%, #be123c 100%)',
+              border: '2.5px solid #ffffff',
+              boxShadow: '0 5px 0 #881337',
+            }}
+          >
+            <Square size={20} strokeWidth={2.5} aria-hidden="true" />
+            Stop &amp; Listen to Sunny! 🦥
           </button>
         )}
 
         {micError && (
           <div
-            className="mt-3 text-xs sm:text-sm px-3 py-2"
-            style={{
-              color: 'var(--danger)',
-              background: 'var(--surface)',
-              border: '1px solid var(--border-strong)',
-              borderRadius: 'var(--radius-sm)',
-            }}
+            className="mt-3 text-xs sm:text-sm px-4 py-2 font-bold text-rose-200 bg-rose-950/60 border border-rose-400/40 rounded-2xl"
             role="alert"
           >
             {micError}
@@ -176,19 +191,19 @@ export default function TalkingSlothModal({ onSay, onSetTalking }: TalkingSlothM
 
       {/* Silly Soundboard */}
       <div>
-        <div className="font-semibold text-base mb-2" style={{ color: 'var(--text)' }}>
-          Sunny&apos;s Silly Soundboard
+        <div className="font-black text-lg mb-2 text-amber-200">
+          Sunny&apos;s Silly Soundboard! 🤪
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          {pads.map(({ label, Icon, color, onClick }) => (
+          {pads.map(({ label, emoji, color, onClick }) => (
             <button
               key={label}
               onClick={onClick}
-              className="pick-card p-3 min-h-[72px] flex flex-col items-center justify-center gap-1.5"
+              className="pick-card p-3 min-h-[82px] flex flex-col items-center justify-center gap-1 rounded-2xl"
               style={{ ['--sel' as string]: color }}
             >
-              <Icon size={26} strokeWidth={1.5} aria-hidden="true" style={{ color }} />
-              <span className="text-xs sm:text-sm font-semibold">{label}</span>
+              <span className="text-3xl animate-bounce-soft">{emoji}</span>
+              <span className="text-xs sm:text-sm font-black text-white">{label}</span>
             </button>
           ))}
         </div>
