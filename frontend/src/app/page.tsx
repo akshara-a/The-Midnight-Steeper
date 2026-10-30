@@ -121,6 +121,8 @@ function Confetti() {
   );
 }
 
+const WISH_COLORS = ['var(--mint)', 'var(--daisy)', 'var(--rose)', 'var(--berry)'];
+
 const THEME_ICONS: Record<DioramaTheme, typeof Flame> = {
   classic: Flame,
   sakura: Flower2,
@@ -649,7 +651,7 @@ export default function SunnyTeaParty() {
               aria-label={voiceOn ? 'Turn Sunny’s voice off' : 'Turn Sunny’s voice on'}
               className="icon-btn"
             >
-              {voiceOn ? <Volume2 size={22} strokeWidth={1.5} aria-hidden="true" /> : <VolumeX size={22} strokeWidth={1.5} aria-hidden="true" />}
+              {voiceOn ? <Volume2 size={28} strokeWidth={1.75} style={{ color: 'var(--daisy)' }} aria-hidden="true" /> : <VolumeX size={28} strokeWidth={1.75} aria-hidden="true" />}
             </button>
             <button
               onClick={() => {
@@ -659,7 +661,7 @@ export default function SunnyTeaParty() {
               aria-label="For grown-ups"
               className="icon-btn"
             >
-              <Users size={22} strokeWidth={1.5} aria-hidden="true" />
+              <Users size={28} strokeWidth={1.75} style={{ color: 'var(--mint)' }} aria-hidden="true" />
             </button>
             <button
               onClick={() => {
@@ -669,13 +671,13 @@ export default function SunnyTeaParty() {
               aria-label="Open menu"
               className="icon-btn"
             >
-              <MenuIcon size={22} strokeWidth={1.5} aria-hidden="true" />
+              <MenuIcon size={28} strokeWidth={1.75} style={{ color: 'var(--rose)' }} aria-hidden="true" />
             </button>
           </div>
         </div>
       </header>
 
-      <div className="relative z-10 mx-auto w-full max-w-3xl landscape:md:max-w-5xl px-4 sm:px-6 pt-20 pb-32 flex flex-col gap-6 landscape:md:grid landscape:md:grid-cols-2 landscape:md:items-center">
+      <div className="relative z-10 mx-auto w-full max-w-3xl landscape:md:max-w-5xl px-4 sm:px-6 pt-24 pb-36 flex flex-col gap-6 landscape:md:grid landscape:md:grid-cols-2 landscape:md:items-center">
         {errorMsg && (
           <div className="surface px-4 py-3 text-center landscape:md:col-span-2" role="alert" style={{ color: 'var(--danger)' }}>
             {plain(errorMsg)}
@@ -763,7 +765,7 @@ export default function SunnyTeaParty() {
                   className="h-1.5 rounded-full transition-all"
                   style={{
                     width: n === step ? 28 : 8,
-                    background: n <= step ? 'var(--accent)' : 'var(--border-strong)',
+                    background: n <= step ? ['var(--mint)', 'var(--daisy)', 'var(--rose)'][n - 1] : 'var(--border-strong)',
                   }}
                 />
               ))}
@@ -789,12 +791,12 @@ export default function SunnyTeaParty() {
                     aria-pressed={leaf.name === item.name}
                     style={{ '--sel': item.color } as React.CSSProperties}
                     onClick={(e) => chooseLeaf(item, e)}
-                    className="pick-card px-2 py-4 flex flex-col items-center gap-2 text-center min-h-[120px]"
+                    className="pick-card px-2 py-4 flex flex-col items-center gap-2 text-center min-h-[140px]"
                   >
                     <span style={{ color: item.color }}>
-                      <LeafArt name={item.name} />
+                      <LeafArt name={item.name} size={72} />
                     </span>
-                    <span className="text-sm sm:text-base leading-tight">{item.name}</span>
+                    <span className="text-base sm:text-lg font-semibold leading-tight">{item.name}</span>
                   </button>
                 ))}
               </div>
@@ -809,12 +811,12 @@ export default function SunnyTeaParty() {
                     aria-pressed={treat.name === item.name}
                     style={{ '--sel': item.color } as React.CSSProperties}
                     onClick={(e) => chooseTreat(item, e)}
-                    className="pick-card px-2 py-4 flex flex-col items-center gap-2 text-center min-h-[120px]"
+                    className="pick-card px-2 py-4 flex flex-col items-center gap-2 text-center min-h-[140px]"
                   >
                     <span style={{ color: item.color }}>
-                      <TreatIcon name={item.name} size={48} />
+                      <TreatIcon name={item.name} size={64} />
                     </span>
-                    <span className="text-sm sm:text-base leading-tight">{item.name}</span>
+                    <span className="text-base sm:text-lg font-semibold leading-tight">{item.name}</span>
                   </button>
                 ))}
               </div>
@@ -837,7 +839,7 @@ export default function SunnyTeaParty() {
                       className="pick-card px-3 py-4 flex flex-col items-center gap-1 text-center min-h-[110px]"
                     >
                       <span style={{ color: 'var(--accent)' }}>
-                        <NapIcon id={n.key} />
+                        <NapIcon id={n.key} size={48} />
                       </span>
                       <span className="text-base">{plain(n.label)}</span>
                       <span className="text-sm" style={{ color: 'var(--muted)' }}>{n.sub}</span>
@@ -951,7 +953,7 @@ export default function SunnyTeaParty() {
         {!isBedtimeActive && (
           <section className="flex flex-col items-center" aria-label="Today's wishes">
             <div className="flex items-center justify-center">
-              {wishes.map((w) => (
+              {wishes.map((w, wi) => (
                 <button
                   key={w.label}
                   onClick={() => setWishTip((t) => (t === w.label ? null : w.label))}
@@ -960,8 +962,12 @@ export default function SunnyTeaParty() {
                   className="h-11 w-11 flex items-center justify-center"
                 >
                   <span
-                    className="h-3 w-3 rounded-full transition-colors"
-                    style={w.done ? { background: 'var(--accent)' } : { border: '1.5px solid var(--muted)' }}
+                    className="h-4 w-4 rounded-full transition-colors"
+                    style={
+                      w.done
+                        ? { background: WISH_COLORS[wi % WISH_COLORS.length], boxShadow: `0 0 12px color-mix(in srgb, ${WISH_COLORS[wi % WISH_COLORS.length]} 70%, transparent)` }
+                        : { border: `1.5px solid ${WISH_COLORS[wi % WISH_COLORS.length]}` }
+                    }
                   />
                 </button>
               ))}
@@ -989,13 +995,13 @@ export default function SunnyTeaParty() {
         >
           <div className="px-1.5 py-1.5 grid grid-cols-6">
             {[
-              { key: 'bath', label: 'Bath', Icon: Bath, active: petMode === 'bath' },
-              { key: 'snack', label: 'Snack', Icon: Apple, active: petMode === 'snack' },
-              { key: 'closet', label: 'Closet', Icon: Shirt, active: false },
-              { key: 'games', label: 'Games', Icon: Gamepad2, active: false },
-              { key: 'talk', label: 'Talk', Icon: Mic, active: false },
-              { key: 'tea', label: 'Tea & Bed', Icon: Coffee, active: petMode === 'tea' },
-            ].map(({ key, label, Icon, active }) => (
+              { key: 'bath', label: 'Bath', Icon: Bath, active: petMode === 'bath', color: 'var(--berry)' },
+              { key: 'snack', label: 'Snack', Icon: Apple, active: petMode === 'snack', color: 'var(--rose)' },
+              { key: 'closet', label: 'Closet', Icon: Shirt, active: false, color: 'var(--lavender)' },
+              { key: 'games', label: 'Games', Icon: Gamepad2, active: false, color: 'var(--mint)' },
+              { key: 'talk', label: 'Talk', Icon: Mic, active: false, color: 'var(--daisy)' },
+              { key: 'tea', label: 'Tea & Bed', Icon: Coffee, active: petMode === 'tea', color: 'var(--orange)' },
+            ].map(({ key, label, Icon, active, color }) => (
               <button
                 key={key}
                 onClick={() => {
@@ -1016,15 +1022,15 @@ export default function SunnyTeaParty() {
                 }}
                 aria-label={label}
                 aria-pressed={active}
-                className="flex flex-col items-center justify-center gap-1 min-h-14 rounded-2xl"
+                className="flex flex-col items-center justify-center gap-1 min-h-[72px] rounded-2xl"
               >
                 <span
-                  className="flex h-9 w-9 items-center justify-center rounded-full transition-colors"
-                  style={active ? { background: 'var(--accent)', color: 'var(--accent-ink)' } : { color: 'var(--text)' }}
+                  className="flex h-12 w-12 items-center justify-center rounded-full transition-colors"
+                  style={active ? { background: color, color: '#1b1236', boxShadow: `0 0 20px color-mix(in srgb, ${color} 60%, transparent)` } : { color }}
                 >
-                  <Icon size={20} strokeWidth={1.5} aria-hidden="true" />
+                  <Icon size={28} strokeWidth={1.75} aria-hidden="true" />
                 </span>
-                <span className="text-[11px] leading-none" style={{ color: active ? 'var(--text)' : 'var(--muted)' }}>
+                <span className="text-xs font-semibold leading-none" style={{ color: active ? 'var(--text)' : 'var(--muted)' }}>
                   {label}
                 </span>
               </button>

@@ -6,6 +6,13 @@
    ============================================================ */
 :root {
   --bg: #120f26;
+  --sky-g1: #17104a;
+  --sky-g2: #2a1465;
+  --sky-g3: #4a1a6b;
+  --glow-a: rgba(255, 226, 150, 0.30);
+  --glow-b: rgba(77, 225, 210, 0.20);
+  --glow-c: rgba(108, 184, 255, 0.20);
+  --glow-d: rgba(255, 126, 182, 0.28);
   --sky-top: #0f0c24;
   --sky-mid: #1d1442;
   --sky-low: #33194f;
@@ -22,12 +29,13 @@
   --danger: #ffa3b8;
 
   /* friendly jewel colours used for items */
-  --mint: #7ee8c1;
-  --lavender: #c9a7ff;
-  --daisy: #ffd873;
-  --rose: #ff9ec4;
-  --berry: #8fb4ff;
-  --orange: #ffb27a;
+  --mint: #5df0b5;
+  --lavender: #bf9bff;
+  --daisy: #ffd23f;
+  --rose: #ff7eb6;
+  --berry: #6cb8ff;
+  --orange: #ff9a52;
+  --sky-teal: #4de1d2;
 
   --radius-sm: 16px;
   --radius: 22px;
@@ -61,11 +69,38 @@ body {
 }
 
 /* Theme tints: only a faint colour in the stage lighting */
-.theme-classic { --tint: rgba(255, 170, 90, 0.14); }
-.theme-sakura { --tint: rgba(251, 140, 170, 0.14); }
-.theme-celestial { --tint: rgba(90, 190, 250, 0.14); }
-.theme-autumn { --tint: rgba(245, 158, 11, 0.14); }
-.theme-onsen { --tint: rgba(45, 212, 191, 0.14); }
+/* Each theme re-colours the whole interface: sky, glows and the six jewel slots */
+.theme-classic {
+  --tint: rgba(255, 170, 90, 0.14);
+}
+.theme-sakura {
+  --tint: rgba(251, 140, 170, 0.14);
+  --mint: #9af2c8; --daisy: #ffe08a; --rose: #ff6fa5; --berry: #ffa6d6; --orange: #ffb199; --lavender: #e0a8ff;
+  --accent: #ffb3d9; --accent-2: #ff6fa5;
+  --sky-g1: #2c0f35; --sky-g2: #5a1a56; --sky-g3: #86255e;
+  --glow-a: rgba(255, 214, 190, 0.30); --glow-b: rgba(255, 166, 214, 0.22); --glow-c: rgba(224, 168, 255, 0.20); --glow-d: rgba(255, 111, 165, 0.34);
+}
+.theme-celestial {
+  --tint: rgba(90, 190, 250, 0.14);
+  --mint: #6ff7e8; --daisy: #fff08a; --rose: #c78bff; --berry: #5bb8ff; --orange: #8aa6ff; --lavender: #a58bff;
+  --accent: #9fd0ff; --accent-2: #b48bff;
+  --sky-g1: #081042; --sky-g2: #13217e; --sky-g3: #2a1a96;
+  --glow-a: rgba(220, 240, 255, 0.32); --glow-b: rgba(111, 247, 232, 0.22); --glow-c: rgba(91, 184, 255, 0.26); --glow-d: rgba(180, 139, 255, 0.34);
+}
+.theme-autumn {
+  --tint: rgba(245, 158, 11, 0.14);
+  --mint: #b8e86b; --daisy: #ffcf3a; --rose: #ff6f61; --berry: #ff9248; --orange: #ff8a2b; --lavender: #e0a35d;
+  --accent: #ffc27a; --accent-2: #ff6f61;
+  --sky-g1: #2a0e12; --sky-g2: #5a2112; --sky-g3: #86301a;
+  --glow-a: rgba(255, 214, 120, 0.34); --glow-b: rgba(255, 138, 43, 0.22); --glow-c: rgba(255, 111, 97, 0.20); --glow-d: rgba(255, 207, 58, 0.30);
+}
+.theme-onsen {
+  --tint: rgba(45, 212, 191, 0.14);
+  --mint: #4ff0c6; --daisy: #e4ff7a; --rose: #ff9bd0; --berry: #5ad2ff; --orange: #ffc86b; --lavender: #86a8ff;
+  --accent: #8ff5de; --accent-2: #5ad2ff;
+  --sky-g1: #04222e; --sky-g2: #0a4452; --sky-g3: #0e6a66;
+  --glow-a: rgba(228, 255, 180, 0.30); --glow-b: rgba(79, 240, 198, 0.24); --glow-c: rgba(90, 210, 255, 0.22); --glow-d: rgba(255, 200, 107, 0.26);
+}
 
 /* ============================================================
    NIGHT SKY — gradient, moon glow, slowly twinkling stars
@@ -73,9 +108,11 @@ body {
 .sky { position: fixed; inset: 0; z-index: 0; }
 .sky-day {
   background:
-    radial-gradient(circle 260px at 84% 9%, rgba(255, 232, 190, 0.22), transparent 70%),
-    radial-gradient(ellipse 80% 50% at 50% 105%, rgba(255, 158, 196, 0.16), transparent 70%),
-    linear-gradient(180deg, var(--sky-top), var(--sky-mid) 55%, var(--sky-low));
+    radial-gradient(circle 260px at 84% 9%, var(--glow-a), transparent 70%),
+    radial-gradient(ellipse 60% 35% at 12% 30%, var(--glow-b), transparent 70%),
+    radial-gradient(ellipse 55% 35% at 90% 55%, var(--glow-c), transparent 70%),
+    radial-gradient(ellipse 90% 50% at 50% 108%, var(--glow-d), transparent 70%),
+    linear-gradient(180deg, var(--sky-g1), var(--sky-g2) 50%, var(--sky-g3));
   transition: opacity 1.8s ease;
 }
 .sky-night {
@@ -132,8 +169,8 @@ body {
 .stage-scene {
   border-radius: var(--radius-lg);
   background:
-    radial-gradient(ellipse 55% 50% at 50% 42%, rgba(201, 167, 255, 0.20), transparent 75%),
-    radial-gradient(ellipse 70% 30% at 50% 100%, rgba(255, 184, 224, 0.12), transparent 80%);
+    radial-gradient(ellipse 55% 50% at 50% 42%, rgba(191, 155, 255, 0.30), transparent 75%),
+    radial-gradient(ellipse 70% 30% at 50% 100%, rgba(255, 126, 182, 0.22), transparent 80%);
 }
 .night .stage-scene {
   background: radial-gradient(ellipse 55% 50% at 50% 45%, rgba(201, 167, 255, 0.10), transparent 75%);
@@ -164,25 +201,25 @@ body {
 .btn-pill.primary,
 .btn-chunky.green,
 .btn-chunky.yellow {
-  background: linear-gradient(135deg, #d6b8ff, var(--accent-2));
-  color: var(--accent-ink);
+  background: linear-gradient(135deg, var(--lavender), var(--rose) 60%, var(--orange));
+  color: #2a0f47;
   border-color: transparent;
   font-weight: 800;
-  box-shadow: 0 6px 24px rgba(201, 167, 255, 0.35);
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--rose) 45%, transparent);
 }
 .btn-pill.primary:hover:not(:disabled),
 .btn-chunky.green:hover:not(:disabled),
 .btn-chunky.yellow:hover:not(:disabled) {
-  background: linear-gradient(135deg, #e2caff, #ffc8e8);
-  box-shadow: 0 8px 30px rgba(255, 184, 224, 0.4);
+  filter: brightness(1.08);
+  box-shadow: 0 8px 30px color-mix(in srgb, var(--rose) 55%, transparent);
 }
 
 .icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -200,17 +237,17 @@ body {
   position: relative;
   border-radius: var(--radius);
   border: 1.5px solid var(--border);
-  background: color-mix(in srgb, var(--sel) 9%, rgba(255, 255, 255, 0.03));
+  background: color-mix(in srgb, var(--sel) 16%, rgba(255, 255, 255, 0.03));
   color: var(--text);
   cursor: pointer;
   transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
-.pick-card:hover { background: color-mix(in srgb, var(--sel) 16%, rgba(255, 255, 255, 0.04)); transform: translateY(-2px); }
+.pick-card:hover { background: color-mix(in srgb, var(--sel) 24%, rgba(255, 255, 255, 0.04)); transform: translateY(-2px); }
 .pick-card:active { transform: scale(0.97); }
 .pick-card[data-selected='true'] {
   border-color: var(--sel);
-  background: color-mix(in srgb, var(--sel) 18%, rgba(255, 255, 255, 0.04));
-  box-shadow: 0 0 28px color-mix(in srgb, var(--sel) 35%, transparent);
+  background: color-mix(in srgb, var(--sel) 28%, rgba(255, 255, 255, 0.04));
+  box-shadow: 0 0 30px color-mix(in srgb, var(--sel) 50%, transparent);
   transform: translateY(-2px);
 }
 
@@ -231,11 +268,11 @@ body {
 
 /* Thin progress line */
 .progress-line { height: 4px; border-radius: 4px; background: var(--border); overflow: hidden; }
-.progress-line > span { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 400ms var(--ease); }
+.progress-line > span { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--mint), var(--daisy), var(--rose), var(--lavender)); transition: width 400ms var(--ease); }
 
 /* Gradient wordmark */
 .wordmark {
-  background: linear-gradient(180deg, #fff, #e4d2ff 70%, #ffc8e8);
+  background: linear-gradient(90deg, var(--daisy), var(--rose) 45%, var(--lavender) 75%, var(--berry));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
