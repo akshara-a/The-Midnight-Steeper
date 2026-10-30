@@ -169,6 +169,17 @@ interface SlothPet3DProps {
 
 const damp = THREE.MathUtils.damp;
 
+/** Staging constants (world units; the deck surface is at y = -1.36). */
+const STAND_SCALE = 0.85;
+const STAND_Y = 0.2; // standing: feet land on the deck
+const LIE_SCALE = 0.7;
+const LIE_X = -0.1;
+const CAP_FLOP = 0.6;
+const CAP_FLOP_X = -1.5; // nightcap droops sideways when lying down
+const HEAD_LIFT = 0.5; // raises the head onto the pillow when lying
+const MATTRESS_TOP = 0.83; // relative to the deck surface
+const LIE_Y = -1.36 + MATTRESS_TOP + 0.55; // lying: back resting on the mattress
+
 const FUR_LAYERS = 8;
 const NATURAL_FUR = '#7a502f';
 const NATURAL_CREAM = '#dbc8a2';
@@ -327,7 +338,15 @@ const FIREFLIES_CONFIG = [
 ];
 
 function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, theme = 'classic', wardrobe = DEFAULT_WARDROBE }: SlothPet3DProps) {
+  const rig = useRef<THREE.Group>(null);
   const root = useRef<THREE.Group>(null);
+  const rug = useRef<THREE.Group>(null);
+  const bed = useRef<THREE.Group>(null);
+  const blanketInner = useRef<THREE.Group>(null);
+  const legGroups = useRef<(THREE.Group | null)[]>([]);
+  const lieT = useRef(0);
+  const bathT = useRef(0);
+  const legsT = useRef(1);
   const body = useRef<THREE.Group>(null);
   const head = useRef<THREE.Group>(null);
   const neck = useRef<THREE.Mesh>(null);
@@ -345,7 +364,6 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
   const tub = useRef<THREE.Group>(null);
   const duck = useRef<THREE.Group>(null);
   const blanket = useRef<THREE.Group>(null);
-  const pillow = useRef<THREE.Mesh>(null);
   const moon = useRef<THREE.Group>(null);
   const ambient = useRef<THREE.AmbientLight>(null);
   const platform = useRef<THREE.Group>(null);
@@ -378,7 +396,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
   const yawnProgress = useRef(0);
 
   // Camera State
-  const camLookAtY = useRef(0.95);
+  const camLookAtY = useRef(0.4);
 
   // Bath Ripples & Fireflies
   const bathRipples = useRef<(THREE.Mesh | null)[]>([]);
@@ -417,6 +435,7 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
     return {
       torso: new THREE.SphereGeometry(0.95, 48, 48),
       belly: new THREE.SphereGeometry(0.78, 36, 36),
+      leg: new THREE.CapsuleGeometry(0.27, 0.62, 12, 20),
       thigh: new THREE.SphereGeometry(0.36, 24, 24),
       shoulder: new THREE.SphereGeometry(0.22, 20, 20),
       elbow: new THREE.SphereGeometry(0.15, 16, 16),
@@ -514,6 +533,11 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
         emissive: '#0ea5e9',
         emissiveIntensity: 0.15,
       }),
+      bedFrame: new THREE.MeshStandardMaterial({ color: '#9bbcf0', roughness: 0.6 }),
+      mattress: new THREE.MeshStandardMaterial({ color: '#fff6f9', roughness: 0.9 }),
+      pillowMat: new THREE.MeshStandardMaterial({ color: '#ffdbe8', roughness: 0.9 }),
+      rugCream: new THREE.MeshStandardMaterial({ color: '#f7ecd9', roughness: 1 }),
+      shadowBlob: new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.3, depthWrite: false }),
       iron: new THREE.MeshStandardMaterial({ color: '#232126', roughness: 0.65, metalness: 0.75 }),
       coal: new THREE.MeshStandardMaterial({ color: '#ea580c', emissive: '#f97316', emissiveIntensity: 1.6 }),
       lanternPaper: new THREE.MeshStandardMaterial({
@@ -605,11 +629,11 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
     mats.accent.emissive.copy(mats.accent.color);
     mats.accent.sheenColor.copy(mats.accent.color).lerp(tmp.set('#ffffff'), 0.4);
 
-    // Shadowbox Parallax & Bedtime Zoom
-    const targetCamX = sleeping ? pointer.x * 0.25 : pointer.x * 0.45;
-    const targetCamY = sleeping ? 1.05 + pointer.y * 0.15 : 1.35 + pointer.y * 0.25;
-    const targetCamZ = sleeping ? 8.1 : 9.2;
-    const targetLookY = sleeping ? 0.65 : 0.8;
+    // Camera: front-on when standing, raised and side-on to frame the whole bed when sleeping
+    const targetCamX = sleeping ? 0.7 + pointer.x * 0.3 : pointer.x * 0.45;
+    const targetCamY = sleeping ? 4.2 + pointer.y * 0.2 : bathing ? 1.35 + pointer.y * 0.25 : 1.15 + pointer.y * 0.25;
+    const targetCamZ = sleeping ? 11.8 : 9.4;
+    const targetLookY = sleeping ? -0.35 : bathing ? 0.8 : 0.45;
 
     camera.position.x = damp(camera.position.x, targetCamX, 4, dt);
     camera.position.y = damp(camera.position.y, targetCamY, 4, dt);
@@ -679,16 +703,38 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
       }
     }
 
-    // Root movement
+    // Pose blending: standing <-> lying in bed <-> sitting in the tub
+    lieT.current = damp(lieT.current, sleeping ? 1 : 0, 3.2, dt);
+    bathT.current = damp(bathT.current, bathing ? 1 : 0, 5, dt);
+    legsT.current = damp(legsT.current, bathing ? 0 : 1, 5, dt);
+    const lie = lieT.current;
+    const bath = bathT.current;
+    if (rig.current) {
+      const sc = (STAND_SCALE + (1 - STAND_SCALE) * bath) * (1 - lie) + LIE_SCALE * lie;
+      rig.current.scale.setScalar(sc);
+      const standY = STAND_Y + (-0.72 - STAND_Y) * bath;
+      rig.current.position.set(
+        LIE_X * lie,
+        standY * (1 - lie) + LIE_Y * lie + Math.sin(Math.PI * lie) * 0.7,
+        0
+      );
+      rig.current.rotation.set(-Math.PI / 2 * lie, Math.PI / 2 * lie, 0);
+    }
+    legGroups.current.forEach((g) => {
+      if (g) g.scale.y = Math.max(0.001, legsT.current);
+    });
+
     if (root.current) {
-      const hop = happy || playing ? Math.abs(Math.sin(t * (playing ? 4.5 : 3.2))) * 0.22 : 0;
+      const hop = (happy || playing) && !sleeping ? Math.abs(Math.sin(t * (playing ? 4.5 : 3.2))) * 0.22 : 0;
       const bathBob = bathing ? Math.sin(t * 2.2) * 0.05 - 0.28 : 0;
-      const baseY = -0.72;
-      root.current.position.y = damp(root.current.position.y, baseY + (sleeping ? -0.15 : 0) + hop + bathBob + s * 0.08, 8, dt);
-      root.current.scale.set(1 - wobble * 0.06, 1 + wobble * 0.12, 1 - wobble * 0.06);
+      const sy = 1 + wobble * 0.08;
+      // Keep the feet planted while the squash/stretch wobble plays
+      const plant = 1.84 * (sy - 1) * (1 - lie) * (1 - bath);
+      root.current.position.y = damp(root.current.position.y, hop + bathBob + s * 0.05 + plant, 8, dt);
+      root.current.scale.set(1 - wobble * 0.04, sy, 1 - wobble * 0.04);
       root.current.rotation.z = damp(
         root.current.rotation.z,
-        sleeping ? 0.06 : playing ? Math.sin(t * 3.5) * 0.06 : Math.sin(t * 1.2) * 0.012,
+        sleeping ? 0 : playing ? Math.sin(t * 3.5) * 0.06 : Math.sin(t * 1.2) * 0.012,
         4,
         dt
       );
@@ -704,13 +750,14 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
     if (head.current) {
       head.current.rotation.y = damp(
         head.current.rotation.y,
-        sleeping ? 0 : bathing ? Math.sin(t * 1.4) * 0.1 : pointer.x * 0.3,
+        sleeping ? -1.0 : bathing ? Math.sin(t * 1.4) * 0.1 : pointer.x * 0.3,
         5,
         dt
       );
-      const baseHeadX = sleeping ? 0.22 : bathing ? -0.06 : -pointer.y * 0.15;
+      const baseHeadX = sleeping ? 0.1 : bathing ? -0.06 : -pointer.y * 0.15;
       head.current.rotation.x = damp(head.current.rotation.x, baseHeadX + yawnHeadPitch, 5, dt);
       head.current.position.y = 1.28 + Math.sin(t * 1.8) * 0.01;
+      head.current.position.z = HEAD_LIFT * lie;
     }
 
     if (neck.current) {
@@ -784,7 +831,9 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
         ? -0.75 + Math.sin(t * 6) * 0.18
         : yawnActive.current
         ? yawnArmL
-        : -0.32;
+        : sleeping
+        ? -0.12
+        : -0.2;
       armL.current.rotation.z = damp(armL.current.rotation.z, targetL, 6, dt);
     }
     if (armR.current) {
@@ -800,7 +849,9 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
         ? 0.75 - Math.sin(t * 5) * 0.18
         : yawnActive.current
         ? yawnArmR
-        : 0.32;
+        : sleeping
+        ? 0.12
+        : 0.2;
       armR.current.rotation.z = damp(armR.current.rotation.z, targetR, 6, dt);
     }
 
@@ -813,8 +864,19 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
     };
     const showNightcap = sleeping && (!wardrobe || wardrobe.hat === 'none' || wardrobe.hat === 'nightcap');
     popTo(cap.current, showNightcap);
-    popTo(blanket.current, sleeping);
-    popTo(pillow.current, sleeping);
+    if (cap.current) {
+      cap.current.rotation.z = damp(cap.current.rotation.z, sleeping ? CAP_FLOP : -0.32, 4, dt);
+      cap.current.rotation.x = damp(cap.current.rotation.x, sleeping ? CAP_FLOP_X : 0, 4, dt);
+    }
+    popTo(bed.current, sleeping || lie > 0.2);
+    popTo(blanket.current, sleeping && lie > 0.8);
+    popTo(rug.current, !sleeping);
+    popTo(kettle.current, !sleeping);
+    popTo(sprout.current, !sleeping);
+    if (blanketInner.current) {
+      const b = Math.sin(t * 1.0) * 0.02;
+      blanketInner.current.scale.set(1, 1 + b, 1 + b * 0.6);
+    }
     popTo(moon.current, sleeping);
     popTo(cup.current, eating);
     popTo(showerCap.current, bathing);
@@ -936,27 +998,25 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
           <primitive object={mats.deckTop} attach="material" />
         </mesh>
 
-        {/* Sunny's Central Log Stool */}
-        <group position={[0, 0.24, 0]}>
-          <mesh position={[0, 0.22, 0]}>
-            <cylinderGeometry args={[1.35, 1.48, 0.44, 36]} />
-            <primitive object={mats.deckBark} attach="material" />
-          </mesh>
-          <mesh position={[0, 0.45, 0]}>
-            <cylinderGeometry args={[1.34, 1.34, 0.02, 36]} />
-            <primitive object={mats.deckTop} attach="material" />
-          </mesh>
-          {/* Woven Cushion Ring */}
-          <mesh position={[0, 0.46, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[1.2, 0.07, 12, 36]} />
+        {/* Round play rug under Sunny's feet */}
+        <group ref={rug} position={[0, 0.24, 0]}>
+          <mesh position={[0, 0.015, 0]}>
+            <cylinderGeometry args={[1.5, 1.52, 0.03, 40]} />
             <primitive object={mats.accent} attach="material" />
           </mesh>
-          {/* Scattered Botanical Tea Petals */}
+          <mesh position={[0, 0.034, 0]}>
+            <cylinderGeometry args={[1.12, 1.12, 0.03, 40]} />
+            <primitive object={mats.rugCream} attach="material" />
+          </mesh>
+          <mesh position={[0, 0.052, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[1, 0.8, 1]}>
+            <circleGeometry args={[0.95, 32]} />
+            <primitive object={mats.shadowBlob} attach="material" />
+          </mesh>
           {[
-            [0.72, 0.47, 0.5, 0.2],
-            [-0.6, 0.47, 0.65, -0.4],
-            [0.85, 0.47, -0.35, 0.8],
-            [-0.75, 0.47, -0.4, 1.2],
+            [0.72, 0.06, 0.62, 0.2],
+            [-0.7, 0.06, 0.65, -0.4],
+            [0.85, 0.06, -0.45, 0.8],
+            [-0.75, 0.06, -0.5, 1.2],
           ].map(([px, py, pz, pr], idx) => (
             <mesh key={idx} position={[px, py, pz]} rotation={[0, pr, 0]} scale={[1, 0.2, 1.4]}>
               <sphereGeometry args={[0.055, 10, 10]} />
@@ -1109,9 +1169,9 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
       </group>
 
       {/* Main Sloth Character: Sunny (shaggy shell-fur coat, natural markings) */}
+      <group ref={rig} position={[0, STAND_Y, 0]} rotation={[0, 0, 0, 'YXZ']} scale={STAND_SCALE}>
       <group
         ref={root}
-        position={[0, -0.72, 0]}
         onPointerDown={(e) => {
           e.stopPropagation();
           onPoke();
@@ -1136,19 +1196,29 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
           <cylinderGeometry args={[0.48, 0.62, 0.44, 32]} />
         </mesh>
 
-        {/* Hind legs and feet resting on the cushion */}
-        {[-0.5, 0.5].map((x) => (
-          <group key={x} position={[x, -0.78, 0.32]}>
-            <mesh geometry={geo.thigh} scale={[1, 0.72, 1.12]} material={mats.fur} />
-            <Shells geometry={geo.thigh} materials={shells.limb} scale={[1, 0.72, 1.12]} grow={0.03} />
-            <mesh position={[0, -0.16, 0.28]} scale={[0.8, 0.3, 1]} material={mats.pawPad}>
-              <sphereGeometry args={[0.12, 14, 14]} />
-            </mesh>
-            {[-0.07, 0, 0.07].map((cx) => (
-              <group key={cx} position={[cx, -0.14, 0.34]} rotation={[Math.PI / 2, 0, 0]} scale={0.55}>
-                <Claw material={mats.claw} />
-              </group>
-            ))}
+        {/* Hind legs: standing legs with feet (the lower leg folds away when sitting in the tub) */}
+        {[-0.42, 0.42].map((x, li) => (
+          <group key={x} position={[x, -0.72, 0.1]}>
+            <mesh geometry={geo.thigh} scale={[1, 0.9, 1.05]} material={mats.fur} />
+            <group
+              ref={(el) => {
+                legGroups.current[li] = el;
+              }}
+            >
+              <mesh geometry={geo.leg} position={[0, -0.5, 0]} material={mats.fur} />
+              <Shells geometry={geo.leg} materials={shells.limb} position={[0, -0.5, 0]} grow={0.03} axial={0.3} />
+              <mesh position={[0, -1.0, 0.17]} scale={[1.1, 0.55, 1.6]} material={mats.fur}>
+                <sphereGeometry args={[0.2, 18, 18]} />
+              </mesh>
+              <mesh position={[0, -1.1, 0.2]} scale={[1, 0.2, 1.3]} material={mats.pawPad}>
+                <sphereGeometry args={[0.15, 14, 14]} />
+              </mesh>
+              {[-0.08, 0, 0.08].map((cx) => (
+                <group key={cx} position={[cx, -1.0, 0.36]} rotation={[Math.PI / 2, 0, 0]} scale={0.5}>
+                  <Claw material={mats.claw} />
+                </group>
+              ))}
+            </group>
           </group>
         ))}
 
@@ -1339,20 +1409,65 @@ function Pet({ mood, furColor, accentColor, pokeCount, onPoke, starlightGlow, th
           ))}
         </group>
 
-        {/* Bedtime Pillow & Waffle-Knit Blanket */}
-        <mesh ref={pillow} position={[0, 1.1, -0.65]} scale={0}>
-          <sphereGeometry args={[0.9, 32, 32]} />
-          <primitive object={mats.white} attach="material" />
+      </group>
+      </group>
+
+      {/* Kid's bed: pastel wooden frame, headboard, mattress, pillow and a blanket in the accent colour */}
+      <group ref={bed} position={[0, -1.36, 0]} scale={0}>
+        {[-1.75, 1.75].map((x) =>
+          [-0.95, 0.95].map((z) => (
+            <mesh key={`${x}${z}`} position={[x, 0.2, z]}>
+              <boxGeometry args={[0.18, 0.4, 0.18]} />
+              <primitive object={mats.bedFrame} attach="material" />
+            </mesh>
+          ))
+        )}
+        <mesh position={[0, 0.42, 0]}>
+          <boxGeometry args={[3.7, 0.22, 2.1]} />
+          <primitive object={mats.bedFrame} attach="material" />
         </mesh>
-        <group ref={blanket} position={[0, -0.38, 0.62]} scale={0}>
-          <mesh rotation={[0, 0, Math.PI / 2]}>
-            <capsuleGeometry args={[0.56, 1.5, 16, 32]} />
-            <primitive object={mats.accent} attach="material" />
+        <mesh position={[0, 0.68, 0]}>
+          <boxGeometry args={[3.5, 0.3, 2.0]} />
+          <primitive object={mats.mattress} attach="material" />
+        </mesh>
+        {/* Headboard with knobs, lower footboard */}
+        <mesh position={[-1.85, 0.75, 0]}>
+          <boxGeometry args={[0.14, 1.45, 2.1]} />
+          <primitive object={mats.bedFrame} attach="material" />
+        </mesh>
+        {[-0.95, 0.95].map((z) => (
+          <mesh key={z} position={[-1.85, 1.52, z]}>
+            <sphereGeometry args={[0.11, 12, 12]} />
+            <primitive object={mats.bedFrame} attach="material" />
           </mesh>
-          <mesh position={[0, 0.5, 0.05]} rotation={[0, 0, Math.PI / 2]}>
-            <capsuleGeometry args={[0.095, 1.45, 12, 24]} />
-            <primitive object={mats.white} attach="material" />
-          </mesh>
+        ))}
+        <mesh position={[1.85, 0.5, 0]}>
+          <boxGeometry args={[0.12, 1.0, 2.1]} />
+          <primitive object={mats.bedFrame} attach="material" />
+        </mesh>
+        {/* Fluffy pillow */}
+        <mesh position={[-1.2, MATTRESS_TOP + 0.14, 0]} scale={[0.68, 0.22, 0.56]}>
+          <sphereGeometry args={[1, 24, 16]} />
+          <primitive object={mats.pillowMat} attach="material" />
+        </mesh>
+        {/* Blanket tucked up to Sunny's chest */}
+        <group ref={blanket} position={[0, MATTRESS_TOP, 0]} scale={0}>
+          <group ref={blanketInner}>
+            <group scale={[1, 1.3, 1.15]}>
+              <mesh position={[0.6, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+                <cylinderGeometry args={[1, 1, 2.3, 28, 1, false, 0, Math.PI]} />
+                <primitive object={mats.accent} attach="material" />
+              </mesh>
+              <mesh position={[-0.45, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+                <torusGeometry args={[1, 0.1, 10, 28, Math.PI]} />
+                <primitive object={mats.white} attach="material" />
+              </mesh>
+              <mesh position={[1.0, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+                <torusGeometry args={[1, 0.05, 8, 28, Math.PI]} />
+                <primitive object={mats.white} attach="material" />
+              </mesh>
+            </group>
+          </group>
         </group>
       </group>
 

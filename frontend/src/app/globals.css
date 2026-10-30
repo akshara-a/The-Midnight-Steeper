@@ -5,27 +5,27 @@
    Dreamy storybook night: deep indigo to plum, soft jewel colours.
    ============================================================ */
 :root {
-  --bg: #120f26;
-  --sky-g1: #17104a;
-  --sky-g2: #2a1465;
-  --sky-g3: #4a1a6b;
-  --glow-a: rgba(255, 226, 150, 0.30);
-  --glow-b: rgba(77, 225, 210, 0.20);
-  --glow-c: rgba(108, 184, 255, 0.20);
-  --glow-d: rgba(255, 126, 182, 0.28);
+  --bg: #5a6dff;
+  --sky-g1: #3f8cff;
+  --sky-g2: #8b6dff;
+  --sky-g3: #ff78c4;
+  --glow-a: rgba(255, 241, 170, 0.55);
+  --glow-b: rgba(120, 235, 255, 0.40);
+  --glow-c: rgba(255, 255, 255, 0.16);
+  --glow-d: rgba(255, 255, 255, 0.26);
   --sky-top: #0f0c24;
   --sky-mid: #1d1442;
   --sky-low: #33194f;
   --text: #f6f3ff;
-  --muted: #a39fbd; /* AA on --bg */
+  --muted: #ddd6fa; /* AA on the dark glass surfaces */
   --accent: #c9a7ff;
   --accent-2: #ffb8e0; /* soft pink, gradient partner of the accent */
   --accent-ink: #2a1450; /* text on accent fills */
-  --surface: rgba(255, 255, 255, 0.06);
-  --surface-hover: rgba(255, 255, 255, 0.11);
-  --surface-solid: #1b1636; /* modals */
-  --border: rgba(255, 255, 255, 0.09);
-  --border-strong: rgba(255, 255, 255, 0.2);
+  --surface: rgba(28, 16, 96, 0.38);
+  --surface-hover: rgba(28, 16, 96, 0.55);
+  --surface-solid: #231a62; /* modals */
+  --border: rgba(255, 255, 255, 0.22);
+  --border-strong: rgba(255, 255, 255, 0.38);
   --danger: #ffa3b8;
 
   /* friendly jewel colours used for items */
@@ -77,29 +77,29 @@ body {
   --tint: rgba(251, 140, 170, 0.14);
   --mint: #9af2c8; --daisy: #ffe08a; --rose: #ff6fa5; --berry: #ffa6d6; --orange: #ffb199; --lavender: #e0a8ff;
   --accent: #ffb3d9; --accent-2: #ff6fa5;
-  --sky-g1: #2c0f35; --sky-g2: #5a1a56; --sky-g3: #86255e;
-  --glow-a: rgba(255, 214, 190, 0.30); --glow-b: rgba(255, 166, 214, 0.22); --glow-c: rgba(224, 168, 255, 0.20); --glow-d: rgba(255, 111, 165, 0.34);
+  --sky-g1: #ff8ccd; --sky-g2: #ff6fb1; --sky-g3: #b86bff;
+  --glow-a: rgba(255, 236, 190, 0.55); --glow-b: rgba(255, 190, 230, 0.40); --glow-c: rgba(255, 255, 255, 0.18); --glow-d: rgba(255, 255, 255, 0.26);
 }
 .theme-celestial {
   --tint: rgba(90, 190, 250, 0.14);
   --mint: #6ff7e8; --daisy: #fff08a; --rose: #c78bff; --berry: #5bb8ff; --orange: #8aa6ff; --lavender: #a58bff;
   --accent: #9fd0ff; --accent-2: #b48bff;
-  --sky-g1: #081042; --sky-g2: #13217e; --sky-g3: #2a1a96;
-  --glow-a: rgba(220, 240, 255, 0.32); --glow-b: rgba(111, 247, 232, 0.22); --glow-c: rgba(91, 184, 255, 0.26); --glow-d: rgba(180, 139, 255, 0.34);
+  --sky-g1: #2fa8ff; --sky-g2: #4a6bff; --sky-g3: #9a5cff;
+  --glow-a: rgba(220, 245, 255, 0.55); --glow-b: rgba(111, 247, 232, 0.38); --glow-c: rgba(255, 255, 255, 0.16); --glow-d: rgba(255, 255, 255, 0.24);
 }
 .theme-autumn {
   --tint: rgba(245, 158, 11, 0.14);
   --mint: #b8e86b; --daisy: #ffcf3a; --rose: #ff6f61; --berry: #ff9248; --orange: #ff8a2b; --lavender: #e0a35d;
   --accent: #ffc27a; --accent-2: #ff6f61;
-  --sky-g1: #2a0e12; --sky-g2: #5a2112; --sky-g3: #86301a;
-  --glow-a: rgba(255, 214, 120, 0.34); --glow-b: rgba(255, 138, 43, 0.22); --glow-c: rgba(255, 111, 97, 0.20); --glow-d: rgba(255, 207, 58, 0.30);
+  --sky-g1: #ff9a5c; --sky-g2: #ff6f91; --sky-g3: #b455ff;
+  --glow-a: rgba(255, 236, 150, 0.60); --glow-b: rgba(255, 207, 58, 0.34); --glow-c: rgba(255, 255, 255, 0.16); --glow-d: rgba(255, 255, 255, 0.26);
 }
 .theme-onsen {
   --tint: rgba(45, 212, 191, 0.14);
   --mint: #4ff0c6; --daisy: #e4ff7a; --rose: #ff9bd0; --berry: #5ad2ff; --orange: #ffc86b; --lavender: #86a8ff;
   --accent: #8ff5de; --accent-2: #5ad2ff;
-  --sky-g1: #04222e; --sky-g2: #0a4452; --sky-g3: #0e6a66;
-  --glow-a: rgba(228, 255, 180, 0.30); --glow-b: rgba(79, 240, 198, 0.24); --glow-c: rgba(90, 210, 255, 0.22); --glow-d: rgba(255, 200, 107, 0.26);
+  --sky-g1: #2fd6d0; --sky-g2: #3f9bff; --sky-g3: #6f7bff;
+  --glow-a: rgba(235, 255, 190, 0.55); --glow-b: rgba(79, 240, 198, 0.40); --glow-c: rgba(255, 255, 255, 0.16); --glow-d: rgba(255, 255, 255, 0.26);
 }
 
 /* ============================================================
@@ -118,7 +118,7 @@ body {
 .sky-night {
   background:
     radial-gradient(circle 220px at 84% 9%, rgba(255, 232, 190, 0.10), transparent 70%),
-    linear-gradient(180deg, #06050f, #0d0920 60%, #160d2c);
+    linear-gradient(180deg, #0a1250, #17205f 55%, #2a1f6e);
   transition: opacity 1.8s ease;
 }
 .sky-stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
@@ -157,7 +157,7 @@ body {
    ============================================================ */
 .surface,
 .toy-card {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
+  background: linear-gradient(160deg, rgba(30, 18, 104, 0.50), rgba(30, 18, 104, 0.34));
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   color: var(--text);
@@ -237,16 +237,16 @@ body {
   position: relative;
   border-radius: var(--radius);
   border: 1.5px solid var(--border);
-  background: color-mix(in srgb, var(--sel) 16%, rgba(255, 255, 255, 0.03));
+  background: color-mix(in srgb, var(--sel) 20%, rgba(30, 18, 104, 0.42));
   color: var(--text);
   cursor: pointer;
   transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
-.pick-card:hover { background: color-mix(in srgb, var(--sel) 24%, rgba(255, 255, 255, 0.04)); transform: translateY(-2px); }
+.pick-card:hover { background: color-mix(in srgb, var(--sel) 30%, rgba(30, 18, 104, 0.46)); transform: translateY(-2px); }
 .pick-card:active { transform: scale(0.97); }
 .pick-card[data-selected='true'] {
   border-color: var(--sel);
-  background: color-mix(in srgb, var(--sel) 28%, rgba(255, 255, 255, 0.04));
+  background: color-mix(in srgb, var(--sel) 38%, rgba(30, 18, 104, 0.46));
   box-shadow: 0 0 30px color-mix(in srgb, var(--sel) 50%, transparent);
   transform: translateY(-2px);
 }
@@ -254,7 +254,7 @@ body {
 /* Speech bubble */
 .bubble {
   position: relative;
-  background: rgba(27, 22, 54, 0.88);
+  background: rgba(36, 24, 110, 0.90);
   color: var(--text);
   border-radius: var(--radius);
   border: 1px solid var(--border-strong);
@@ -272,7 +272,8 @@ body {
 
 /* Gradient wordmark */
 .wordmark {
-  background: linear-gradient(90deg, var(--daisy), var(--rose) 45%, var(--lavender) 75%, var(--berry));
+  background: linear-gradient(180deg, #ffffff, #ffe3f3);
+  filter: drop-shadow(0 3px 12px rgba(40, 10, 120, 0.55));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

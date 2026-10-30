@@ -605,7 +605,7 @@ export default function SunnyTeaParty() {
     <main className={`relative min-h-screen ${night ? 'night' : ''} theme-${dioramaTheme}`}>
       <div className="sky sky-day" style={{ opacity: night ? 0 : 1 }} />
       <div className="sky sky-night" style={{ opacity: night ? 1 : 0 }} />
-      <div className="sky-stars" style={{ opacity: night ? 1 : 0.9 }} aria-hidden="true" />
+      <div className="sky-stars" style={{ opacity: night ? 1 : 0.35 }} aria-hidden="true" />
       <div className="theme-atmosphere-glow" aria-hidden="true" />
 
       {/* Floating hearts, stars and friends */}
@@ -635,7 +635,7 @@ export default function SunnyTeaParty() {
         className="fixed top-0 inset-x-0 z-[45] transition-opacity duration-700"
         style={{
           opacity: !started ? 0 : night ? 0.6 : 1,
-          background: 'linear-gradient(to bottom, rgba(18,15,38,0.92) 55%, transparent)',
+          background: 'linear-gradient(to bottom, rgba(40,22,130,0.55) 50%, transparent)',
         }}
       >
         <div className="mx-auto max-w-3xl landscape:md:max-w-5xl px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
@@ -686,7 +686,7 @@ export default function SunnyTeaParty() {
 
         {/* 3D stage: tap Sunny! */}
         <section
-          className="stage-scene relative overflow-hidden h-[40vh] min-h-[260px] max-h-[520px] landscape:md:h-[62vh]"
+          className="stage-scene relative overflow-hidden h-[52vh] min-h-[340px] max-h-[560px] landscape:md:h-[66vh]"
           onPointerDown={(e) => {
             pointerRef.current = { x: e.clientX, y: e.clientY };
           }}
@@ -703,8 +703,8 @@ export default function SunnyTeaParty() {
           />
 
           {bubble && started && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[86%] max-w-sm z-20 pointer-events-none">
-              <div key={bubble.id} className="bubble px-4 py-3 text-center text-lg leading-snug">
+            <div className="absolute top-1 left-1/2 -translate-x-1/2 w-[92%] max-w-sm z-20 pointer-events-none">
+              <div key={bubble.id} className="bubble px-3 py-2 text-center text-base leading-snug">
                 {plain(bubble.text)}
               </div>
             </div>
@@ -990,7 +990,7 @@ export default function SunnyTeaParty() {
             opacity: started ? 1 : 0,
             bottom: 'max(0.75rem, env(safe-area-inset-bottom))',
             borderRadius: 30,
-            background: 'rgba(27,22,54,0.82)',
+            background: 'rgba(36,24,110,0.78)',
           }}
         >
           <div className="px-1.5 py-1.5 grid grid-cols-6">
@@ -1514,7 +1514,7 @@ export default function SunnyTeaParty() {
       {!started && (
         <div
           className="fixed inset-x-0 bottom-0 z-[60] flex flex-col items-center text-center px-5 pt-16 pb-10"
-          style={{ background: 'linear-gradient(to top, rgba(18,15,38,0.96) 55%, transparent)' }}
+          style={{ background: 'linear-gradient(to top, rgba(70,40,190,0.55) 55%, transparent)' }}
         >
           <Moon size={30} strokeWidth={1.5} className="animate-bounce-soft" style={{ color: 'var(--daisy)' }} aria-hidden="true" />
           <h1 className="wordmark mt-3 text-4xl sm:text-6xl">The Midnight Steeper</h1>
