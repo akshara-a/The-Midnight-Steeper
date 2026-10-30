@@ -2,6 +2,27 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import {
+  Ban,
+  Bell,
+  ChefHat,
+  Cloud,
+  Crown,
+  Eye,
+  EyeOff,
+  Flower,
+  Flower2,
+  Glasses,
+  Leaf,
+  Moon,
+  Ribbon,
+  RotateCcw,
+  Save,
+  Search,
+  Wand,
+  Wind,
+  type LucideIcon,
+} from 'lucide-react';
 import { sounds } from '@/lib/soundEffects';
 import {
   type HatId,
@@ -15,13 +36,17 @@ import {
   DEFAULT_WARDROBE,
 } from '@/lib/wardrobe';
 import { type DioramaTheme } from '@/components/SlothPet3D';
+import { CloseButton, plain, useEscape } from '@/components/ui';
 
 const SlothPet3D = dynamic(() => import('@/components/SlothPet3D'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex flex-col items-center justify-center text-sm font-semibold text-purple-900">
-      <div className="text-4xl animate-bounce-soft">🦥</div>
-      <span className="mt-1">Mirror loading...</span>
+    <div
+      className="w-full h-full flex flex-col items-center justify-center text-sm"
+      style={{ color: 'var(--muted)' }}
+    >
+      <Moon size={36} strokeWidth={1.5} aria-hidden="true" className="animate-bounce-soft" />
+      <span className="mt-2">Mirror loading...</span>
     </div>
   ),
 });
@@ -38,6 +63,35 @@ interface WardrobeModalProps {
 }
 
 type WardrobeTab = 'hats' | 'glasses' | 'neck';
+
+const ITEM_ICONS: Record<string, LucideIcon> = {
+  wizard: Wand,
+  crown: Crown,
+  sakura: Flower2,
+  chef: ChefHat,
+  beanie: Cloud,
+  nightcap: Moon,
+  glasses: Glasses,
+  sunglasses: Glasses,
+  sleepmask: EyeOff,
+  monocle: Search,
+  bowtie: Ribbon,
+  scarf: Wind,
+  bell: Bell,
+  lei: Flower,
+};
+const NONE_ICONS: Record<WardrobeTab, LucideIcon> = { hats: Ban, glasses: Eye, neck: Leaf };
+
+function ItemIcon({ tab, id, size = 24 }: Readonly<{ tab: WardrobeTab; id: string; size?: number }>) {
+  const Icon = id === 'none' ? NONE_ICONS[tab] : (ITEM_ICONS[id] ?? Leaf);
+  return <Icon size={size} strokeWidth={1.5} aria-hidden="true" />;
+}
+
+const TABS: { key: WardrobeTab; label: string; color: string; icon: LucideIcon }[] = [
+  { key: 'hats', label: 'Hats', color: 'var(--lavender)', icon: Crown },
+  { key: 'glasses', label: 'Glasses', color: 'var(--daisy)', icon: Glasses },
+  { key: 'neck', label: 'Neck', color: 'var(--rose)', icon: Ribbon },
+];
 
 export default function WardrobeModal({
   currentOutfit,
@@ -56,6 +110,7 @@ export default function WardrobeModal({
     'Try on hats, glasses, or scarves on me in the mirror!'
   );
   const [mirrorPokes, setMirrorPokes] = useState(0);
+  useEscape(onClose);
 
   const currentHat = WARDROBE_HATS.find((h) => h.id === draftOutfit.hat) ?? WARDROBE_HATS[0];
   const currentGlasses =
@@ -117,54 +172,90 @@ export default function WardrobeModal({
     onClose();
   };
 
+  type Row = { id: string; name: string; tag: string; description: string };
+  const catalog: {
+    tab: WardrobeTab;
+    items: Row[];
+    equipped: string;
+    color: string;
+    toggle: (item: never, e: React.MouseEvent) => void;
+  }[] = [
+    { tab: 'hats', items: WARDROBE_HATS, equipped: draftOutfit.hat, color: 'var(--lavender)', toggle: toggleHat as never },
+    { tab: 'glasses', items: WARDROBE_GLASSES, equipped: draftOutfit.glasses, color: 'var(--daisy)', toggle: toggleGlasses as never },
+    { tab: 'neck', items: WARDROBE_NECK, equipped: draftOutfit.neck, color: 'var(--rose)', toggle: toggleNeck as never },
+  ];
+  const active = catalog.find((c) => c.tab === activeTab) ?? catalog[0];
+  const worn: { tab: WardrobeTab; item: { id: string; name: string }; color: string }[] = [
+    { tab: 'hats', item: currentHat, color: 'var(--lavender)' },
+    { tab: 'glasses', item: currentGlasses, color: 'var(--daisy)' },
+    { tab: 'neck', item: currentNeck, color: 'var(--rose)' },
+  ];
+
   return (
-    <div className="fixed inset-0 z-[50] flex items-center justify-center p-2 sm:p-4 bg-purple-950/50 backdrop-blur-md">
-      <div className="toy-card animate-modal w-full max-w-4xl max-h-[94vh] flex flex-col p-4 sm:p-6 relative overflow-hidden">
+    <div
+      className="fixed inset-0 z-[50] flex items-center justify-center p-2 sm:p-4 backdrop-blur-md"
+      style={{ background: 'rgba(15,13,26,0.8)' }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Dressing room"
+    >
+      <div
+        className="surface animate-modal w-full max-w-4xl max-h-[96dvh] flex flex-col p-4 sm:p-6 relative overflow-hidden"
+        style={{ background: 'var(--surface-solid)' }}
+      >
         {/* Header bar */}
-        <div className="flex items-center justify-between pb-3 border-b-2 border-purple-100 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <span className="text-3xl animate-bounce-soft">🪞</span>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-[#3b2a63]">
-                Sunny&apos;s Dressing Room
-              </h2>
-              <p className="text-xs text-[#3b2a63]/75 font-medium">
-                Try on outfits in the live mirror, then save your favorite look!
-              </p>
-            </div>
+        <div
+          className="flex items-center justify-between gap-3 pb-3 shrink-0"
+          style={{ borderBottom: '1px solid var(--border)' }}
+        >
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-2xl font-light" style={{ color: 'var(--text)' }}>
+              Sunny&apos;s Dressing Room
+            </h2>
+            <p className="text-xs sm:text-sm" style={{ color: 'var(--muted)' }}>
+              Try on outfits in the live mirror, then save your favorite look.
+            </p>
           </div>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            className="btn-chunky blue w-10 h-10 sm:w-11 sm:h-11 text-xl flex items-center justify-center shrink-0"
-          >
-            ✕
-          </button>
+          <CloseButton onClick={onClose} />
         </div>
 
         {/* 2-Column Body */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
-          {/* ========================================================= */}
-          {/* LEFT COLUMN: LIVE FITTING MIRROR (Talking Tom style)     */}
-          {/* ========================================================= */}
-          <div className="flex flex-col gap-2.5 bg-gradient-to-b from-purple-50/90 to-amber-50/90 rounded-2xl p-3 border-2 border-purple-200/80 shadow-inner">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-purple-900 flex items-center gap-1.5">
-                <span>🪞</span> Live Fitting Mirror
+          {/* LEFT COLUMN: LIVE FITTING MIRROR */}
+          <div
+            className="flex flex-col gap-2.5 p-3"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
+                Live Fitting Mirror
               </span>
-              {hasUnsavedChanges ? (
-                <span className="text-[11px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full animate-pulse border border-amber-300">
-                  Previewing New Look ✨
-                </span>
-              ) : (
-                <span className="text-[11px] font-semibold text-purple-700 bg-purple-100/70 px-2 py-0.5 rounded-full">
-                  Current Outfit
-                </span>
-              )}
+              <span
+                className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                style={
+                  hasUnsavedChanges
+                    ? {
+                        background: 'color-mix(in srgb, var(--daisy) 18%, transparent)',
+                        color: 'var(--daisy)',
+                        border: '1px solid color-mix(in srgb, var(--daisy) 40%, transparent)',
+                      }
+                    : { background: 'var(--surface)', color: 'var(--muted)', border: '1px solid var(--border)' }
+                }
+              >
+                {hasUnsavedChanges ? 'Previewing new look' : 'Current outfit'}
+              </span>
             </div>
 
-            {/* 3D Vanity Mirror Frame */}
-            <div className="relative rounded-2xl border-4 border-amber-300 overflow-hidden h-[240px] sm:h-[280px] md:h-[310px] bg-gradient-to-b from-sky-200/40 via-purple-100/30 to-amber-100/50 shadow-md">
+            {/* 3D mirror frame */}
+            <div
+              className="relative overflow-hidden h-[220px] sm:h-[280px] md:h-[310px]"
+              style={{
+                borderRadius: 'var(--radius)',
+                border: '1.5px solid var(--border-strong)',
+                background:
+                  'radial-gradient(ellipse 70% 60% at 50% 45%, rgba(201,167,255,0.18), rgba(255,255,255,0.03))',
+              }}
+            >
               <SlothPet3D
                 mood="happy"
                 furColor={furColor}
@@ -175,248 +266,138 @@ export default function WardrobeModal({
                 wardrobe={draftOutfit}
               />
 
-              {/* Mirror Speech Bubble */}
               <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[90%] max-w-xs z-10 pointer-events-none">
-                <div className="bubble py-1.5 px-3 text-center text-xs sm:text-sm font-bold leading-tight shadow-md">
-                  {previewQuote}
+                <div className="bubble py-1.5 px-3 text-center text-xs sm:text-sm leading-tight" role="status">
+                  {plain(previewQuote)}
                 </div>
               </div>
 
-              {/* Tap to Pose Pill */}
-              <div className="absolute bottom-2 left-2 z-10 pointer-events-none text-[11px] font-bold bg-white/80 text-purple-900 px-2 py-0.5 rounded-full shadow-xs backdrop-blur-xs">
-                👆 Tap Sunny to pose!
+              <div
+                className="absolute bottom-2 left-2 z-10 pointer-events-none text-[11px] px-2.5 py-1 rounded-full"
+                style={{ background: 'rgba(27,22,54,0.85)', color: 'var(--muted)', border: '1px solid var(--border)' }}
+              >
+                Tap Sunny to pose
               </div>
             </div>
 
-            {/* In-Mirror Wearing Summary Strip */}
-            <div className="flex items-center gap-1.5 flex-wrap text-xs bg-white/85 p-2 rounded-xl border border-purple-100 shadow-xs">
-              <span className="font-bold text-purple-950 text-[11px]">In Mirror:</span>
-              <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 font-bold text-[11px] shadow-2xs">
-                {currentHat.icon} {currentHat.name}
+            {/* Wearing summary */}
+            <div className="flex items-center gap-1.5 flex-wrap text-xs">
+              <span className="text-[11px]" style={{ color: 'var(--muted)' }}>
+                In mirror:
               </span>
-              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-[11px] shadow-2xs">
-                {currentGlasses.icon} {currentGlasses.name}
-              </span>
-              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-900 font-bold text-[11px] shadow-2xs">
-                {currentNeck.icon} {currentNeck.name}
-              </span>
+              {worn.map(({ tab, item, color }) => (
+                <span
+                  key={tab}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                  style={{
+                    color: 'var(--text)',
+                    background: `color-mix(in srgb, ${color} 14%, transparent)`,
+                    border: `1px solid color-mix(in srgb, ${color} 35%, transparent)`,
+                  }}
+                >
+                  <span style={{ color }}>
+                    <ItemIcon tab={tab} id={item.id} size={14} />
+                  </span>
+                  {plain(item.name)}
+                </span>
+              ))}
             </div>
 
-            {/* Save & Reset Actions */}
+            {/* Save & Reset */}
             <div className="flex flex-col gap-2 mt-auto pt-1">
-              <button
-                onClick={handleSave}
-                className="btn-chunky green w-full py-2.5 text-base sm:text-lg font-bold flex items-center justify-center gap-2 shadow-lg"
-              >
-                <span>💾</span>
+              <button onClick={handleSave} className="btn-pill primary w-full px-5 text-base">
+                <Save size={20} strokeWidth={1.5} aria-hidden="true" />
                 <span>Save Outfit</span>
-                {hasUnsavedChanges && <span className="text-xs bg-white/20 px-1.5 py-0.5 rounded-full">✓</span>}
               </button>
 
-              <div className="flex items-center justify-between gap-2 text-xs">
+              <div className="flex items-center justify-between gap-2 text-sm">
                 {hasUnsavedChanges ? (
-                  <button
-                    onClick={revertToCurrent}
-                    className="font-bold text-purple-700 hover:text-purple-900 bg-white hover:bg-purple-50 px-2.5 py-1.5 rounded-lg border border-purple-200 transition-colors"
-                  >
-                    ↺ Revert to Saved
+                  <button onClick={revertToCurrent} className="btn-pill px-4 text-sm">
+                    <RotateCcw size={16} strokeWidth={1.5} aria-hidden="true" />
+                    Revert to saved
                   </button>
                 ) : (
-                  <span className="text-purple-700/60 font-medium">No changes yet</span>
+                  <span style={{ color: 'var(--muted)' }}>No changes yet</span>
                 )}
-
-                <button
-                  onClick={resetAllDraft}
-                  className="font-bold text-rose-600 hover:text-rose-700 bg-white hover:bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200 transition-colors"
-                >
-                  Take Off All
+                <button onClick={resetAllDraft} className="btn-pill px-4 text-sm">
+                  Take off all
                 </button>
               </div>
             </div>
           </div>
 
-          {/* ========================================================= */}
-          {/* RIGHT COLUMN: WARDROBE CATALOG & OUTFIT PICKER            */}
-          {/* ========================================================= */}
+          {/* RIGHT COLUMN: CATALOG */}
           <div className="flex flex-col gap-2.5 flex-1 min-h-0">
-            {/* Category Tabs */}
-            <div className="grid grid-cols-3 gap-1.5 shrink-0">
-              <button
-                onClick={() => {
-                  sounds.playClick();
-                  setActiveTab('hats');
-                }}
-                className={`py-2 px-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all ${
-                  activeTab === 'hats'
-                    ? 'bg-purple-600 text-white shadow-md scale-[1.02]'
-                    : 'bg-white/80 text-purple-950 border border-purple-200 hover:bg-white'
-                }`}
-              >
-                <span>🎩</span>
-                <span>Hats</span>
-                {draftOutfit.hat !== 'none' && (
-                  <span className="w-2 h-2 rounded-full bg-amber-300 inline-block" />
-                )}
-              </button>
-
-              <button
-                onClick={() => {
-                  sounds.playClick();
-                  setActiveTab('glasses');
-                }}
-                className={`py-2 px-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all ${
-                  activeTab === 'glasses'
-                    ? 'bg-amber-500 text-white shadow-md scale-[1.02]'
-                    : 'bg-white/80 text-purple-950 border border-amber-200 hover:bg-white'
-                }`}
-              >
-                <span>👓</span>
-                <span>Glasses</span>
-                {draftOutfit.glasses !== 'none' && (
-                  <span className="w-2 h-2 rounded-full bg-purple-300 inline-block" />
-                )}
-              </button>
-
-              <button
-                onClick={() => {
-                  sounds.playClick();
-                  setActiveTab('neck');
-                }}
-                className={`py-2 px-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all ${
-                  activeTab === 'neck'
-                    ? 'bg-rose-500 text-white shadow-md scale-[1.02]'
-                    : 'bg-white/80 text-purple-950 border border-rose-200 hover:bg-white'
-                }`}
-              >
-                <span>🧣</span>
-                <span>Neck</span>
-                {draftOutfit.neck !== 'none' && (
-                  <span className="w-2 h-2 rounded-full bg-amber-300 inline-block" />
-                )}
-              </button>
+            <div className="grid grid-cols-3 gap-2 shrink-0" role="tablist" aria-label="Outfit categories">
+              {TABS.map(({ key, label, color, icon: Icon }) => {
+                const selected = activeTab === key;
+                const hasItem = catalog.find((c) => c.tab === key)?.equipped !== 'none';
+                return (
+                  <button
+                    key={key}
+                    role="tab"
+                    aria-selected={selected}
+                    onClick={() => {
+                      sounds.playClick();
+                      setActiveTab(key);
+                    }}
+                    className="pick-card min-h-12 px-2 text-sm font-semibold flex items-center justify-center gap-1.5"
+                    style={{ ['--sel' as string]: color }}
+                    data-selected={selected}
+                  >
+                    <Icon size={18} strokeWidth={1.5} aria-hidden="true" />
+                    <span>{label}</span>
+                    {hasItem && (
+                      <span
+                        className="w-2 h-2 rounded-full inline-block"
+                        style={{ background: color }}
+                        role="img"
+                        aria-label="Item on"
+                      />
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Scrollable Item Catalog for Active Tab */}
-            <div className="flex-1 overflow-y-auto pr-1 space-y-2 min-h-0">
-              {/* 1. HATS */}
-              {activeTab === 'hats' &&
-                WARDROBE_HATS.map((item) => {
-                  const isEquipped = draftOutfit.hat === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={(e) => toggleHat(item, e)}
-                      className={`w-full p-2.5 rounded-xl border-2 text-left transition-all flex items-start gap-2.5 relative group ${
-                        isEquipped
-                          ? 'bg-purple-600/20 border-purple-500 ring-2 ring-purple-300 scale-[1.01] shadow-xs'
-                          : 'bg-white/80 border-purple-100 hover:border-purple-300 hover:bg-white'
-                      }`}
-                    >
-                      <span className="text-2xl sm:text-3xl mt-0.5 group-hover:scale-110 transition-transform">
-                        {item.icon}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="font-bold text-xs sm:text-sm text-[#3b2a63]">
-                            {item.name}
+            <div className="flex-1 overflow-y-auto pr-1 space-y-2 min-h-0" role="tabpanel">
+              {active.items.map((item) => {
+                const isEquipped = active.equipped === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={(e) => active.toggle(item as never, e)}
+                    aria-pressed={isEquipped}
+                    data-selected={isEquipped}
+                    className="pick-card w-full min-h-[60px] p-3 text-left flex items-start gap-3"
+                    style={{ ['--sel' as string]: active.color }}
+                  >
+                    <span className="mt-0.5 shrink-0" style={{ color: active.color }}>
+                      <ItemIcon tab={active.tab} id={item.id} size={28} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-sm sm:text-base">{plain(item.name)}</span>
+                        {isEquipped ? (
+                          <span
+                            className="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+                            style={{ background: active.color, color: 'var(--accent-ink)' }}
+                          >
+                            In mirror
                           </span>
-                          {isEquipped ? (
-                            <span className="text-[10px] font-bold bg-purple-600 text-white px-2 py-0.5 rounded-full shadow-2xs shrink-0">
-                              In Mirror ✓
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-semibold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded-md shrink-0">
-                              {item.tag}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-[#3b2a63]/75 mt-0.5 leading-snug line-clamp-2">
-                          {item.description}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-
-              {/* 2. GLASSES */}
-              {activeTab === 'glasses' &&
-                WARDROBE_GLASSES.map((item) => {
-                  const isEquipped = draftOutfit.glasses === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={(e) => toggleGlasses(item, e)}
-                      className={`w-full p-2.5 rounded-xl border-2 text-left transition-all flex items-start gap-2.5 relative group ${
-                        isEquipped
-                          ? 'bg-amber-500/20 border-amber-500 ring-2 ring-amber-300 scale-[1.01] shadow-xs'
-                          : 'bg-white/80 border-amber-100 hover:border-amber-300 hover:bg-white'
-                      }`}
-                    >
-                      <span className="text-2xl sm:text-3xl mt-0.5 group-hover:scale-110 transition-transform">
-                        {item.icon}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="font-bold text-xs sm:text-sm text-[#3b2a63]">
-                            {item.name}
+                        ) : (
+                          <span className="text-[11px] shrink-0" style={{ color: 'var(--muted)' }}>
+                            {plain(item.tag)}
                           </span>
-                          {isEquipped ? (
-                            <span className="text-[10px] font-bold bg-amber-600 text-white px-2 py-0.5 rounded-full shadow-2xs shrink-0">
-                              In Mirror ✓
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-semibold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded-md shrink-0">
-                              {item.tag}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-[#3b2a63]/75 mt-0.5 leading-snug line-clamp-2">
-                          {item.description}
-                        </p>
+                        )}
                       </div>
-                    </button>
-                  );
-                })}
-
-              {/* 3. NECKWEAR */}
-              {activeTab === 'neck' &&
-                WARDROBE_NECK.map((item) => {
-                  const isEquipped = draftOutfit.neck === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={(e) => toggleNeck(item, e)}
-                      className={`w-full p-2.5 rounded-xl border-2 text-left transition-all flex items-start gap-2.5 relative group ${
-                        isEquipped
-                          ? 'bg-rose-500/20 border-rose-500 ring-2 ring-rose-300 scale-[1.01] shadow-xs'
-                          : 'bg-white/80 border-rose-100 hover:border-rose-300 hover:bg-white'
-                      }`}
-                    >
-                      <span className="text-2xl sm:text-3xl mt-0.5 group-hover:scale-110 transition-transform">
-                        {item.icon}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="font-bold text-xs sm:text-sm text-[#3b2a63]">
-                            {item.name}
-                          </span>
-                          {isEquipped ? (
-                            <span className="text-[10px] font-bold bg-rose-600 text-white px-2 py-0.5 rounded-full shadow-2xs shrink-0">
-                              In Mirror ✓
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-semibold text-rose-800 bg-rose-50 px-1.5 py-0.5 rounded-md shrink-0">
-                              {item.tag}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-[#3b2a63]/75 mt-0.5 leading-snug line-clamp-2">
-                          {item.description}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
+                      <p className="text-xs mt-0.5 leading-snug line-clamp-2" style={{ color: 'var(--muted)' }}>
+                        {plain(item.description)}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

@@ -1,15 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Fredoka } from "next/font/google";
+import { Nunito } from "next/font/google";
 import "./globals.css";
 
-const fredoka = Fredoka({
-  variable: "--font-kid",
+const nunito = Nunito({
+  variable: "--font-ui",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600", "800"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "The Midnight Steeper | Sunny's Tea Party",
+  title: "The Midnight Steeper",
   description:
     "A cozy 3D bedtime tea party for kids 5-10. Sunny the sloth naps while the tea steeps, then says: go to sleep!",
 };
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#c9a7ff",
+  themeColor: "#120f26",
 };
 
 export default function RootLayout({
@@ -26,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${fredoka.variable} h-full antialiased`}>
+    <html lang="en" className={`${nunito.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Hourglass, RotateCcw, Check, Star, PartyPopper, ChevronLeft, ChevronRight } from 'lucide-react';
 import { sounds } from '@/lib/soundEffects';
 
 interface LeafCatcherGameProps {
@@ -144,15 +145,14 @@ export default function LeafCatcherGame({ onScoreReward, onClose }: LeafCatcherG
       {/* Game Header */}
       <div className="w-full flex items-center justify-between mb-3 px-2">
         <div className="flex items-center gap-2">
-          <span className="text-3xl">🧺</span>
-          <div className="text-xl font-bold text-sky-900">Leaf Catcher!</div>
+          <div className="text-xl font-semibold" style={{ color: 'var(--text)' }}>Leaf Catcher!</div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="font-bold text-sm sm:text-base bg-white/80 px-3 py-1 rounded-full border-2 border-emerald-300">
-            ⏳ {timeLeft}s
+          <div className="px-3 min-h-[36px] inline-flex items-center gap-1.5 rounded-full text-sm sm:text-base font-semibold" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} aria-label={`${timeLeft} seconds left`}>
+            <Hourglass size={18} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--mint)' }} /> {timeLeft}s
           </div>
-          <div className="font-bold text-sm sm:text-base bg-white/80 px-3 py-1 rounded-full border-2 border-amber-300 text-amber-700">
-            ⭐ {score}
+          <div className="px-3 min-h-[36px] inline-flex items-center gap-1.5 rounded-full text-sm sm:text-base font-semibold" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} aria-label={`Score ${score}`}>
+            <Star size={18} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--daisy)' }} /> {score}
           </div>
         </div>
       </div>
@@ -161,7 +161,12 @@ export default function LeafCatcherGame({ onScoreReward, onClose }: LeafCatcherG
       <div
         ref={containerRef}
         onPointerMove={handlePointerMove}
-        className="relative w-full h-[330px] rounded-3xl overflow-hidden bg-gradient-to-b from-sky-200 via-emerald-100 to-amber-100 border-4 border-emerald-300 shadow-inner select-none cursor-ew-resize"
+        className="relative w-full h-[330px] max-h-[55vh] overflow-hidden select-none touch-none cursor-ew-resize"
+        style={{
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--border-strong)',
+          background: 'linear-gradient(180deg, #1d1442, #1f2f4f 65%, #264a4a)',
+        }}
       >
         {/* Falling ingredients */}
         {items.map((item) => (
@@ -182,31 +187,38 @@ export default function LeafCatcherGame({ onScoreReward, onClose }: LeafCatcherG
 
         {/* Player Basket with Sunny */}
         <div
-          className="absolute bottom-4 flex flex-col items-center transition-all duration-75 pointer-events-none"
+          className="absolute bottom-4 flex flex-col items-center transition-all duration-75 ease-out pointer-events-none"
           style={{
             left: `${basketX}%`,
             transform: 'translateX(-50%)',
           }}
         >
           <div className="text-3xl animate-bounce-soft">🦥</div>
-          <div className="px-4 py-2 bg-amber-600 border-3 border-amber-300 rounded-2xl shadow-lg flex items-center justify-center text-white font-bold text-sm sm:text-base">
-            🧺 Tea Basket
+          <div
+            className="px-4 py-2 flex items-center justify-center gap-1.5 text-sm sm:text-base font-semibold"
+            style={{ background: 'var(--surface-solid)', border: '1.5px solid var(--orange)', borderRadius: 'var(--radius-sm)', color: 'var(--text)' }}
+          >
+            <span aria-hidden="true">🧺</span> Tea Basket
           </div>
         </div>
 
         {gameOver && (
-          <div className="absolute inset-0 bg-purple-950/60 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center p-4 z-30 pointer-events-auto">
-            <div className="toy-card px-6 py-5 text-center max-w-xs w-full animate-pop bg-white">
-              <div className="text-5xl mb-2">🎉</div>
-              <h3 className="text-2xl font-bold text-emerald-900">Tea Time!</h3>
-              <div className="text-3xl my-2">{'⭐'.repeat(starsEarned)}</div>
-              <p className="text-base font-bold text-amber-600">Caught {catches} treats!</p>
-              <p className="text-sm font-semibold opacity-80 my-1">Score: {score} points</p>
-              <p className="text-sm font-bold text-emerald-600 mb-3">+{score} XP earned!</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-30 pointer-events-auto overflow-y-auto" style={{ background: 'rgba(10,6,28,0.7)' }}>
+            <div className="surface px-6 py-5 text-center max-w-xs w-full animate-pop" style={{ background: 'var(--surface-solid)' }}>
+              <PartyPopper size={36} strokeWidth={1.5} aria-hidden="true" className="mx-auto mb-2" style={{ color: 'var(--accent)' }} />
+              <h3 className="text-2xl font-semibold" style={{ color: 'var(--text)' }}>Tea Time!</h3>
+              <div className="flex justify-center gap-1 my-3" role="img" aria-label={`${starsEarned} out of 3 stars`}>
+                {[1, 2, 3].map((n) => (
+                  <Star key={n} size={28} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--daisy)' }} fill={n <= starsEarned ? 'var(--daisy)' : 'none'} />
+                ))}
+              </div>
+              <p className="text-base font-semibold" style={{ color: 'var(--daisy)' }}>Caught {catches} treats!</p>
+              <p className="text-sm my-1" style={{ color: 'var(--muted)' }}>Score: {score} points</p>
+              <p className="text-sm font-semibold mb-3" style={{ color: 'var(--mint)' }}>+{score} XP earned!</p>
 
               <div className="flex flex-col gap-2">
-                <button onClick={restart} className="btn-chunky green py-2.5 text-base font-bold">
-                  🔄 Play Again
+                <button onClick={restart} className="btn-pill primary px-5 text-base">
+                  <RotateCcw size={18} strokeWidth={1.5} aria-hidden="true" /> Play Again
                 </button>
                 <button
                   onClick={() => {
@@ -214,9 +226,9 @@ export default function LeafCatcherGame({ onScoreReward, onClose }: LeafCatcherG
                     onScoreReward(score);
                     onClose();
                   }}
-                  className="btn-chunky blue py-2 text-sm font-bold"
+                  className="btn-pill px-5 text-sm"
                 >
-                  ✓ Finish & Claim Stars
+                  <Check size={18} strokeWidth={1.5} aria-hidden="true" /> Finish &amp; Claim Stars
                 </button>
               </div>
             </div>
@@ -228,18 +240,18 @@ export default function LeafCatcherGame({ onScoreReward, onClose }: LeafCatcherG
       <div className="w-full flex items-center justify-between gap-3 mt-3">
         <button
           onClick={moveLeft}
-          className="btn-chunky blue flex-1 py-3 text-lg font-bold flex items-center justify-center gap-1"
+          className="btn-pill flex-1 text-base"
         >
-          ◀ Left
+          <ChevronLeft size={20} strokeWidth={1.5} aria-hidden="true" /> Left
         </button>
-        <span className="text-xs sm:text-sm font-semibold opacity-75 text-center">
+        <span className="text-xs sm:text-sm text-center" style={{ color: 'var(--muted)' }}>
           Drag basket or tap buttons
         </span>
         <button
           onClick={moveRight}
-          className="btn-chunky blue flex-1 py-3 text-lg font-bold flex items-center justify-center gap-1"
+          className="btn-pill flex-1 text-base"
         >
-          Right ▶
+          Right <ChevronRight size={20} strokeWidth={1.5} aria-hidden="true" />
         </button>
       </div>
     </div>

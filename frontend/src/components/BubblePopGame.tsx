@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { Hourglass, RotateCcw, Check, Star, PartyPopper, Hand } from 'lucide-react';
 import { sounds } from '@/lib/soundEffects';
 
 interface BubblePopGameProps {
@@ -107,29 +108,32 @@ export default function BubblePopGame({ onScoreReward, onClose }: BubblePopGameP
       {/* Game Header */}
       <div className="w-full flex items-center justify-between mb-3 px-2">
         <div className="flex items-center gap-2">
-          <span className="text-3xl">🫧</span>
-          <div className="text-xl font-bold text-sky-900">Bubble Pop Bash!</div>
+          <div className="text-xl font-semibold" style={{ color: 'var(--text)' }}>Bubble Pop Bash!</div>
         </div>
         <div className="flex items-center gap-4">
-          <div className="font-bold text-lg bg-white/80 px-3 py-1 rounded-full border-2 border-sky-300">
-            ⏳ {timeLeft}s
+          <div className="px-3 min-h-[36px] inline-flex items-center gap-1.5 rounded-full text-sm sm:text-base font-semibold" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} aria-label={`${timeLeft} seconds left`}>
+            <Hourglass size={18} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--berry)' }} /> {timeLeft}s
           </div>
-          <div className="font-bold text-lg bg-white/80 px-3 py-1 rounded-full border-2 border-amber-300 text-amber-700">
-            ⭐ {score}
+          <div className="px-3 min-h-[36px] inline-flex items-center gap-1.5 rounded-full text-sm sm:text-base font-semibold" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} aria-label={`Score ${score}`}>
+            <Star size={18} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--daisy)' }} /> {score}
           </div>
         </div>
       </div>
 
       {/* Game Playfield */}
-      <div className="relative w-full h-[360px] rounded-3xl overflow-hidden bg-gradient-to-b from-sky-200 via-purple-100 to-pink-100 border-4 border-sky-300 shadow-inner select-none">
+      <div className="relative w-full h-[360px] max-h-[55vh] overflow-hidden select-none"
+        style={{
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--border-strong)',
+          background: 'linear-gradient(180deg, #1d1442, #33194f 60%, #4a2060)',
+        }}>
         {bubbles.map((b) => (
           <button
             key={b.id}
             onClick={() => pop(b)}
-            className={`absolute rounded-full flex items-center justify-center cursor-pointer transition transform hover:scale-115 active:scale-90 ${
-              b.isGold
-                ? 'bg-gradient-to-tr from-amber-200/90 to-yellow-100/95 border-3 border-amber-400 shadow-lg shadow-amber-300/50 animate-pulse'
-                : 'bg-gradient-to-tr from-white/70 via-sky-100/80 to-pink-100/80 border-2 border-white shadow-md'
+            aria-label={b.isGold ? 'Pop golden star bubble' : 'Pop bubble'}
+            className={`absolute rounded-full flex items-center justify-center cursor-pointer transition-transform duration-200 ease-out active:scale-90 ${
+              b.isGold ? 'animate-pulse' : ''
             }`}
             style={{
               left: `${b.x}%`,
@@ -137,6 +141,10 @@ export default function BubblePopGame({ onScoreReward, onClose }: BubblePopGameP
               width: b.isGold ? '62px' : '54px',
               height: b.isGold ? '62px' : '54px',
               transform: 'translate(-50%, -50%)',
+              background: b.isGold
+                ? 'radial-gradient(circle at 30% 30%, rgba(255,240,190,0.9), rgba(255,216,115,0.55))'
+                : 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.55), rgba(143,180,255,0.3) 60%, rgba(255,158,196,0.3))',
+              border: b.isGold ? '2px solid var(--daisy)' : '1.5px solid rgba(255,255,255,0.7)',
             }}
           >
             <span className="text-2xl pointer-events-none">{b.icon}</span>
@@ -145,22 +153,23 @@ export default function BubblePopGame({ onScoreReward, onClose }: BubblePopGameP
         ))}
 
         {gameOver && (
-          <div className="absolute inset-0 bg-purple-950/60 backdrop-blur-sm flex flex-col items-center justify-center p-4 z-30">
-            <div className="toy-card px-6 py-5 text-center max-w-xs w-full animate-pop bg-white">
-              <div className="text-5xl mb-2">🎉</div>
-              <h3 className="text-2xl font-bold text-purple-900">Time Up!</h3>
-              <div className="text-3xl my-2">{'⭐'.repeat(starsEarned)}</div>
-              <p className="text-lg font-bold text-amber-600 mb-1">Score: {score} points</p>
-              <p className="text-sm font-semibold opacity-80 mb-4">
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-30 overflow-y-auto" style={{ background: 'rgba(10,6,28,0.7)' }}>
+            <div className="surface px-6 py-5 text-center max-w-xs w-full animate-pop" style={{ background: 'var(--surface-solid)' }}>
+              <PartyPopper size={36} strokeWidth={1.5} aria-hidden="true" className="mx-auto mb-2" style={{ color: 'var(--accent)' }} />
+              <h3 className="text-2xl font-semibold" style={{ color: 'var(--text)' }}>Time Up!</h3>
+              <div className="flex justify-center gap-1 my-3" role="img" aria-label={`${starsEarned} out of 3 stars`}>
+                {[1, 2, 3].map((n) => (
+                  <Star key={n} size={28} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--daisy)' }} fill={n <= starsEarned ? 'var(--daisy)' : 'none'} />
+                ))}
+              </div>
+              <p className="text-lg font-semibold mb-1" style={{ color: 'var(--daisy)' }}>Score: {score} points</p>
+              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
                 +{score} XP added to your tea party level!
               </p>
 
               <div className="flex flex-col gap-2">
-                <button
-                  onClick={restart}
-                  className="btn-chunky green py-2.5 text-base font-bold"
-                >
-                  🔄 Play Again
+                <button onClick={restart} className="btn-pill primary px-5 text-base">
+                  <RotateCcw size={18} strokeWidth={1.5} aria-hidden="true" /> Play Again
                 </button>
                 <button
                   onClick={() => {
@@ -168,9 +177,9 @@ export default function BubblePopGame({ onScoreReward, onClose }: BubblePopGameP
                     onScoreReward(score);
                     onClose();
                   }}
-                  className="btn-chunky blue py-2 text-sm font-bold"
+                  className="btn-pill px-5 text-sm"
                 >
-                  ✓ Finish & Claim Stars
+                  <Check size={18} strokeWidth={1.5} aria-hidden="true" /> Finish &amp; Claim Stars
                 </button>
               </div>
             </div>
@@ -178,8 +187,8 @@ export default function BubblePopGame({ onScoreReward, onClose }: BubblePopGameP
         )}
       </div>
 
-      <div className="mt-3 text-xs sm:text-sm font-semibold text-center opacity-80">
-        👆 Tap bubbles before they float away! Golden stars ⭐ give +25 points!
+      <div className="mt-3 text-xs sm:text-sm text-center inline-flex items-center gap-1.5" style={{ color: 'var(--muted)' }}>
+        <Hand size={16} strokeWidth={1.5} aria-hidden="true" /> Tap bubbles before they float away! Golden star bubbles give +25 points!
       </div>
     </div>
   );

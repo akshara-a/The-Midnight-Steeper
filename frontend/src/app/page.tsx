@@ -13,7 +13,6 @@ import {
   NAPS,
   FRIENDS,
   Ingredient,
-  iconFor,
   rarityKid,
   getRank,
   POKE_LINES,
@@ -22,8 +21,6 @@ import {
   SnackItem,
 } from '@/lib/kidsContent';
 import { brainWasEnabled, brainReady, loadBrain, writeNote, BrainStatus } from '@/lib/browserAI';
-import Fireflies from '@/components/Fireflies';
-import ProgressRing from '@/components/ProgressRing';
 import BathMode from '@/components/BathMode';
 import SnackMode from '@/components/SnackMode';
 import MiniGamesModal from '@/components/MiniGamesModal';
@@ -33,13 +30,45 @@ import { type WardrobeOutfit, DEFAULT_WARDROBE } from '@/lib/wardrobe';
 import { AlchemistCrystalBall } from '@/components/AlchemistCrystalBall';
 import { TabPFNAttributionCard } from '@/components/TabPFNAttributionCard';
 import { DIORAMA_THEMES, type DioramaTheme, type PetMood } from '@/components/SlothPet3D';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bath,
+  BookOpen,
+  Coffee,
+  Gamepad2,
+  Gift,
+  Menu as MenuIcon,
+  Mic,
+  Moon,
+  Palette,
+  Play,
+  Shirt,
+  Sparkles,
+  Users,
+  Volume2,
+  VolumeX,
+  Zap,
+  Apple,
+  Star,
+  FlaskConical,
+  Flame,
+  Flower2,
+  Leaf,
+  Droplets,
+  Brain,
+  Download,
+  TriangleAlert,
+  Check,
+  Terminal,
+} from 'lucide-react';
+import { CloseButton, IngredientArt, LeafArt, LoadingBar, NapIcon, ParentGate, TreatIcon, plain, useEscape } from '@/components/ui';
 
 const SlothPet3D = dynamic(() => import('@/components/SlothPet3D'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex flex-col items-center justify-center text-lg font-semibold">
-      <div className="text-6xl animate-bounce-soft">🦥</div>
-      <span className="mt-2">Sunny is waking up...</span>
+    <div className="w-full h-full flex items-center justify-center">
+      <LoadingBar />
     </div>
   ),
 });
@@ -92,6 +121,14 @@ function Confetti() {
   );
 }
 
+const THEME_ICONS: Record<DioramaTheme, typeof Flame> = {
+  classic: Flame,
+  sakura: Flower2,
+  celestial: Sparkles,
+  autumn: Leaf,
+  onsen: Droplets,
+};
+
 const THEME_DETAILS: Record<DioramaTheme, { tag: string; swatches: string[] }> = {
   classic: {
     tag: '🏮 Golden Fireflies · Cozy Hearth Embers',
@@ -121,17 +158,23 @@ function Modal({
   children,
   wide,
 }: Readonly<{ title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }>) {
+  useEscape(onClose);
   return (
-    <div className="fixed inset-0 z-[50] flex items-center justify-center p-3 bg-purple-950/45 backdrop-blur-sm">
-      <div className={`toy-card animate-modal w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} max-h-[92vh] overflow-y-auto p-5 sm:p-7 relative`}>
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          className="btn-chunky blue absolute top-3 right-3 w-11 h-11 sm:w-12 sm:h-12 text-xl flex items-center justify-center"
-        >
-          ✕
-        </button>
-        <h2 className="text-2xl font-bold pr-14 mb-4">{title}</h2>
+    <div
+      className="fixed inset-0 z-[50] flex items-center justify-center p-3"
+      style={{ background: 'rgba(15,13,26,0.8)' }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={plain(title)}
+    >
+      <div
+        className={`surface animate-modal w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} max-h-[92vh] overflow-y-auto p-5 sm:p-7 relative`}
+        style={{ background: 'var(--surface-solid)' }}
+      >
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <h2 className="text-2xl font-semibold pt-2">{plain(title)}</h2>
+          <CloseButton onClick={onClose} />
+        </div>
         {children}
       </div>
     </div>
@@ -179,6 +222,9 @@ export default function SunnyTeaParty() {
   const [showCrystalModal, setShowCrystalModal] = useState(false);
   const [showAttributionModal, setShowAttributionModal] = useState(false);
   const [showGrownups, setShowGrownups] = useState(false);
+  const [showGate, setShowGate] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [wishTip, setWishTip] = useState<string | null>(null);
   const [dioramaTheme, setDioramaTheme] = useState<DioramaTheme>('classic');
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [outfit, setOutfit] = useState<WardrobeOutfit>(DEFAULT_WARDROBE);
@@ -553,20 +599,17 @@ export default function SunnyTeaParty() {
     { label: 'Open the surprise', done: sessionClaims > 0 },
   ];
 
-  const comboIcons = (ingredients?: string[]) => (ingredients ?? []).map(iconFor).join('');
-
   return (
     <main className={`relative min-h-screen ${night ? 'night' : ''} theme-${dioramaTheme}`}>
       <div className="sky sky-day" style={{ opacity: night ? 0 : 1 }} />
       <div className="sky sky-night" style={{ opacity: night ? 1 : 0 }} />
-      <div className="sky-stars" style={{ opacity: night ? 1 : 0 }} />
+      <div className="sky-stars" style={{ opacity: night ? 1 : 0.9 }} aria-hidden="true" />
       <div className="theme-atmosphere-glow" aria-hidden="true" />
-      <Fireflies night={night} theme={dioramaTheme} />
 
       {/* Floating hearts, stars and friends */}
       <div className="fixed inset-0 pointer-events-none z-[56] overflow-hidden" aria-hidden="true">
         {floaters.map((f) => (
-          <div key={f.id} className="absolute text-4xl animate-float-up" style={{ left: f.x - 20, top: f.y - 20 }}>
+          <div key={f.id} className="absolute text-3xl animate-float-up" style={{ left: f.x - 20, top: f.y - 20 }}>
             {f.text}
           </div>
         ))}
@@ -575,146 +618,77 @@ export default function SunnyTeaParty() {
 
       {levelUp !== null && (
         <div className="fixed inset-0 z-[57] flex items-center justify-center pointer-events-none">
-          <div className="toy-card animate-pop px-8 py-6 text-center">
-            <div className="text-5xl">🌟</div>
-            <div className="text-3xl font-bold">Level {levelUp}!</div>
-            <div className="text-lg font-semibold">You are now a {getRank(levelUp)}</div>
+          <div className="surface animate-pop px-10 py-7 text-center" style={{ background: 'var(--surface-solid)' }}>
+            <div className="text-4xl font-light">Level {levelUp}</div>
+            <div className="mt-1 text-base" style={{ color: 'var(--muted)' }}>
+              {getRank(levelUp)}
+            </div>
           </div>
         </div>
       )}
 
-      <div className="relative z-10 mx-auto w-full max-w-3xl px-3 sm:px-5 py-3 flex flex-col gap-4">
-        {/* Top bar */}
-        <header className="toy-card px-4 py-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-4xl">🦥</span>
-            <div className="min-w-0">
-              <div className="font-bold text-base sm:text-lg leading-tight truncate">Sunny the Talking Sloth</div>
-              <div className="text-sm font-medium opacity-80 truncate">
-                Level {playerLevel} · {getRank(playerLevel)}
-              </div>
-              <div className="mt-1 h-2.5 w-36 rounded-full bg-black/10 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{
-                    width: `${(currentXP / 1000) * 100}%`,
-                    background: 'linear-gradient(90deg, #ff7aa2, var(--theme-accent, #a855f7), #38bdf8)',
-                  }}
-                />
-              </div>
+      {/* Top bar: level, sound, grown-ups, menu */}
+      <header
+        inert={!started}
+        className="fixed top-0 inset-x-0 z-[45] transition-opacity duration-700"
+        style={{
+          opacity: !started ? 0 : night ? 0.6 : 1,
+          background: 'linear-gradient(to bottom, rgba(18,15,38,0.92) 55%, transparent)',
+        }}
+      >
+        <div className="mx-auto max-w-3xl landscape:md:max-w-5xl px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+          <div className="min-w-0" aria-label={`Level ${playerLevel}, ${Math.round((currentXP / 1000) * 100)} percent to the next level`}>
+            <div className="text-sm font-semibold">Level {playerLevel}</div>
+            <div className="progress-line mt-1.5 w-24">
+              <span style={{ width: `${(currentXP / 1000) * 100}%` }} />
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {isBrewing && (
-              <button
-                onClick={handleFastForward}
-                disabled={isFastForwarding}
-                aria-label="Fast-Forward Steep for demo"
-                className="btn-chunky yellow h-11 sm:h-12 px-2.5 sm:px-3 text-xs sm:text-sm font-bold flex items-center gap-1 animate-pulse"
-                title="⚡ Fast-forward sleep timer (Judge Demo Mode)"
-              >
-                ⚡ <span className="hidden sm:inline">{isFastForwarding ? 'Skipping...' : 'Fast-Forward'}</span>
-              </button>
-            )}
-            <button
-              onClick={() => {
-                sounds.playClick();
-                setShowThemeModal(true);
-              }}
-              aria-label="3D Diorama Atmosphere Themes"
-              className="btn-chunky w-11 h-11 sm:w-12 sm:h-12 text-xl flex items-center justify-center hover:scale-105 transition-all"
-              style={{
-                background: 'var(--theme-accent, #9b7bff)',
-                boxShadow: '0 5px 0 var(--theme-accent-strong, #6c4fd1)',
-              }}
-              title={`🎨 Theme: ${DIORAMA_THEMES[dioramaTheme]?.name || '3D Atmosphere'}`}
-            >
-              {DIORAMA_THEMES[dioramaTheme]?.icon || '🎨'}
-            </button>
-            <button
-              onClick={() => {
-                sounds.playClick();
-                setShowWardrobeModal(true);
-              }}
-              aria-label="Sunny's Dress-Up Wardrobe"
-              className="btn-chunky purple w-11 h-11 sm:w-12 sm:h-12 text-xl flex items-center justify-center hover:scale-105"
-              title="👒 Sunny's Dress-Up Wardrobe (Hats, Glasses, Scarves)"
-            >
-              👒
-            </button>
-            <button
-              onClick={() => {
-                sounds.playClick();
-                setShowCrystalModal(true);
-              }}
-              aria-label="TabPFN AI Alchemist Forecast"
-              className="btn-chunky purple w-11 h-11 sm:w-12 sm:h-12 text-xl flex items-center justify-center hover:scale-105"
-              title="🔮 TabPFN AI Alchemist Forecast & Odds"
-            >
-              🔮
-            </button>
             <button
               onClick={() => setVoiceOn((v) => !v)}
               aria-label={voiceOn ? 'Turn Sunny’s voice off' : 'Turn Sunny’s voice on'}
-              className={`btn-chunky ${voiceOn ? 'green' : 'purple'} w-11 h-11 sm:w-12 sm:h-12 text-xl flex items-center justify-center`}
+              className="icon-btn"
             >
-              {voiceOn ? '🔊' : '🔇'}
+              {voiceOn ? <Volume2 size={22} strokeWidth={1.5} aria-hidden="true" /> : <VolumeX size={22} strokeWidth={1.5} aria-hidden="true" />}
             </button>
             <button
               onClick={() => {
                 sounds.playClick();
-                setShowBook(true);
-              }}
-              aria-label="Open sticker book"
-              className="btn-chunky yellow h-12 px-3 text-xl flex items-center gap-1"
-            >
-              📖<span className="text-base font-bold">{invCount}</span>
-            </button>
-            <button
-              onClick={() => {
-                sounds.playClick();
-                setShowGrownups(true);
+                setShowGate(true);
               }}
               aria-label="For grown-ups"
-              className="btn-chunky blue w-11 h-11 sm:w-12 sm:h-12 text-xl flex items-center justify-center"
+              className="icon-btn"
             >
-              👪
+              <Users size={22} strokeWidth={1.5} aria-hidden="true" />
+            </button>
+            <button
+              onClick={() => {
+                sounds.playClick();
+                setShowMenu(true);
+              }}
+              aria-label="Open menu"
+              className="icon-btn"
+            >
+              <MenuIcon size={22} strokeWidth={1.5} aria-hidden="true" />
             </button>
           </div>
-        </header>
+        </div>
+      </header>
 
+      <div className="relative z-10 mx-auto w-full max-w-3xl landscape:md:max-w-5xl px-4 sm:px-6 pt-20 pb-32 flex flex-col gap-6 landscape:md:grid landscape:md:grid-cols-2 landscape:md:items-center">
         {errorMsg && (
-          <div className="toy-card px-4 py-3 text-center font-semibold bg-amber-100" role="alert">
-            🙈 {errorMsg}
+          <div className="surface px-4 py-3 text-center landscape:md:col-span-2" role="alert" style={{ color: 'var(--danger)' }}>
+            {plain(errorMsg)}
           </div>
         )}
 
         {/* 3D stage: tap Sunny! */}
         <section
-          className="toy-card stage-scene relative overflow-hidden h-[50vh] min-h-[330px] max-h-[500px] transition-all duration-700"
+          className="stage-scene relative overflow-hidden h-[40vh] min-h-[260px] max-h-[520px] landscape:md:h-[62vh]"
           onPointerDown={(e) => {
             pointerRef.current = { x: e.clientX, y: e.clientY };
           }}
         >
-          {/* 3D Diorama Theme Switcher Badge */}
-          <button
-            onClick={() => {
-              sounds.playClick();
-              setShowThemeModal(true);
-            }}
-            aria-label="Change 3D Diorama Theme"
-            className="absolute bottom-3 right-3 z-20 btn-chunky py-1.5 px-3 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-lg hover:scale-105 active:scale-95 transition-all"
-            style={{
-              background: 'var(--theme-accent, #9b7bff)',
-              boxShadow: '0 4px 0 var(--theme-accent-strong, #6c4fd1), 0 8px 16px rgba(0,0,0,0.25)',
-            }}
-            title="Switch 3D Diorama Atmosphere Theme"
-          >
-            <span className="text-base sm:text-lg animate-bounce-soft">{DIORAMA_THEMES[dioramaTheme]?.icon || '🎨'}</span>
-            <span className="hidden sm:inline">{DIORAMA_THEMES[dioramaTheme]?.name || 'Theme'}</span>
-            <span className="text-[10px] opacity-85 bg-white/20 px-1.5 py-0.5 rounded-full font-bold">🎨</span>
-          </button>
-
           <SlothPet3D
             mood={mood}
             furColor={shownLeaf.color}
@@ -726,129 +700,33 @@ export default function SunnyTeaParty() {
             wardrobe={outfit}
           />
 
-          {bubble && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[80%] max-w-sm z-20 pointer-events-none">
-              <div key={bubble.id} className="bubble px-4 py-3 text-center text-lg font-semibold leading-snug">
-                {bubble.text}
+          {bubble && started && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[86%] max-w-sm z-20 pointer-events-none">
+              <div key={bubble.id} className="bubble px-4 py-3 text-center text-lg leading-snug">
+                {plain(bubble.text)}
               </div>
             </div>
           )}
 
           {mood === 'sleeping' && (
-            <div className="absolute left-[56%] top-[28%] text-3xl font-bold text-sky-100 pointer-events-none" aria-hidden="true">
-              <span className="absolute animate-zzz">Z</span>
-              <span className="absolute animate-zzz" style={{ animationDelay: '1s' }}>z</span>
-              <span className="absolute animate-zzz" style={{ animationDelay: '2s' }}>z</span>
+            <div className="absolute left-[56%] top-[28%] text-2xl font-light pointer-events-none" aria-hidden="true" style={{ color: 'var(--muted)' }}>
+              <span className="absolute animate-zzz">z</span>
+              <span className="absolute animate-zzz" style={{ animationDelay: '1.3s' }}>z</span>
             </div>
           )}
 
-          <div className="absolute bottom-3 left-3 sm:left-4 text-xs sm:text-sm font-semibold pointer-events-none">
-            <span className="bg-black/45 backdrop-blur-md text-white/95 px-3 py-1 rounded-full shadow-sm">
-              {mood === 'sleeping'
-                ? '💤 Shh... Sunny is sleeping peacefully'
-                : mood === 'bathing'
-                ? '🛁 Splish splash! Sunny is enjoying the bath!'
-                : '👆 Tap or tickle Sunny!'}
-            </span>
-          </div>
+          {started && (
+            <div className="absolute bottom-2 inset-x-0 text-center text-sm pointer-events-none" style={{ color: 'var(--muted)' }}>
+              {mood === 'sleeping' ? 'Sunny is sleeping' : mood === 'bathing' ? 'Bath time' : 'Tap Sunny'}
+            </div>
+          )}
         </section>
 
-        {/* Activity Navigation Bar (Active only when awake; calm bedtime notice when sleeping) */}
-        {isBedtimeActive ? (
-          <div className="toy-card px-4 py-3.5 text-center bg-indigo-950/60 border-indigo-300/40 text-indigo-100 flex items-center justify-center gap-3 select-none">
-            <span className="text-3xl animate-bounce-soft">🌙</span>
-            <div className="text-left">
-              <div className="font-bold text-sm sm:text-base text-white">Shhh... Sunny is sleeping soundly 💤</div>
-              <div className="text-xs sm:text-sm text-indigo-200">
-                No baths, snacks, or games right now. Time for you to sleep too!
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
-            <button
-              onClick={() => {
-                sounds.playClick();
-                setPetMode('bath');
-                say("Splish splash! Let's take a warm bubble bath! 🛁");
-              }}
-              aria-label="Bath time"
-              className={`btn-chunky p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 ${
-                petMode === 'bath' ? 'blue ring-4 ring-sky-300 scale-105' : 'purple'
-              }`}
-            >
-              <span className="text-2xl sm:text-3xl">🛁</span>
-              <span className="text-xs sm:text-sm font-bold">Bath</span>
-            </button>
-
-            <button
-              onClick={() => {
-                sounds.playClick();
-                setPetMode('snack');
-                say("Yay, snack time! Pick a yummy treat for me! 🍓");
-              }}
-              aria-label="Snack time"
-              className={`btn-chunky p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 ${
-                petMode === 'snack' ? 'yellow ring-4 ring-amber-300 scale-105' : 'purple'
-              }`}
-            >
-              <span className="text-2xl sm:text-3xl">🍓</span>
-              <span className="text-xs sm:text-sm font-bold">Snack</span>
-            </button>
-
-            <button
-              onClick={() => {
-                sounds.playClick();
-                setShowWardrobeModal(true);
-              }}
-              aria-label="Dress up closet"
-              className="btn-chunky purple p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 hover:scale-105"
-            >
-              <span className="text-2xl sm:text-3xl">👒</span>
-              <span className="text-xs sm:text-sm font-bold">Closet</span>
-            </button>
-
-            <button
-              onClick={() => {
-                sounds.playClick();
-                setShowMiniGames(true);
-              }}
-              aria-label="Mini games"
-              className="btn-chunky green p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 hover:scale-105"
-            >
-              <span className="text-2xl sm:text-3xl">🎮</span>
-              <span className="text-xs sm:text-sm font-bold">Games</span>
-            </button>
-
-            <button
-              onClick={() => {
-                sounds.playClick();
-                setShowTalking(true);
-              }}
-              aria-label="Talk to Sunny"
-              className="btn-chunky purple p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 hover:scale-105"
-            >
-              <span className="text-2xl sm:text-3xl">🎤</span>
-              <span className="text-xs sm:text-sm font-bold">Talk</span>
-            </button>
-
-            <button
-              onClick={() => {
-                sounds.playClick();
-                setPetMode('tea');
-                say("Let's brew bedtime tea for our forest friends! 🍵");
-              }}
-              aria-label="Bedtime tea"
-              className={`btn-chunky p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1 ${
-                petMode === 'tea' ? 'blue ring-4 ring-indigo-300 scale-105' : 'purple'
-              }`}
-            >
-              <span className="text-2xl sm:text-3xl">🍵</span>
-              <span className="text-xs sm:text-sm font-bold">Tea & Bed</span>
-            </button>
-          </div>
-        )}
-
+        <div
+          inert={!started}
+          className="flex flex-col gap-6 transition-opacity duration-700"
+          style={{ opacity: started ? 1 : 0 }}
+        >
         {/* ---------- BATH MODE (only when awake) ---------- */}
         {petMode === 'bath' && !isBedtimeActive && (
           <BathMode
@@ -876,32 +754,29 @@ export default function SunnyTeaParty() {
 
         {/* ---------- IDLE: three easy steps for tea ---------- */}
         {petMode === 'tea' && isIdle && !tuck && (
-          <section className="toy-card p-4 sm:p-6">
-            <div className="flex items-center justify-center gap-2 mb-3" aria-label={`Step ${step} of 3`}>
+          <section className="animate-modal">
+            <div className="flex items-center justify-center gap-2 mb-5" role="img" aria-label={`Step ${step} of 3`}>
               {[1, 2, 3].map((n) => (
                 <span
                   key={n}
-                  className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-lg border-4 border-white ${
-                    n === step ? 'bg-pink-400 text-white scale-110' : n < step ? 'bg-emerald-400 text-white' : 'bg-white/70'
-                  }`}
-                >
-                  {n < step ? '✓' : n}
-                </span>
+                  aria-hidden="true"
+                  className="h-1.5 rounded-full transition-all"
+                  style={{
+                    width: n === step ? 28 : 8,
+                    background: n <= step ? 'var(--accent)' : 'var(--border-strong)',
+                  }}
+                />
               ))}
             </div>
 
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <h2 className="text-xl sm:text-2xl font-bold">
-                {step === 1 && '1. Pick a leaf or flower 🌸'}
-                {step === 2 && '2. Pick a yummy treat 🍯'}
-                {step === 3 && '3. How long is Sunny\'s nap? 😴'}
+            <div className="flex items-center justify-center gap-3 mb-5">
+              <h2 className="text-2xl sm:text-3xl font-light text-center">
+                {step === 1 && 'Pick a leaf or flower'}
+                {step === 2 && 'Pick a treat'}
+                {step === 3 && 'How long is Sunny’s nap?'}
               </h2>
-              <button
-                onClick={() => say(STEP_PROMPTS[step])}
-                aria-label="Hear this again"
-                className="btn-chunky blue w-11 h-11 text-lg shrink-0 flex items-center justify-center"
-              >
-                🔊
+              <button onClick={() => say(STEP_PROMPTS[step])} aria-label="Hear this again" className="icon-btn shrink-0">
+                <Volume2 size={20} strokeWidth={1.5} aria-hidden="true" />
               </button>
             </div>
 
@@ -911,12 +786,15 @@ export default function SunnyTeaParty() {
                   <button
                     key={item.name}
                     data-selected={leaf.name === item.name}
+                    aria-pressed={leaf.name === item.name}
                     style={{ '--sel': item.color } as React.CSSProperties}
                     onClick={(e) => chooseLeaf(item, e)}
-                    className="pick-card p-2 sm:p-3 text-center text-[#3b2a63]"
+                    className="pick-card px-2 py-4 flex flex-col items-center gap-2 text-center min-h-[120px]"
                   >
-                    <div className="text-4xl sm:text-5xl">{item.icon}</div>
-                    <div className="mt-1 text-sm sm:text-base font-semibold leading-tight">{item.name}</div>
+                    <span style={{ color: item.color }}>
+                      <LeafArt name={item.name} />
+                    </span>
+                    <span className="text-sm sm:text-base leading-tight">{item.name}</span>
                   </button>
                 ))}
               </div>
@@ -928,12 +806,15 @@ export default function SunnyTeaParty() {
                   <button
                     key={item.name}
                     data-selected={treat.name === item.name}
+                    aria-pressed={treat.name === item.name}
                     style={{ '--sel': item.color } as React.CSSProperties}
                     onClick={(e) => chooseTreat(item, e)}
-                    className="pick-card p-2 sm:p-3 text-center text-[#3b2a63]"
+                    className="pick-card px-2 py-4 flex flex-col items-center gap-2 text-center min-h-[120px]"
                   >
-                    <div className="text-4xl sm:text-5xl">{item.icon}</div>
-                    <div className="mt-1 text-sm sm:text-base font-semibold leading-tight">{item.name}</div>
+                    <span style={{ color: item.color }}>
+                      <TreatIcon name={item.name} size={48} />
+                    </span>
+                    <span className="text-sm sm:text-base leading-tight">{item.name}</span>
                   </button>
                 ))}
               </div>
@@ -946,64 +827,60 @@ export default function SunnyTeaParty() {
                     <button
                       key={n.key}
                       data-selected={napKey === n.key}
-                      style={{ '--sel': '#9b7bff' } as React.CSSProperties}
+                      aria-pressed={napKey === n.key}
+                      style={{ '--sel': '#c9a7ff' } as React.CSSProperties}
                       onClick={() => {
                         sounds.playPop();
                         setNapKey(n.key);
                         say(`${n.label}! ${n.sub === 'all night' ? 'I will sleep all night.' : `I will nap for ${n.sub}.`}`);
                       }}
-                      className="pick-card p-3 text-center text-[#3b2a63]"
+                      className="pick-card px-3 py-4 flex flex-col items-center gap-1 text-center min-h-[110px]"
                     >
-                      <div className="text-4xl">{n.icon}</div>
-                      <div className="font-bold">{n.label}</div>
-                      <div className="text-sm font-medium opacity-75">{n.sub}</div>
+                      <span style={{ color: 'var(--accent)' }}>
+                        <NapIcon id={n.key} />
+                      </span>
+                      <span className="text-base">{plain(n.label)}</span>
+                      <span className="text-sm" style={{ color: 'var(--muted)' }}>{n.sub}</span>
                     </button>
                   ))}
                 </div>
-                <div className="mt-4 rounded-2xl bg-white/70 border-4 border-white p-3 text-center text-[#3b2a63]">
-                  <div className="font-semibold">
-                    Sunny hopes <strong>{target}</strong> friends visit during the {nap.label.toLowerCase()}!
+                <div className="mt-5 text-center">
+                  <p className="text-base">
+                    Sunny hopes {target} {target === 1 ? 'friend visits' : 'friends visit'} during the {plain(nap.label).toLowerCase()}.
+                  </p>
+                  <div className="mt-2 flex justify-center gap-1.5" aria-hidden="true">
+                    {Array.from({ length: target }, (_, i) => (
+                      <span key={i} className="h-2 w-2 rounded-full" style={{ background: 'var(--accent)' }} />
+                    ))}
                   </div>
-                  <div className="mt-1 text-2xl tracking-wide">
-                    {FRIENDS.slice(0, target).map((f) => f.icon).join(' ')}
-                  </div>
-                  <div className="mt-1 text-sm opacity-80">
-                    {napKey === 'demo' ? '⚡ Judge Demo Mode: full steep runs in 10 seconds!' : 'Longer naps and yummier mixes bring more friends.'}
-                  </div>
-                </div>
-
-                {/* TabPFN Alchemist Forecast Popup Trigger */}
-                <div className="mt-3.5 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      sounds.playClick();
-                      setShowCrystalModal(true);
-                    }}
-                    className="btn-chunky purple py-2 px-4 text-xs sm:text-sm font-bold flex items-center gap-2 hover:scale-105"
-                  >
-                    <span className="text-lg">🔮</span>
-                    <span>Peek at TabPFN Forecast</span>
-                  </button>
+                  <p className="mt-2 text-sm" style={{ color: 'var(--muted)' }}>
+                    {napKey === 'demo' ? 'Demo mode: the full steep takes 10 seconds.' : 'Longer naps and yummier mixes bring more friends.'}
+                  </p>
                 </div>
               </>
             )}
 
-            <div className="mt-5 flex items-center justify-between gap-3">
+            <div className="mt-6 flex items-center justify-between gap-3">
               {step > 1 ? (
-                <button onClick={() => goStep(step - 1)} className="btn-chunky blue px-5 py-3 text-lg">
-                  ← Back
+                <button onClick={() => goStep(step - 1)} aria-label="Back" className="icon-btn" style={{ width: 56, height: 56 }}>
+                  <ArrowLeft size={24} strokeWidth={1.5} aria-hidden="true" />
                 </button>
               ) : (
                 <span />
               )}
               {step < 3 ? (
-                <button onClick={() => goStep(step + 1)} className="btn-chunky green px-7 py-3 text-lg">
-                  Next →
+                <button
+                  onClick={() => goStep(step + 1)}
+                  aria-label="Next step"
+                  className="btn-pill primary"
+                  style={{ width: 56, height: 56, padding: 0 }}
+                >
+                  <ArrowRight size={24} strokeWidth={1.5} aria-hidden="true" />
                 </button>
               ) : (
-                <button onClick={handleTuckIn} disabled={isStarting} className="btn-chunky yellow animate-glow px-6 py-4 text-xl">
-                  🌙 Tuck Sunny in!
+                <button onClick={handleTuckIn} disabled={isStarting} className="btn-pill primary px-8 text-lg" style={{ minHeight: 56 }}>
+                  <Moon size={20} strokeWidth={1.5} aria-hidden="true" />
+                  Tuck Sunny in
                 </button>
               )}
             </div>
@@ -1012,125 +889,237 @@ export default function SunnyTeaParty() {
 
         {/* Bedtime moment while the tea starts */}
         {tuck && (
-          <section className="toy-card p-6 text-center">
-            <div className="text-5xl animate-bounce-soft">{tuck === 'drink' ? '🍵' : '🌙'}</div>
-            <h2 className="mt-2 text-2xl font-bold">{tuck === 'drink' ? 'Sunny is sipping tea...' : 'Sleepy time!'}</h2>
+          <section className="text-center py-6 animate-modal">
+            <h2 className="text-2xl font-light">{tuck === 'drink' ? 'Sunny is sipping tea' : 'Sleepy time'}</h2>
           </section>
         )}
 
-        {/* ---------- BREWING: Sunny is asleep ---------- */}
+        {/* ---------- BREWING: Sunny is asleep, the interface fades to a quiet goodnight ---------- */}
         {isBrewing && !tuck && (
-          <section className="toy-card p-4 sm:p-6 text-center">
-            <ProgressRing progress={brewProgress} size={250}>
-              <div className="text-sm font-semibold opacity-80">Sunny wakes up in</div>
-              <div className="text-5xl font-bold tracking-wide">{formatTimer(remainingSeconds)}</div>
-              <div className="text-sm font-semibold opacity-80">{Math.floor(brewProgress * 100)}% asleep 💤</div>
-            </ProgressRing>
-
-            {/* Judge Demo Fast-Forward Button */}
-            <div className="mt-4 flex justify-center">
-              <button
-                onClick={handleFastForward}
-                disabled={isFastForwarding}
-                className="btn-chunky yellow px-5 py-2.5 text-sm sm:text-base font-bold flex items-center gap-2 hover:scale-105"
-                title="Fast-forwards sleep timer so judges can immediately test the morning surprise"
-              >
-                ⚡ {isFastForwarding ? 'Fast-Forwarding...' : 'Fast-Forward Steep (Judge Demo)'}
-              </button>
+          <section className="text-center py-6 animate-modal">
+            <h2 className="text-2xl font-light">Goodnight</h2>
+            <p className="mt-2 text-sm" style={{ color: 'var(--muted)' }}>
+              Sunny wakes in {formatTimer(remainingSeconds)}
+            </p>
+            <div
+              className="progress-line mx-auto mt-4 w-40"
+              role="progressbar"
+              aria-label="Sleep progress"
+              aria-valuenow={Math.floor(brewProgress * 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <span style={{ width: `${brewProgress * 100}%` }} />
             </div>
-
-            {/* Bedtime Generative Sleep Soundscape Machine */}
-            <div className="mt-4 rounded-2xl bg-indigo-900/40 border-2 border-indigo-300/40 p-3 text-center">
-              <div className="text-xs font-bold uppercase tracking-wider text-indigo-200 mb-2 flex items-center justify-center gap-1.5">
-                <span>✨</span>
-                <span>Procedural Lofi Sleep Soundscape</span>
-                <span>✨</span>
-              </div>
-              <div className="flex flex-wrap justify-center gap-1.5">
-                {[
-                  { key: 'rain', label: '🌧️ Gentle Rain' },
-                  { key: 'breeze', label: '🍃 Forest Breeze' },
-                  { key: 'chimes', label: '🎶 Twilight Chimes' },
-                  { key: 'off', label: '🔇 Off' },
-                ].map((mode) => (
-                  <button
-                    key={mode.key}
-                    onClick={() => {
-                      sounds.playClick();
-                      setSoundscape(mode.key as 'off' | 'rain' | 'breeze' | 'chimes');
-                    }}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition ${
-                      soundscape === mode.key
-                        ? 'bg-sky-400 text-sky-950 shadow-md scale-105'
-                        : 'bg-white/20 text-white/90 hover:bg-white/30'
-                    }`}
-                  >
-                    {mode.label}
-                  </button>
-                ))}
-              </div>
+            <div
+              className="mt-6 flex flex-wrap justify-center gap-2"
+              role="img"
+              aria-label={`Friends at the party: ${served} of ${brewTarget}`}
+            >
+              {Array.from({ length: Math.max(brewTarget, arrivals.length) }, (_, i) => (
+                <span
+                  key={i}
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={i < served ? { background: 'var(--accent)' } : { border: '1.5px solid var(--muted)' }}
+                />
+              ))}
             </div>
-
-            <div className="mt-5">
-              <div className="font-bold text-lg">
-                Friends at the party: {served} of {brewTarget}
-              </div>
-              <div className="mt-2 flex flex-wrap justify-center gap-2">
-                {Array.from({ length: Math.max(brewTarget, arrivals.length) }, (_, i) => {
-                  const f = friendFor(currentBrew?.brew_id ?? '', i + 1);
-                  const here = i < served;
-                  return (
-                    <div
-                      key={i}
-                      className={`w-14 h-14 rounded-2xl border-4 flex items-center justify-center text-3xl ${
-                        here ? 'bg-white border-pink-300 animate-pop' : 'border-dashed border-current/30 opacity-60'
-                      }`}
-                    >
-                      {here ? f.icon : '?'}
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="h-7 mt-2 font-semibold text-pink-500">{friendNote}</div>
-              {served >= brewTarget && brewTarget > 0 && <div className="font-bold text-emerald-500">All the friends came! 🎉</div>}
-            </div>
-
-            <div className="mt-4 rounded-2xl bg-white/20 border-4 border-white/60 p-4 text-lg font-semibold">
-              🌙 Shhh... Sunny is sleeping. <br />
-              Time for <u>you</u> to go to sleep too! <br />
-              <span className="text-base font-medium opacity-90">Close the game now. Your tea will be ready when you come back.</span>
-            </div>
+            <p className="mt-3 h-5 text-sm" role="status" style={{ color: 'var(--muted)' }}>
+              {friendNote ? plain(friendNote) : ''}
+            </p>
+            <p className="mt-6 text-sm" style={{ color: 'var(--muted)' }}>
+              Close the game now. Your tea will be ready when you wake up.
+            </p>
           </section>
         )}
 
         {/* ---------- READY ---------- */}
         {isReady && !tuck && (
-          <section className="toy-card p-6 text-center">
-            <div className="text-6xl animate-bounce-soft">🎁</div>
-            <h2 className="text-2xl font-bold mt-2">Sunny woke up!</h2>
-            <p className="font-medium opacity-90 mb-4">
-              {served} {served === 1 ? 'friend' : 'friends'} came to the party. Open your surprise!
+          <section className="text-center py-4 animate-modal">
+            <Gift size={44} strokeWidth={1.5} className="mx-auto" style={{ color: 'var(--accent)' }} aria-hidden="true" />
+            <h2 className="mt-3 text-3xl font-light">Sunny woke up</h2>
+            <p className="mt-1 mb-5" style={{ color: 'var(--muted)' }}>
+              {served} {served === 1 ? 'friend' : 'friends'} came to the party.
             </p>
-            <button onClick={handleClaim} disabled={isClaiming} className="btn-chunky yellow animate-glow px-8 py-4 text-xl">
-              {isClaiming ? 'Opening...' : '🎁 Open the surprise!'}
+            <button onClick={handleClaim} disabled={isClaiming} className="btn-pill primary px-8 text-lg" style={{ minHeight: 56 }}>
+              {isClaiming ? 'Opening...' : 'Open the surprise'}
             </button>
           </section>
         )}
 
-        {/* Wishes */}
-        <section className="toy-card px-4 py-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
-          <span className="font-bold">Today&apos;s wishes:</span>
-          {wishes.map((w) => (
-            <span key={w.label} className={`font-semibold ${w.done ? 'text-emerald-500' : 'opacity-80'}`}>
-              {w.done ? '⭐' : '☆'} {w.label}
-            </span>
-          ))}
-        </section>
-
-        <footer className="text-center text-sm font-semibold opacity-70 pb-4">
-          Sunny the Sloth · Talking Pet & Mini-Games · slow and steady wins the nap 🦥
-        </footer>
+        {/* Wishes: dots fill as tasks complete; tap or hover for the text */}
+        {!isBedtimeActive && (
+          <section className="flex flex-col items-center" aria-label="Today's wishes">
+            <div className="flex items-center justify-center">
+              {wishes.map((w) => (
+                <button
+                  key={w.label}
+                  onClick={() => setWishTip((t) => (t === w.label ? null : w.label))}
+                  aria-label={`${w.label}: ${w.done ? 'done' : 'not yet'}`}
+                  title={w.label}
+                  className="h-11 w-11 flex items-center justify-center"
+                >
+                  <span
+                    className="h-3 w-3 rounded-full transition-colors"
+                    style={w.done ? { background: 'var(--accent)' } : { border: '1.5px solid var(--muted)' }}
+                  />
+                </button>
+              ))}
+            </div>
+            <p className="h-5 text-sm" role="status" style={{ color: 'var(--muted)' }}>
+              {wishTip ? `${wishTip}${wishes.find((w) => w.label === wishTip)?.done ? ' · done' : ''}` : ''}
+            </p>
+          </section>
+        )}
+        </div>
       </div>
+
+      {/* ---------- BOTTOM DOCK (only when awake) ---------- */}
+      {!isBedtimeActive && (
+        <nav
+          inert={!started}
+          aria-label="Activities"
+          className="fixed z-30 inset-x-3 mx-auto max-w-md transition-opacity duration-700 surface"
+          style={{
+            opacity: started ? 1 : 0,
+            bottom: 'max(0.75rem, env(safe-area-inset-bottom))',
+            borderRadius: 30,
+            background: 'rgba(27,22,54,0.82)',
+          }}
+        >
+          <div className="px-1.5 py-1.5 grid grid-cols-6">
+            {[
+              { key: 'bath', label: 'Bath', Icon: Bath, active: petMode === 'bath' },
+              { key: 'snack', label: 'Snack', Icon: Apple, active: petMode === 'snack' },
+              { key: 'closet', label: 'Closet', Icon: Shirt, active: false },
+              { key: 'games', label: 'Games', Icon: Gamepad2, active: false },
+              { key: 'talk', label: 'Talk', Icon: Mic, active: false },
+              { key: 'tea', label: 'Tea & Bed', Icon: Coffee, active: petMode === 'tea' },
+            ].map(({ key, label, Icon, active }) => (
+              <button
+                key={key}
+                onClick={() => {
+                  sounds.playClick();
+                  if (key === 'bath') {
+                    setPetMode('bath');
+                    say("Splish splash! Let's take a warm bubble bath!");
+                  } else if (key === 'snack') {
+                    setPetMode('snack');
+                    say('Yay, snack time! Pick a yummy treat for me!');
+                  } else if (key === 'closet') setShowWardrobeModal(true);
+                  else if (key === 'games') setShowMiniGames(true);
+                  else if (key === 'talk') setShowTalking(true);
+                  else {
+                    setPetMode('tea');
+                    say("Let's brew bedtime tea for our forest friends!");
+                  }
+                }}
+                aria-label={label}
+                aria-pressed={active}
+                className="flex flex-col items-center justify-center gap-1 min-h-14 rounded-2xl"
+              >
+                <span
+                  className="flex h-9 w-9 items-center justify-center rounded-full transition-colors"
+                  style={active ? { background: 'var(--accent)', color: 'var(--accent-ink)' } : { color: 'var(--text)' }}
+                >
+                  <Icon size={20} strokeWidth={1.5} aria-hidden="true" />
+                </span>
+                <span className="text-[11px] leading-none" style={{ color: active ? 'var(--text)' : 'var(--muted)' }}>
+                  {label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </nav>
+      )}
+
+      {/* ---------- MENU ---------- */}
+      {showMenu && (
+        <div
+          className="fixed inset-0 z-[50]"
+          style={{ background: 'rgba(15,13,26,0.7)' }}
+          onClick={() => setShowMenu(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu"
+        >
+          <div
+            className="surface animate-modal absolute top-3 right-3 w-[min(22rem,calc(100vw-1.5rem))] p-3"
+            style={{ background: 'var(--surface-solid)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-2 pb-2">
+              <span className="text-sm" style={{ color: 'var(--muted)' }}>Menu</span>
+              <CloseButton onClick={() => setShowMenu(false)} />
+            </div>
+            {[
+              { label: 'Sticker book', Icon: BookOpen, hint: String(invCount), run: () => setShowBook(true) },
+              { label: 'Themes', Icon: Palette, hint: DIORAMA_THEMES[dioramaTheme]?.name ?? '', run: () => setShowThemeModal(true) },
+              { label: 'Forecast', Icon: Sparkles, hint: '', run: () => setShowCrystalModal(true) },
+            ].map(({ label, Icon, hint, run }) => (
+              <button
+                key={label}
+                onClick={() => {
+                  sounds.playClick();
+                  setShowMenu(false);
+                  run();
+                }}
+                className="w-full min-h-14 px-3 flex items-center gap-3 rounded-2xl text-left hover:bg-white/5"
+              >
+                <Icon size={22} strokeWidth={1.5} aria-hidden="true" />
+                <span className="flex-1 text-base">{label}</span>
+                <span className="text-sm" style={{ color: 'var(--muted)' }}>{plain(hint)}</span>
+              </button>
+            ))}
+            {isBrewing && (
+              <>
+                <div className="px-3 pt-3 pb-1 text-sm" style={{ color: 'var(--muted)' }}>Sleep sound</div>
+                <div className="flex flex-wrap gap-2 px-3 pb-2">
+                  {[
+                    { key: 'rain', label: 'Rain' },
+                    { key: 'breeze', label: 'Breeze' },
+                    { key: 'chimes', label: 'Chimes' },
+                    { key: 'off', label: 'Off' },
+                  ].map((mode) => (
+                    <button
+                      key={mode.key}
+                      aria-pressed={soundscape === mode.key}
+                      onClick={() => {
+                        sounds.playClick();
+                        setSoundscape(mode.key as 'off' | 'rain' | 'breeze' | 'chimes');
+                      }}
+                      className={`btn-pill px-4 ${soundscape === mode.key ? 'primary' : ''}`}
+                    >
+                      {mode.label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    handleFastForward();
+                  }}
+                  disabled={isFastForwarding}
+                  className="w-full min-h-14 px-3 flex items-center gap-3 rounded-2xl text-left hover:bg-white/5 disabled:opacity-50"
+                >
+                  <Zap size={22} strokeWidth={1.5} aria-hidden="true" />
+                  <span className="flex-1 text-base">{isFastForwarding ? 'Skipping...' : 'Skip the steep'}</span>
+                  <span className="text-sm" style={{ color: 'var(--muted)' }}>Demo</span>
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      {showGate && (
+        <ParentGate
+          onClose={() => setShowGate(false)}
+          onPass={() => {
+            setShowGate(false);
+            setShowGrownups(true);
+          }}
+        />
+      )}
 
       {/* ---------- PRIZE ---------- */}
       {lootModal && (
@@ -1153,34 +1142,45 @@ export default function SunnyTeaParty() {
             return (
               <div className="text-center">
                 <div
-                  className="inline-block rounded-3xl border-4 px-6 py-4 bg-white/80 text-[#3b2a63]"
-                  style={{ borderColor: kid.color, boxShadow: `0 0 0 6px ${kid.color}55` }}
+                  className="inline-block rounded-3xl border-2 px-8 py-5"
+                  style={{
+                    borderColor: kid.color,
+                    background: `color-mix(in srgb, ${kid.color} 12%, transparent)`,
+                    boxShadow: `0 0 32px color-mix(in srgb, ${kid.color} 35%, transparent)`,
+                  }}
                 >
-                  <div className="text-5xl">{comboIcons(lootModal.ingredients) || '🍵'}</div>
-                  <div className="text-xl font-bold mt-1">{kid.label} Tea</div>
-                  <div className="text-2xl">{'⭐'.repeat(kid.stars)}</div>
+                  <div className="flex justify-center gap-2" style={{ color: kid.color }}>
+                    {(lootModal.ingredients ?? []).map((n) => (
+                      <IngredientArt key={n} name={n} size={44} />
+                    ))}
+                  </div>
+                  <div className="text-xl font-semibold mt-2">{kid.label} Tea</div>
+                  <div className="mt-1 flex justify-center gap-1" style={{ color: kid.color }} role="img" aria-label={`${kid.stars} stars`}>
+                    {Array.from({ length: kid.stars }, (_, k) => (
+                      <Star key={k} size={20} strokeWidth={1.5} fill="currentColor" aria-hidden="true" />
+                    ))}
+                  </div>
                 </div>
 
                 {tgt > 0 && (
                   <div
-                    className={`mt-4 rounded-2xl p-3 border-4 font-semibold ${
-                      lootModal.quota_met ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-amber-100 border-amber-300 text-amber-800'
-                    }`}
+                    className="mt-4 rounded-2xl p-3 surface"
+                    style={{ borderColor: lootModal.quota_met ? 'var(--mint)' : 'var(--border-strong)' }}
                   >
                     {lootModal.quota_met
-                      ? `🎉 All ${tgt} friends came! +${bonusXp(served2, tgt)} bonus stars`
+                      ? `All ${tgt} friends came! +${bonusXp(served2, tgt)} bonus stars`
                       : `${served2} of ${tgt} friends came. A longer nap invites more friends!`}
                     {!lootModal.quota_met && lootModal.base_rarity && lootModal.base_rarity !== lootModal.rarity && (
-                      <div className="text-sm font-medium">The tea is a little less sparkly this time, and that is okay!</div>
+                      <div className="text-sm" style={{ color: 'var(--muted)' }}>The tea is a little less sparkly this time, and that is okay!</div>
                     )}
                   </div>
                 )}
 
-                <div className="mt-4 rounded-2xl bg-white/80 border-4 border-pink-200 p-4 text-left text-[#3b2a63]">
-                  <div className="font-bold mb-1">
-                    {f.icon} A note from {f.name}:
+                <div className="mt-4 rounded-2xl surface p-4 text-left">
+                  <div className="text-sm" style={{ color: 'var(--muted)' }}>
+                    A note from {f.name}
                   </div>
-                  <p className="text-lg font-medium leading-snug min-h-[3.5rem]">
+                  <p className="mt-1 text-lg leading-snug min-h-[3.5rem]">
                     <Typewriter key={note} text={note} />
                   </p>
                 </div>
@@ -1188,19 +1188,20 @@ export default function SunnyTeaParty() {
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
                   <button
                     onClick={() => speech.speak(note, { onStart: () => setTalking(true), onEnd: () => setTalking(false) })}
-                    className="btn-chunky blue px-5 py-3 text-lg"
+                    className="btn-pill px-5"
                   >
-                    🔊 Hear it again
+                    <Volume2 size={20} strokeWidth={1.5} aria-hidden="true" />
+                    Hear it again
                   </button>
                   <button
                     onClick={() => {
                       sounds.playClick();
                       setShowAttributionModal(true);
                     }}
-                    className="btn-chunky purple px-4 py-3 text-base flex items-center gap-1.5"
+                    className="btn-pill px-5"
                   >
-                    <span>🔬</span>
-                    <span>AI Attribution</span>
+                    <FlaskConical size={20} strokeWidth={1.5} aria-hidden="true" />
+                    AI Attribution
                   </button>
                 </div>
               </div>
@@ -1235,8 +1236,8 @@ export default function SunnyTeaParty() {
       {showBook && (
         <Modal title="My sticker book 📖" onClose={() => setShowBook(false)} wide>
           {invCount === 0 ? (
-            <p className="text-center text-lg font-medium py-8">
-              No stickers yet! Make your first tea with Sunny to get one. 🦥
+            <p className="text-center text-lg py-8" style={{ color: 'var(--muted)' }}>
+              No stickers yet. Make your first tea with Sunny to get one.
             </p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -1249,14 +1250,22 @@ export default function SunnyTeaParty() {
                       sounds.playPop();
                       setSelectedSticker(item as Loot);
                     }}
-                    className="rounded-3xl border-4 p-3 text-center bg-white/85 text-[#3b2a63] cursor-pointer hover:-rotate-1 transition"
-                    style={{ borderColor: kid.color }}
+                    className="pick-card p-3 text-center"
+                    style={{ '--sel': kid.color } as React.CSSProperties}
                     aria-label={`${kid.label} tea. Tap to view TabPFN sensory profile.`}
                   >
-                    <div className="text-4xl">{comboIcons(item.ingredients) || '🍵'}</div>
-                    <div className="font-bold">{kid.label}</div>
-                    <div>{'⭐'.repeat(kid.stars)}</div>
-                    <div className="text-xs font-semibold opacity-70 mt-1">🔬 View AI Profile</div>
+                    <div className="flex justify-center gap-1.5" style={{ color: kid.color }}>
+                      {(item.ingredients ?? []).map((n) => (
+                        <IngredientArt key={n} name={n} size={34} />
+                      ))}
+                    </div>
+                    <div className="mt-1 font-semibold">{kid.label}</div>
+                    <div className="flex justify-center gap-0.5" style={{ color: kid.color }} aria-hidden="true">
+                      {Array.from({ length: kid.stars }, (_, k) => (
+                        <Star key={k} size={14} strokeWidth={1.5} fill="currentColor" />
+                      ))}
+                    </div>
+                    <div className="text-xs mt-1" style={{ color: 'var(--muted)' }}>View AI profile</div>
                   </button>
                 );
               })}
@@ -1268,46 +1277,54 @@ export default function SunnyTeaParty() {
       {/* ---------- GROWN-UPS ---------- */}
       {showGrownups && (
         <Modal title="For grown-ups & Hackathon Judges 👪" onClose={() => setShowGrownups(false)} wide>
-          <div className="space-y-4 text-base font-medium leading-relaxed">
-            <div className="p-3 bg-amber-100 rounded-2xl border-2 border-amber-300 text-amber-950">
-              <h3 className="font-bold text-lg flex items-center gap-1.5">
-                <span>⚡</span>
-                <span>Judge Demo Mode</span>
+          <div className="space-y-4 text-base leading-relaxed">
+            <div className="p-4 surface" style={{ borderColor: 'var(--accent)' }}>
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <Zap size={20} strokeWidth={1.5} aria-hidden="true" />
+                Judge Demo Mode
               </h3>
-              <p className="text-sm mt-1">
-                For quick hackathon evaluation: Select <strong>⚡ Judge Demo (10 seconds)</strong> in Step 3 when picking nap length, or tap the <strong>⚡ Fast-Forward</strong> button while Sunny sleeps to test the wake-up, animal friend arrivals, and AI prize loot in seconds!
+              <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
+                For quick evaluation: pick <strong>Demo (10 seconds)</strong> in step 3 when choosing nap length, or open the menu and choose <strong>Skip the steep</strong> while Sunny sleeps to test the wake-up, animal friend arrivals, and AI prize loot in seconds.
               </p>
             </div>
 
             <div>
-              <h3 className="font-bold text-lg">Talking Pet & Bedtime Game for Kids</h3>
+              <h3 className="font-semibold text-lg">Talking Pet & Bedtime Game for Kids</h3>
               <p>
                 Kids can care for Sunny just like Talking Tom: give Sunny a warm bubble bath, feed delicious snacks, play fun sensory mini-games (Bubble Pop, Forest Friends Match, Leaf Catcher), and talk with Sunny! When it is bedtime, kids tuck Sunny in with chamomile tea and go to sleep too.
               </p>
             </div>
             <div>
-              <h3 className="font-bold text-lg">Open-source AI, safe and free to run</h3>
+              <h3 className="font-semibold text-lg">Open-source AI, safe and free to run</h3>
               <ul className="list-disc pl-5">
                 <li>Sunny&apos;s friends write notes with open-weight <strong>Gemma</strong>, running on this device or via Ollama.</li>
                 <li>Prize rarity is predicted by open-source <strong>TabPFN</strong>, with a simple fallback when it is not installed.</li>
                 <li>Sunny&apos;s voice uses your browser&apos;s built-in speech. Nothing is ever sent to third-party tracking services.</li>
               </ul>
             </div>
-            <div className="rounded-2xl bg-white/70 border-4 border-white p-4 text-[#3b2a63]">
-              <h3 className="font-bold text-lg">🧠 Sunny&apos;s brain (In-Browser Gemma 2B, optional)</h3>
-              <p className="text-sm">
+            <div className="rounded-2xl surface p-4">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <Brain size={20} strokeWidth={1.5} aria-hidden="true" />
+                Sunny&apos;s brain (in-browser Gemma 2B, optional)
+              </h3>
+              <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
                 Download Gemma (about 320 MB, one time) to run client-side in the browser via transformers.js. It works offline and nothing ever leaves the device. If device memory is limited (e.g. mobile Safari / low-RAM), Sunny automatically uses the built-in procedural lore.
               </p>
               {brain.status === 'ready' || brainReady() ? (
-                <div className="mt-2 font-bold text-emerald-600">✅ Sunny&apos;s brain is awake!</div>
+                <div className="mt-2 font-semibold flex items-center gap-2" style={{ color: 'var(--mint)' }}>
+                  <Check size={18} strokeWidth={1.5} aria-hidden="true" />
+                  Sunny&apos;s brain is awake
+                </div>
               ) : (
                 <>
-                  <button onClick={enableBrain} disabled={brain.status === 'loading'} className="btn-chunky purple mt-3 px-5 py-3">
-                    {brain.status === 'loading' ? `Downloading... ${brain.pct}%` : '⬇ Wake up Sunny’s brain'}
+                  <button onClick={enableBrain} disabled={brain.status === 'loading'} className="btn-pill primary mt-3 px-5">
+                    <Download size={18} strokeWidth={1.5} aria-hidden="true" />
+                    {brain.status === 'loading' ? `Downloading... ${brain.pct}%` : 'Wake up Sunny’s brain'}
                   </button>
                   {brain.status === 'error' && (
-                    <div className="mt-2 text-xs font-semibold text-amber-700 bg-amber-100 p-2 rounded-xl border border-amber-300">
-                      ⚠️ Could not load in-browser weights (common on low-memory/mobile devices). Sunny will keep using the fast built-in procedural notes with zero lag!
+                    <div className="mt-2 text-sm p-3 rounded-xl surface flex gap-2" style={{ color: 'var(--danger)' }}>
+                      <TriangleAlert size={18} strokeWidth={1.5} className="shrink-0 mt-0.5" aria-hidden="true" />
+                      Could not load in-browser weights (common on low-memory/mobile devices). Sunny will keep using the fast built-in procedural notes with zero lag!
                     </div>
                   )}
                 </>
@@ -1315,20 +1332,20 @@ export default function SunnyTeaParty() {
             </div>
 
             {/* Developer & Judge Disclaimer: Local Ollama Gemma Setup */}
-            <div className="rounded-2xl bg-indigo-950/80 border-2 border-indigo-400/40 p-4 text-indigo-100">
-              <h3 className="font-bold text-base text-amber-200 flex items-center gap-1.5">
-                <span>💻</span>
-                <span>Developer & Judge Guide: Local Gemma via Ollama</span>
+            <div className="rounded-2xl surface p-4">
+              <h3 className="font-semibold text-base flex items-center gap-2">
+                <Terminal size={18} strokeWidth={1.5} aria-hidden="true" />
+                Developer &amp; Judge Guide: Local Gemma via Ollama
               </h3>
-              <div className="text-xs mt-2 space-y-2 text-indigo-200/90 leading-relaxed">
+              <div className="text-sm mt-2 space-y-2 leading-relaxed" style={{ color: 'var(--muted)' }}>
                 <p>
-                  <strong>☁️ Render Free Tier Disclaimer:</strong> Render&apos;s free tier provides 512 MB RAM. This is perfect for the fast 3D graphics and procedural lore generator, but cannot host multi-gigabyte local LLM weights (Gemma / Llama) inside the container.
+                  <strong>Render Free Tier Disclaimer:</strong> Render&apos;s free tier provides 512 MB RAM. This is perfect for the fast 3D graphics and procedural lore generator, but cannot host multi-gigabyte local LLM weights (Gemma / Llama) inside the container.
                 </p>
                 <p>
-                  <strong>✨ Zero-Crash Procedural Fallback:</strong> If no Ollama daemon is detected, the app automatically switches to the built-in procedural lore writer with 0 latency and 0 errors.
+                  <strong>Zero-Crash Procedural Fallback:</strong> If no Ollama daemon is detected, the app automatically switches to the built-in procedural lore writer with 0 latency and 0 errors.
                 </p>
                 <div className="bg-black/50 rounded-xl p-3 font-mono text-[11px] text-amber-300 space-y-1 overflow-x-auto">
-                  <div className="text-indigo-300 font-sans font-bold text-xs">🚀 How to test with your local Ollama Gemma:</div>
+                  <div className="text-indigo-300 font-sans font-bold text-xs">How to test with your local Ollama Gemma:</div>
                   <div># 1. Run local Gemma on your machine</div>
                   <div>ollama run gemma2:2b</div>
                   <div className="text-indigo-400"># or: ollama run llama3.2:1b</div>
@@ -1340,11 +1357,13 @@ export default function SunnyTeaParty() {
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
-              <button onClick={() => setVoiceOn((v) => !v)} className="btn-chunky green px-4 py-2">
-                {voiceOn ? '🔊 Voice on' : '🔇 Voice off'}
+              <button onClick={() => setVoiceOn((v) => !v)} aria-pressed={voiceOn} className="btn-pill px-5">
+                {voiceOn ? <Volume2 size={18} strokeWidth={1.5} aria-hidden="true" /> : <VolumeX size={18} strokeWidth={1.5} aria-hidden="true" />}
+                {voiceOn ? 'Voice on' : 'Voice off'}
               </button>
-              <button onClick={() => setSfxOn((v) => !v)} className="btn-chunky blue px-4 py-2">
-                {sfxOn ? '🎵 Sounds on' : '🔕 Sounds off'}
+              <button onClick={() => setSfxOn((v) => !v)} aria-pressed={sfxOn} className="btn-pill px-5">
+                {sfxOn ? <Volume2 size={18} strokeWidth={1.5} aria-hidden="true" /> : <VolumeX size={18} strokeWidth={1.5} aria-hidden="true" />}
+                {sfxOn ? 'Sounds on' : 'Sounds off'}
               </button>
             </div>
           </div>
@@ -1369,7 +1388,7 @@ export default function SunnyTeaParty() {
       {showThemeModal && (
         <Modal title="🎨 Choose Atmosphere & Diorama Theme" onClose={() => setShowThemeModal(false)}>
           <div className="space-y-3.5">
-            <p className="text-xs sm:text-sm text-[#3b2a63] font-medium leading-relaxed text-center">
+            <p className="text-sm leading-relaxed text-center" style={{ color: 'var(--muted)' }}>
               Transform Sunny&apos;s tea party nook with seasonal lanterns, animated background particles, kettle styles, and atmospheric lighting!
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -1388,36 +1407,39 @@ export default function SunnyTeaParty() {
                       } catch {}
                       say(`Welcome to the ${th.name}! ${th.icon}`);
                     }}
-                    className={`p-3 rounded-2xl border-2 text-left transition-all flex items-start gap-3 relative overflow-hidden ${index === 4 ? 'sm:col-span-2' : ''} ${
-                      isSelected
-                        ? 'bg-purple-600/25 border-purple-500 ring-2 ring-purple-300 scale-[1.02] shadow-md'
-                        : 'bg-white/70 border-indigo-200 hover:border-indigo-400 hover:bg-white/90 hover:scale-[1.01]'
-                    }`}
+                    data-selected={isSelected}
+                    aria-pressed={isSelected}
+                    className={`pick-card p-3 text-left flex items-start gap-3 ${index === 4 ? 'sm:col-span-2' : ''}`}
                   >
-                    <span className="text-3xl mt-0.5">{th.icon}</span>
+                    <span className="mt-0.5" style={{ color: 'var(--accent)' }}>
+                      {(() => {
+                        const ThemeIcon = THEME_ICONS[th.id] ?? Sparkles;
+                        return <ThemeIcon size={28} strokeWidth={1.5} aria-hidden="true" />;
+                      })()}
+                    </span>
                     <div className="min-w-0 flex-1">
-                      <div className="font-bold text-sm sm:text-base text-[#3b2a63] flex items-center justify-between">
+                      <div className="font-semibold text-base flex items-center justify-between">
                         <span>{th.name}</span>
                         {isSelected && (
-                          <span className="text-[11px] font-bold bg-purple-600 text-white px-2 py-0.5 rounded-full shadow-sm">
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'var(--accent)', color: 'var(--accent-ink)' }}>
                             Active
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] font-semibold text-purple-700/90 mt-0.5">
-                        {details?.tag}
+                      <div className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
+                        {plain(details?.tag ?? '')}
                       </div>
-                      <div className="text-xs text-[#3b2a63]/80 mt-1 leading-snug line-clamp-2">
-                        {th.description}
+                      <div className="text-sm mt-1 leading-snug line-clamp-2">
+                        {plain(th.description)}
                       </div>
                       {/* Mini Palette Swatch */}
                       <div className="mt-2 flex items-center gap-1.5">
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-black/50">Palette:</span>
+                        <span className="text-xs" style={{ color: 'var(--muted)' }}>Palette</span>
                         <div className="flex items-center gap-1">
                           {details?.swatches.map((color, idx) => (
                             <span
                               key={idx}
-                              className="w-3.5 h-3.5 rounded-full border border-black/20 shadow-xs inline-block"
+                              className="w-3.5 h-3.5 rounded-full inline-block"
                               style={{ backgroundColor: color }}
                               title={color}
                             />
@@ -1437,7 +1459,7 @@ export default function SunnyTeaParty() {
       {showCrystalModal && (
         <Modal title="🔮 TabPFN AI Alchemist Lab" onClose={() => setShowCrystalModal(false)} wide>
           <div className="space-y-3">
-            <p className="text-xs sm:text-sm text-[#3b2a63] font-medium leading-relaxed">
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
               Explore live in-context Bayesian probability distributions and multi-task sensory flavor regression predicted by <strong>TabPFN</strong> for your current recipe:
             </p>
             <AlchemistCrystalBall
@@ -1456,7 +1478,7 @@ export default function SunnyTeaParty() {
       {showAttributionModal && lootModal && (
         <Modal title="🔬 TabPFN AI Attribution & Flavors" onClose={() => setShowAttributionModal(false)} wide>
           <div className="space-y-3">
-            <p className="text-xs sm:text-sm text-[#3b2a63] font-medium leading-relaxed">
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
               Transparent Explainable AI (XAI) feature attribution breakdown for your <strong>{lootModal.item_name}</strong>:
             </p>
             <TabPFNAttributionCard loot={lootModal} defaultExpanded={true} />
@@ -1468,29 +1490,33 @@ export default function SunnyTeaParty() {
       {selectedSticker && (
         <Modal title={`🍵 ${selectedSticker.item_name}`} onClose={() => setSelectedSticker(null)} wide>
           <div className="space-y-3">
-            <div className="text-center p-3 bg-white/80 rounded-2xl border-2 border-indigo-200">
-              <div className="text-4xl">{comboIcons(selectedSticker.ingredients) || '🍵'}</div>
-              <div className="text-base font-bold mt-1 text-[#3b2a63]">{selectedSticker.item_name}</div>
-              <div className="text-xs font-semibold opacity-80 mt-0.5 italic">&ldquo;{selectedSticker.review}&rdquo;</div>
+            <div className="text-center p-4 surface">
+              <div className="flex justify-center gap-2" style={{ color: 'var(--accent)' }}>
+                {(selectedSticker.ingredients ?? []).map((n) => (
+                  <IngredientArt key={n} name={n} size={40} />
+                ))}
+              </div>
+              <div className="text-base font-semibold mt-2">{selectedSticker.item_name}</div>
+              <div className="text-sm mt-0.5 italic" style={{ color: 'var(--muted)' }}>&ldquo;{selectedSticker.review}&rdquo;</div>
             </div>
             <TabPFNAttributionCard loot={selectedSticker} defaultExpanded={true} />
           </div>
         </Modal>
       )}
 
-      {/* ---------- TITLE SCREEN ---------- */}
+      {/* ---------- TITLE SCREEN: wordmark over the live Sunny ---------- */}
       {!started && (
-        <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center text-center px-5 bg-gradient-to-b from-pink-200 via-purple-200 to-sky-200">
-          <div className="text-8xl animate-bounce-soft drop-shadow-lg">🦥</div>
-          <h1 className="mt-4 text-4xl sm:text-6xl font-bold bg-gradient-to-r from-pink-500 via-amber-400 to-sky-500 bg-clip-text text-transparent">
-            The Midnight Steeper
-          </h1>
-          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#6c4fd1]">Sunny the Talking Sloth</p>
-          <p className="mt-3 text-xl font-semibold text-[#3b2a63]">Take bubble baths, play mini-games, and make bedtime tea! 🛁🎮🌙</p>
-          <button onClick={handleStart} className="btn-chunky green animate-glow mt-10 px-12 py-5 text-3xl">
-            ▶ Play!
+        <div
+          className="fixed inset-x-0 bottom-0 z-[60] flex flex-col items-center text-center px-5 pt-16 pb-10"
+          style={{ background: 'linear-gradient(to top, rgba(18,15,38,0.96) 55%, transparent)' }}
+        >
+          <Moon size={30} strokeWidth={1.5} className="animate-bounce-soft" style={{ color: 'var(--daisy)' }} aria-hidden="true" />
+          <h1 className="wordmark mt-3 text-4xl sm:text-6xl">The Midnight Steeper</h1>
+          <button onClick={handleStart} className="btn-pill primary mt-8 px-12 text-xl" style={{ minHeight: 60 }}>
+            <Play size={22} strokeWidth={1.5} aria-hidden="true" />
+            Play
           </button>
-          <p className="mt-6 text-sm font-semibold text-[#3b2a63]/70">No ads · No accounts · 100% Kid Safe</p>
+          <p className="mt-6 text-sm" style={{ color: 'var(--muted)' }}>No ads · No accounts · Kid safe</p>
         </div>
       )}
     </main>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { Mic, Square, Laugh, Smile, Wind, Music, Volume2 } from 'lucide-react';
 import { sounds } from '@/lib/soundEffects';
 import { speech } from '@/lib/speech';
 import { SUNNY_JOKES } from '@/lib/kidsContent';
@@ -108,19 +109,38 @@ export default function TalkingSlothModal({ onSay, onSetTalking }: TalkingSlothM
     onSay('La la la~ 🎵 Cozy warm tea in my tummy, life as a sloth is yummy! 🎶');
   };
 
+  const StatusIcon = isPlayingBack ? Volume2 : Mic;
+
+  const pads = [
+    { label: 'Tell Joke', Icon: Laugh, color: 'var(--lavender)', onClick: tellJoke },
+    { label: 'Giggle', Icon: Smile, color: 'var(--daisy)', onClick: sillyGiggle },
+    { label: 'Sloth Sneeze', Icon: Wind, color: 'var(--berry)', onClick: makeSneeze },
+    { label: 'Sing Song', Icon: Music, color: 'var(--mint)', onClick: singSong },
+  ];
+
   return (
     <div className="flex flex-col gap-4 w-full text-center">
-      <div className="text-base sm:text-lg font-semibold text-[#3b2a63]">
+      <div className="text-base sm:text-lg" style={{ color: 'var(--text)' }}>
         Talk to Sunny just like Talking Tom, or play funny sound effects!
       </div>
 
       {/* Voice Record / Mimic Section */}
-      <div className="p-4 rounded-3xl bg-pink-100/90 border-4 border-pink-300 flex flex-col items-center">
-        <div className="text-4xl mb-2">
-          {isPlayingBack ? '🗣️' : isRecording ? '🎙️' : '🎤'}
+      <div className="surface p-4 flex flex-col items-center">
+        <div
+          className="mb-2 flex items-center justify-center rounded-full"
+          style={{
+            width: 56,
+            height: 56,
+            background: 'color-mix(in srgb, var(--rose) 18%, transparent)',
+            color: 'var(--rose)',
+          }}
+        >
+          <StatusIcon size={28} strokeWidth={1.5} aria-hidden="true" />
         </div>
-        <h3 className="font-bold text-lg text-pink-900">Talking Sloth Mimic</h3>
-        <p className="text-xs sm:text-sm font-semibold opacity-80 mt-1 mb-3">
+        <h3 className="font-semibold text-lg" style={{ color: 'var(--text)' }}>
+          Talking Sloth Mimic
+        </h3>
+        <p className="text-xs sm:text-sm mt-1 mb-3" style={{ color: 'var(--muted)' }} role="status">
           {isPlayingBack
             ? 'Sunny is repeating what you said in a squeaky sloth voice!'
             : isRecording
@@ -129,24 +149,26 @@ export default function TalkingSlothModal({ onSay, onSetTalking }: TalkingSlothM
         </p>
 
         {!isRecording ? (
-          <button
-            onClick={startRecording}
-            disabled={isPlayingBack}
-            className="btn-chunky green px-6 py-3 text-lg font-bold flex items-center gap-2 animate-glow"
-          >
-            🎙️ Start Talking
+          <button onClick={startRecording} disabled={isPlayingBack} className="btn-pill primary px-6 text-base">
+            <Mic size={20} strokeWidth={1.5} aria-hidden="true" /> Start Talking
           </button>
         ) : (
-          <button
-            onClick={stopRecording}
-            className="btn-chunky yellow px-7 py-3 text-lg font-bold flex items-center gap-2 animate-pulse"
-          >
-            ⏹️ Stop & Listen to Sunny!
+          <button onClick={stopRecording} className="btn-pill primary px-6 text-base">
+            <Square size={18} strokeWidth={1.5} aria-hidden="true" /> Stop &amp; Listen to Sunny
           </button>
         )}
 
         {micError && (
-          <div className="mt-2 text-xs font-semibold text-pink-700 bg-white/70 px-3 py-1.5 rounded-xl border border-pink-300">
+          <div
+            className="mt-3 text-xs sm:text-sm px-3 py-2"
+            style={{
+              color: 'var(--danger)',
+              background: 'var(--surface)',
+              border: '1px solid var(--border-strong)',
+              borderRadius: 'var(--radius-sm)',
+            }}
+            role="alert"
+          >
             {micError}
           </div>
         )}
@@ -154,41 +176,21 @@ export default function TalkingSlothModal({ onSay, onSetTalking }: TalkingSlothM
 
       {/* Silly Soundboard */}
       <div>
-        <div className="font-bold text-base text-[#3b2a63] mb-2">
-          Sunny&apos;s Silly Soundboard:
+        <div className="font-semibold text-base mb-2" style={{ color: 'var(--text)' }}>
+          Sunny&apos;s Silly Soundboard
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          <button
-            onClick={tellJoke}
-            className="btn-chunky purple p-3 flex flex-col items-center justify-center gap-1"
-          >
-            <span className="text-3xl">🤣</span>
-            <span className="text-xs font-bold">Tell Joke</span>
-          </button>
-
-          <button
-            onClick={sillyGiggle}
-            className="btn-chunky yellow p-3 flex flex-col items-center justify-center gap-1"
-          >
-            <span className="text-3xl">🤪</span>
-            <span className="text-xs font-bold">Giggle</span>
-          </button>
-
-          <button
-            onClick={makeSneeze}
-            className="btn-chunky blue p-3 flex flex-col items-center justify-center gap-1"
-          >
-            <span className="text-3xl">🤧</span>
-            <span className="text-xs font-bold">Sloth Sneeze</span>
-          </button>
-
-          <button
-            onClick={singSong}
-            className="btn-chunky green p-3 flex flex-col items-center justify-center gap-1"
-          >
-            <span className="text-3xl">🎶</span>
-            <span className="text-xs font-bold">Sing Song</span>
-          </button>
+          {pads.map(({ label, Icon, color, onClick }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              className="pick-card p-3 min-h-[72px] flex flex-col items-center justify-center gap-1.5"
+              style={{ ['--sel' as string]: color }}
+            >
+              <Icon size={26} strokeWidth={1.5} aria-hidden="true" style={{ color }} />
+              <span className="text-xs sm:text-sm font-semibold">{label}</span>
+            </button>
+          ))}
         </div>
       </div>
     </div>

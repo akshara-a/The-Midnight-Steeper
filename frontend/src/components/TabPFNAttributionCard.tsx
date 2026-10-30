@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import { ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
 import type { Loot } from '@/lib/api';
+import { plain } from '@/components/ui';
 
 interface TabPFNAttributionCardProps {
   loot: Loot;
@@ -29,127 +31,122 @@ export function TabPFNAttributionCard({ loot, defaultExpanded = false }: TabPFNA
 
   const sleepiness = loot.sleepiness_score ?? 85;
 
+  const bars = [
+    { label: 'Bedtime consistency streak', value: attributions.streak_pct, color: 'var(--daisy)' },
+    { label: 'Deep steep & sleep length', value: attributions.duration_pct, color: 'var(--berry)' },
+    { label: 'Herbal ingredient synergy', value: attributions.synergy_pct, color: 'var(--rose)' },
+    { label: 'Bedtime routine & bathing', value: attributions.care_pct, color: 'var(--accent)' },
+  ];
+
+  const notes = [
+    { label: 'Sweetness', value: sensory.sweetness, color: 'var(--daisy)' },
+    { label: 'Starlight', value: sensory.starlight_glow, color: 'var(--accent)' },
+    { label: 'Floral', value: sensory.floral_harmony, color: 'var(--rose)' },
+    { label: 'Warmth', value: sensory.warmth, color: 'var(--orange)' },
+    { label: 'Earthiness', value: sensory.earthiness, color: 'var(--mint)' },
+  ];
+
   return (
-    <div className="mt-3 rounded-2xl bg-gradient-to-br from-indigo-950/90 via-purple-950/85 to-slate-950/95 border-2 border-indigo-400/40 p-3 sm:p-4 text-white text-left shadow-lg select-none">
+    <div className="surface mt-3 p-4 text-left select-none" style={{ background: 'var(--surface-solid)' }}>
       {/* Header */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">🔬</span>
-          <div>
-            <div className="font-bold text-xs sm:text-sm text-amber-200 flex items-center gap-1.5">
-              <span>TabPFN Feature Attribution</span>
-              <span className="text-[9px] uppercase font-bold tracking-wider bg-emerald-400/20 text-emerald-300 px-1.5 py-0.5 rounded-full border border-emerald-400/30">
-                XAI
-              </span>
-            </div>
-            <p className="text-[10px] text-indigo-200/80">
-              Why did this tea brew into {loot.rarity} quality?
-            </p>
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="min-w-0">
+          <div className="font-semibold text-sm sm:text-base flex items-center flex-wrap gap-2" style={{ color: 'var(--text)' }}>
+            <span>TabPFN Feature Attribution</span>
+            <span
+              className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full"
+              style={{
+                color: 'var(--mint)',
+                background: 'color-mix(in srgb, var(--mint) 14%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--mint) 35%, transparent)',
+              }}
+            >
+              XAI
+            </span>
           </div>
+          <p className="text-xs" style={{ color: 'var(--muted)' }}>
+            Why did this tea brew into {plain(String(loot.rarity))} quality?
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="text-right">
-            <span className="text-[10px] text-indigo-300 font-semibold">Rest: </span>
-            <span className="text-xs font-black text-sky-300">💤 {sleepiness}%</span>
+        <div className="flex items-center gap-3">
+          <div className="text-right text-xs">
+            <span style={{ color: 'var(--muted)' }}>Rest: </span>
+            <span className="font-bold" style={{ color: 'var(--berry)' }}>
+              {sleepiness}%
+            </span>
           </div>
           <button
             type="button"
             onClick={() => setExpanded(!expanded)}
-            className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 transition text-indigo-200"
+            aria-expanded={expanded}
+            className="btn-pill px-3 text-xs"
           >
-            {expanded ? '▲ Simple' : '▼ Breakdown'}
+            {expanded ? (
+              <ChevronUp size={16} strokeWidth={1.5} aria-hidden="true" />
+            ) : (
+              <ChevronDown size={16} strokeWidth={1.5} aria-hidden="true" />
+            )}
+            {expanded ? 'Simple' : 'Breakdown'}
           </button>
         </div>
       </div>
 
-      {/* Primary Driver Key Takeaway */}
-      <div className="mt-2 rounded-xl bg-emerald-950/50 border border-emerald-400/30 p-2 text-xs text-emerald-100 flex items-center gap-2">
-        <span className="text-lg shrink-0">💡</span>
+      {/* Primary driver */}
+      <div
+        className="mt-3 p-3 text-sm flex items-center gap-2.5"
+        style={{
+          color: 'var(--text)',
+          background: 'color-mix(in srgb, var(--mint) 10%, transparent)',
+          border: '1px solid color-mix(in srgb, var(--mint) 30%, transparent)',
+          borderRadius: 'var(--radius-sm)',
+        }}
+      >
+        <Lightbulb size={22} strokeWidth={1.5} aria-hidden="true" className="shrink-0" style={{ color: 'var(--mint)' }} />
         <div className="leading-snug">
-          <strong className="text-emerald-300">{attributions.primary_driver}</strong> was the biggest reason this tea reached its magical flavor!
+          <strong style={{ color: 'var(--mint)' }}>{plain(attributions.primary_driver)}</strong> was the biggest
+          reason this tea reached its magical flavor.
         </div>
       </div>
 
-      {/* Expanded Breakdown */}
+      {/* Expanded breakdown */}
       {expanded && (
-        <div className="mt-2.5 pt-2.5 border-t border-indigo-400/20 space-y-2.5 animate-fade-in">
-          {/* Attribution Progress Bars */}
-          <div className="space-y-1.5">
-            <div>
-              <div className="flex justify-between text-[11px] font-semibold text-indigo-200 mb-0.5">
-                <span>🌙 Bedtime Consistency Streak</span>
-                <span className="font-bold text-amber-300">+{attributions.streak_pct}%</span>
+        <div className="mt-3 pt-3 space-y-3 animate-modal" style={{ borderTop: '1px solid var(--border)' }}>
+          <div className="space-y-2.5">
+            {bars.map((b) => (
+              <div key={b.label}>
+                <div className="flex justify-between text-xs font-semibold mb-1" style={{ color: 'var(--text)' }}>
+                  <span>{b.label}</span>
+                  <span style={{ color: b.color }}>+{b.value}%</span>
+                </div>
+                <div className="progress-line">
+                  <span style={{ width: `${b.value}%`, background: b.color }} />
+                </div>
               </div>
-              <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden border border-white/10">
-                <div
-                  className="bg-amber-400 h-full rounded-full transition-all duration-700"
-                  style={{ width: `${attributions.streak_pct}%` }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between text-[11px] font-semibold text-indigo-200 mb-0.5">
-                <span>⏳ Deep Steep & Sleep Length</span>
-                <span className="font-bold text-sky-300">+{attributions.duration_pct}%</span>
-              </div>
-              <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden border border-white/10">
-                <div
-                  className="bg-sky-400 h-full rounded-full transition-all duration-700"
-                  style={{ width: `${attributions.duration_pct}%` }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between text-[11px] font-semibold text-indigo-200 mb-0.5">
-                <span>🌸 Herbal Ingredient Synergy</span>
-                <span className="font-bold text-pink-300">+{attributions.synergy_pct}%</span>
-              </div>
-              <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden border border-white/10">
-                <div
-                  className="bg-pink-400 h-full rounded-full transition-all duration-700"
-                  style={{ width: `${attributions.synergy_pct}%` }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between text-[11px] font-semibold text-indigo-200 mb-0.5">
-                <span>🛁 Bedtime Routine & Bathing</span>
-                <span className="font-bold text-purple-300">+{attributions.care_pct}%</span>
-              </div>
-              <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden border border-white/10">
-                <div
-                  className="bg-purple-400 h-full rounded-full transition-all duration-700"
-                  style={{ width: `${attributions.care_pct}%` }}
-                />
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* Sensory Flavor Dimensions Radar Tags */}
-          <div className="pt-2 border-t border-indigo-400/20">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-amber-300 mb-1 flex items-center justify-between">
-              <span>🍵 Sensory Flavor Notes</span>
-              <span className="text-[9px] text-indigo-300 font-normal">Multi-Task Regression</span>
+          <div className="pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+            <div
+              className="text-[11px] font-semibold uppercase tracking-wider mb-2 flex items-center justify-between gap-2"
+              style={{ color: 'var(--muted)' }}
+            >
+              <span>Sensory flavor notes</span>
+              <span className="normal-case font-normal">Multi-task regression</span>
             </div>
-            <div className="flex flex-wrap gap-1">
-              <span className="px-2 py-0.5 rounded-full bg-amber-400/20 border border-amber-300/30 text-amber-200 text-[10px] font-semibold">
-                🍯 Sweetness: {sensory.sweetness}%
-              </span>
-              <span className="px-2 py-0.5 rounded-full bg-yellow-400/20 border border-yellow-300/30 text-yellow-200 text-[10px] font-semibold">
-                ✨ Starlight: {sensory.starlight_glow}%
-              </span>
-              <span className="px-2 py-0.5 rounded-full bg-pink-400/20 border border-pink-300/30 text-pink-200 text-[10px] font-semibold">
-                🌸 Floral: {sensory.floral_harmony}%
-              </span>
-              <span className="px-2 py-0.5 rounded-full bg-orange-400/20 border border-orange-300/30 text-orange-200 text-[10px] font-semibold">
-                ☕ Warmth: {sensory.warmth}%
-              </span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-400/20 border border-emerald-300/30 text-emerald-200 text-[10px] font-semibold">
-                🌿 Earthiness: {sensory.earthiness}%
-              </span>
+            <div className="flex flex-wrap gap-2">
+              {notes.map((n) => (
+                <span
+                  key={n.label}
+                  className="px-2.5 py-1 rounded-full text-xs font-semibold"
+                  style={{
+                    color: 'var(--text)',
+                    background: `color-mix(in srgb, ${n.color} 14%, transparent)`,
+                    border: `1px solid color-mix(in srgb, ${n.color} 38%, transparent)`,
+                  }}
+                >
+                  {n.label}: {n.value}%
+                </span>
+              ))}
             </div>
           </div>
         </div>

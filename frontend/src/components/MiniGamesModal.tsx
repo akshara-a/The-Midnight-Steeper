@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ArrowLeft, Play } from 'lucide-react';
 import { sounds } from '@/lib/soundEffects';
 import BubblePopGame from '@/components/BubblePopGame';
 import MemoryMatchGame from '@/components/MemoryMatchGame';
@@ -13,6 +14,30 @@ interface MiniGamesModalProps {
 
 type SelectedGame = null | 'bubble' | 'memory' | 'catcher';
 
+const GAMES = [
+  {
+    id: 'bubble',
+    emoji: '🫧',
+    title: 'Bubble Pop!',
+    desc: 'Tap and pop floating bubbles & golden stars!',
+    color: 'var(--berry)',
+  },
+  {
+    id: 'memory',
+    emoji: '🃏',
+    title: 'Friends Match',
+    desc: 'Find matching pairs of cute forest animals!',
+    color: 'var(--lavender)',
+  },
+  {
+    id: 'catcher',
+    emoji: '🧺',
+    title: 'Leaf Catcher',
+    desc: 'Slide the tea basket to catch falling berries!',
+    color: 'var(--mint)',
+  },
+] as const;
+
 export default function MiniGamesModal({ onScoreReward, onClose }: MiniGamesModalProps) {
   const [selectedGame, setSelectedGame] = useState<SelectedGame>(null);
 
@@ -21,65 +46,40 @@ export default function MiniGamesModal({ onScoreReward, onClose }: MiniGamesModa
       {selectedGame === null ? (
         <div className="flex flex-col gap-4">
           <div className="text-center">
-            <p className="text-base sm:text-lg font-semibold text-[#3b2a63]">
-              Pick a fun mini-game to play with Sunny and earn stars! ⭐
+            <p className="text-base sm:text-lg" style={{ color: 'var(--text)' }}>
+              Pick a fun mini-game to play with Sunny and earn stars!
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Game 1: Bubble Pop */}
-            <button
-              onClick={() => {
-                sounds.playClick();
-                setSelectedGame('bubble');
-              }}
-              className="pick-card p-4 flex flex-col items-center text-center hover:scale-105 active:scale-95 transition bg-gradient-to-b from-sky-50 to-pink-50 border-4 border-sky-300"
-            >
-              <div className="text-5xl animate-bounce-soft">🫧</div>
-              <div className="font-bold text-lg text-sky-900 mt-2">Bubble Pop!</div>
-              <div className="text-xs font-semibold text-sky-700/80 mt-1">
-                Tap and pop floating bubbles & golden stars!
-              </div>
-              <div className="mt-3 px-3 py-1 rounded-full bg-sky-200 text-sky-900 text-xs font-bold">
-                ▶ Play Game
-              </div>
-            </button>
-
-            {/* Game 2: Forest Friends Match */}
-            <button
-              onClick={() => {
-                sounds.playClick();
-                setSelectedGame('memory');
-              }}
-              className="pick-card p-4 flex flex-col items-center text-center hover:scale-105 active:scale-95 transition bg-gradient-to-b from-purple-50 to-indigo-50 border-4 border-purple-300"
-            >
-              <div className="text-5xl animate-bounce-soft">🃏</div>
-              <div className="font-bold text-lg text-purple-900 mt-2">Friends Match</div>
-              <div className="text-xs font-semibold text-purple-700/80 mt-1">
-                Find matching pairs of cute forest animals!
-              </div>
-              <div className="mt-3 px-3 py-1 rounded-full bg-purple-200 text-purple-900 text-xs font-bold">
-                ▶ Play Game
-              </div>
-            </button>
-
-            {/* Game 3: Leaf Catcher */}
-            <button
-              onClick={() => {
-                sounds.playClick();
-                setSelectedGame('catcher');
-              }}
-              className="pick-card p-4 flex flex-col items-center text-center hover:scale-105 active:scale-95 transition bg-gradient-to-b from-emerald-50 to-amber-50 border-4 border-emerald-300"
-            >
-              <div className="text-5xl animate-bounce-soft">🧺</div>
-              <div className="font-bold text-lg text-emerald-900 mt-2">Leaf Catcher</div>
-              <div className="text-xs font-semibold text-emerald-700/80 mt-1">
-                Slide the tea basket to catch falling berries!
-              </div>
-              <div className="mt-3 px-3 py-1 rounded-full bg-emerald-200 text-emerald-900 text-xs font-bold">
-                ▶ Play Game
-              </div>
-            </button>
+            {GAMES.map((g) => (
+              <button
+                key={g.id}
+                onClick={() => {
+                  sounds.playClick();
+                  setSelectedGame(g.id);
+                }}
+                className="pick-card p-4 flex flex-col items-center text-center"
+                style={{ ['--sel' as string]: g.color }}
+              >
+                {/* game sprite: decorative emoji preview of the playfield */}
+                <div className="text-5xl animate-bounce-soft" aria-hidden="true">
+                  {g.emoji}
+                </div>
+                <div className="font-semibold text-lg mt-2" style={{ color: 'var(--text)' }}>
+                  {g.title}
+                </div>
+                <div className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
+                  {g.desc}
+                </div>
+                <div
+                  className="mt-3 px-4 min-h-[44px] inline-flex items-center gap-1.5 rounded-full text-sm font-semibold"
+                  style={{ background: `color-mix(in srgb, ${g.color} 22%, transparent)`, color: 'var(--text)' }}
+                >
+                  <Play size={16} strokeWidth={1.5} aria-hidden="true" /> Play Game
+                </div>
+              </button>
+            ))}
           </div>
         </div>
       ) : (
@@ -90,9 +90,9 @@ export default function MiniGamesModal({ onScoreReward, onClose }: MiniGamesModa
                 sounds.playClick();
                 setSelectedGame(null);
               }}
-              className="btn-chunky blue px-4 py-2 text-sm font-bold flex items-center gap-1"
+              className="btn-pill px-4 text-sm"
             >
-              ← Back to Games Menu
+              <ArrowLeft size={18} strokeWidth={1.5} aria-hidden="true" /> Back to Games Menu
             </button>
           </div>
 

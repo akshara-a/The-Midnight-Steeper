@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { Bath, Bird, Check, Droplets, Sparkles, Wind } from 'lucide-react';
 import { sounds } from '@/lib/soundEffects';
 import { BATH_LINES } from '@/lib/kidsContent';
+import { plain } from '@/components/ui';
 
 interface BathModeProps {
   onSay: (text: string) => void;
@@ -112,37 +114,61 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
     onReward(5);
   };
 
+  const tools = [
+    { id: 'soap', label: 'Soap Up', Icon: Sparkles, color: 'var(--lavender)', onPick: () => {} },
+    { id: 'shower', label: 'Shower Rinse', Icon: Droplets, color: 'var(--berry)', onPick: useShower },
+    { id: 'duck', label: 'Rubber Duck', Icon: Bird, color: 'var(--daisy)', onPick: squeakDuck },
+    { id: 'bubble', label: 'Blow Bubbles', Icon: Wind, color: 'var(--mint)', onPick: blowBubble },
+  ] as const;
+
+  const hints: Record<string, string> = {
+    soap: 'Tap Sunny to lather with fluffy soap bubbles!',
+    shower: 'Tap to spray warm water and rinse the suds!',
+    duck: 'Tap the rubber ducky to squeak and splash!',
+    bubble: 'Tap to blow shiny bubbles, then tap them to pop!',
+  };
+
   return (
     <div className="flex flex-col gap-3 w-full">
       {/* Bath Top HUD */}
-      <div className="toy-card px-4 py-3 flex items-center justify-between gap-3 bg-sky-100/90 border-sky-300">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-3xl animate-bounce-soft">🛁</span>
-          <div>
-            <div className="font-bold text-base text-[#1e3a8a]">Sunny&apos;s Bubble Bath</div>
-            <div className="flex items-center gap-2 mt-0.5">
-              <div className="text-xs font-semibold text-sky-800">Cleanliness: {cleanliness}%</div>
-              <div className="w-24 h-3 bg-white/80 rounded-full overflow-hidden border border-sky-300">
-                <div
-                  className="h-full bg-gradient-to-r from-sky-400 to-emerald-400 transition-all duration-300 rounded-full"
-                  style={{ width: `${cleanliness}%` }}
-                />
+      <div className="surface px-4 py-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <Bath size={28} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--berry)' }} className="shrink-0" />
+          <div className="min-w-0">
+            <div className="font-semibold text-base" style={{ color: 'var(--text)' }}>
+              Sunny&apos;s Bubble Bath
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="text-xs" style={{ color: 'var(--muted)' }}>
+                Cleanliness: {cleanliness}%
+              </div>
+              <div
+                className="progress-line w-24"
+                role="progressbar"
+                aria-label="Cleanliness"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={cleanliness}
+              >
+                <span style={{ width: `${cleanliness}%` }} />
               </div>
             </div>
           </div>
         </div>
 
-        <button
-          onClick={onClose}
-          className="btn-chunky green px-4 py-2 text-sm sm:text-base flex items-center gap-1 shrink-0"
-        >
-          ✓ Done Bathing
+        <button onClick={onClose} className="btn-pill primary px-4 text-sm sm:text-base shrink-0">
+          <Check size={18} strokeWidth={1.5} aria-hidden="true" /> Done Bathing
         </button>
       </div>
 
       {/* Interactive Bathing Overlay Area (covers the 3D pet view) */}
       <div
-        className="relative w-full h-[220px] rounded-3xl overflow-hidden border-4 border-sky-200 bg-sky-500/10 cursor-pointer select-none"
+        className="relative w-full h-[220px] overflow-hidden cursor-pointer select-none"
+        style={{
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--border-strong)',
+          background: 'color-mix(in srgb, var(--berry) 10%, transparent)',
+        }}
         onClick={(e) => {
           if (activeTool === 'soap') applySoap(e);
           else if (activeTool === 'shower') useShower();
@@ -151,24 +177,26 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
         }}
       >
         {/* Hint banner */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-white/85 px-4 py-1 rounded-full text-xs sm:text-sm font-bold text-sky-900 border-2 border-sky-300 shadow-sm pointer-events-none z-20">
-          {activeTool === 'soap' && '🧼 Tap Sunny to lather with fluffy soap bubbles!'}
-          {activeTool === 'shower' && '🚿 Tap to spray warm water and rinse the suds!'}
-          {activeTool === 'duck' && '🐥 Tap the rubber ducky to squeak and splash!'}
-          {activeTool === 'bubble' && '🫧 Tap to blow shiny bubbles, then tap them to pop!'}
+        <div
+          className="absolute top-2 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs sm:text-sm text-center pointer-events-none z-20 max-w-[92%]"
+          style={{ background: 'var(--surface-solid)', color: 'var(--text)', border: '1px solid var(--border-strong)' }}
+        >
+          {hints[activeTool]}
         </div>
 
         {/* Soap suds sticking to Sunny */}
         {suds.map((s) => (
           <div
             key={s.id}
-            className="absolute rounded-full bg-white/90 shadow-md border-2 border-sky-100 flex items-center justify-center pointer-events-none transition-transform animate-pop"
+            className="absolute rounded-full flex items-center justify-center pointer-events-none animate-pop"
             style={{
               left: `${s.x}%`,
               top: `${s.y}%`,
               width: `${s.size}px`,
               height: `${s.size}px`,
               transform: 'translate(-50%, -50%)',
+              background: 'rgba(255,255,255,0.8)',
+              border: '1.5px solid rgba(255,255,255,0.95)',
             }}
           >
             <span className="text-sm opacity-90">🫧</span>
@@ -183,100 +211,72 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
               e.stopPropagation();
               popBubble(b.id);
             }}
-            className="absolute rounded-full bg-gradient-to-tr from-sky-200/60 via-pink-200/60 to-white/80 border-2 border-white/90 shadow-lg cursor-pointer hover:scale-110 active:scale-90 transition transform animate-pulse"
+            className="absolute rounded-full cursor-pointer hover:scale-110 active:scale-90 transition-transform duration-200 ease-out animate-pulse"
             style={{
               left: `${b.x}%`,
               top: `${b.y}%`,
-              width: `${b.size}px`,
-              height: `${b.size}px`,
+              width: `${Math.max(44, b.size)}px`,
+              height: `${Math.max(44, b.size)}px`,
               transform: 'translate(-50%, -50%)',
+              background:
+                'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.55), rgba(143,180,255,0.3) 60%, rgba(255,158,196,0.3))',
+              border: '1.5px solid rgba(255,255,255,0.7)',
             }}
-            title="Pop me!"
+            aria-label="Pop the bubble"
           >
-            <span className="absolute top-1 left-2 w-2 h-2 rounded-full bg-white/80" />
+            <span className="absolute top-2 left-3 w-2 h-2 rounded-full bg-white/80" />
           </button>
         ))}
 
-        {/* Squeaky Rubber Duck in Tub */}
+        {/* Squeaky Rubber Duck in Tub (gameplay sprite) */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             squeakDuck();
           }}
-          className={`absolute bottom-3 right-6 text-4xl p-2 rounded-full bg-white/80 border-2 border-amber-300 shadow-md hover:scale-125 active:scale-95 transition cursor-pointer ${
-            duckBounces > 0 ? 'animate-bounce' : ''
+          className={`absolute bottom-3 right-4 text-4xl min-w-[56px] min-h-[56px] flex items-center justify-center rounded-full hover:scale-110 active:scale-95 transition-transform duration-200 ease-out cursor-pointer ${
+            duckBounces > 0 ? 'animate-bounce-soft' : ''
           }`}
-          title="Squeak the duck!"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border-strong)' }}
+          aria-label="Squeak the duck"
         >
           🐥
         </button>
 
         {isSparklingClean && (
-          <div className="absolute inset-0 bg-yellow-200/20 backdrop-blur-[1px] flex items-center justify-center pointer-events-none z-30">
-            <div className="toy-card px-5 py-3 text-center bg-white border-yellow-300 animate-pop">
-              <span className="text-3xl">✨👑✨</span>
-              <div className="font-bold text-lg text-amber-700">Sparkly Clean! +50 Stars!</div>
+          <div
+            className="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
+            style={{ background: 'rgba(255,216,115,0.10)' }}
+          >
+            <div className="surface px-5 py-3 text-center animate-pop" style={{ background: 'var(--surface-solid)' }}>
+              <Sparkles size={28} strokeWidth={1.5} aria-hidden="true" className="mx-auto" style={{ color: 'var(--daisy)' }} />
+              <div className="font-semibold text-lg mt-1" style={{ color: 'var(--text)' }}>
+                {plain('Sparkly Clean! +50 Stars!')}
+              </div>
             </div>
           </div>
         )}
       </div>
 
       {/* Bath Tools Toolbar */}
-      <div className="grid grid-cols-4 gap-2">
-        <button
-          onClick={() => {
-            sounds.playClick();
-            setActiveTool('soap');
-          }}
-          className={`btn-chunky p-2.5 flex flex-col items-center justify-center gap-1 ${
-            activeTool === 'soap' ? 'blue scale-105 ring-4 ring-sky-300' : 'purple'
-          }`}
-        >
-          <span className="text-2xl sm:text-3xl">🧼</span>
-          <span className="text-xs sm:text-sm font-bold">Soap Up</span>
-        </button>
-
-        <button
-          onClick={() => {
-            sounds.playClick();
-            setActiveTool('shower');
-            useShower();
-          }}
-          className={`btn-chunky p-2.5 flex flex-col items-center justify-center gap-1 ${
-            activeTool === 'shower' ? 'blue scale-105 ring-4 ring-sky-300' : 'purple'
-          }`}
-        >
-          <span className="text-2xl sm:text-3xl">🚿</span>
-          <span className="text-xs sm:text-sm font-bold">Shower Rinse</span>
-        </button>
-
-        <button
-          onClick={() => {
-            sounds.playClick();
-            setActiveTool('duck');
-            squeakDuck();
-          }}
-          className={`btn-chunky p-2.5 flex flex-col items-center justify-center gap-1 ${
-            activeTool === 'duck' ? 'yellow scale-105 ring-4 ring-amber-300' : 'purple'
-          }`}
-        >
-          <span className="text-2xl sm:text-3xl">🐥</span>
-          <span className="text-xs sm:text-sm font-bold">Rubber Duck</span>
-        </button>
-
-        <button
-          onClick={() => {
-            sounds.playClick();
-            setActiveTool('bubble');
-            blowBubble();
-          }}
-          className={`btn-chunky p-2.5 flex flex-col items-center justify-center gap-1 ${
-            activeTool === 'bubble' ? 'green scale-105 ring-4 ring-emerald-300' : 'purple'
-          }`}
-        >
-          <span className="text-2xl sm:text-3xl">🫧</span>
-          <span className="text-xs sm:text-sm font-bold">Blow Bubbles</span>
-        </button>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {tools.map(({ id, label, Icon, color, onPick }) => (
+          <button
+            key={id}
+            onClick={() => {
+              sounds.playClick();
+              setActiveTool(id);
+              onPick();
+            }}
+            data-selected={activeTool === id}
+            aria-pressed={activeTool === id}
+            className="pick-card p-3 min-h-[72px] flex flex-col items-center justify-center gap-1.5"
+            style={{ ['--sel' as string]: color }}
+          >
+            <Icon size={26} strokeWidth={1.5} aria-hidden="true" style={{ color }} />
+            <span className="text-xs sm:text-sm font-semibold">{label}</span>
+          </button>
+        ))}
       </div>
     </div>
   );
