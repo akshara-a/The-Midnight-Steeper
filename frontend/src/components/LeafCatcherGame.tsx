@@ -163,9 +163,9 @@ export default function LeafCatcherGame({ onScoreReward, onClose }: LeafCatcherG
       <div
         ref={containerRef}
         onPointerMove={handlePointerMove}
-        className="relative w-full h-[330px] max-h-[55vh] overflow-hidden select-none touch-none cursor-ew-resize rounded-3xl border-3 border-emerald-400/30 shadow-inner"
+        className="relative w-full h-[330px] max-h-[55vh] overflow-hidden select-none touch-none cursor-ew-resize rounded-3xl border-3 border-emerald-300 shadow-inner"
         style={{
-          background: 'radial-gradient(ellipse at 50% 100%, #1e3a3a 0%, #141b38 100%)',
+          background: 'radial-gradient(ellipse at 50% 100%, #dcfce7 0%, #ecfeff 100%)',
         }}
       >
         {/* Falling ingredients */}

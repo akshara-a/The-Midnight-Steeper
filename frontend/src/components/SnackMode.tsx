@@ -27,14 +27,14 @@ export default function SnackMode({ onFeed, onClose }: SnackModeProps) {
     <div className="flex flex-col gap-3.5 w-full animate-modal">
       <div className="surface px-4 py-3 flex items-center justify-between gap-3 rounded-3xl">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-3xl bg-rose-500/30 border-2 border-rose-400/50 shadow-inner">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-3xl bg-rose-100 border-2 border-rose-300 shadow-sm">
             🍓
           </div>
           <div>
-            <div className="font-black text-lg text-amber-200">
+            <div className="font-black text-lg text-indigo-950">
               Sunny&apos;s Snack Bar! 🍪
             </div>
-            <div className="text-xs font-bold text-white/80">
+            <div className="text-xs font-bold text-indigo-900/70">
               Tap any yummy treat to feed Sunny and earn stars!
             </div>
           </div>
@@ -63,7 +63,7 @@ export default function SnackMode({ onFeed, onClose }: SnackModeProps) {
               style={{ ['--sel' as string]: color }}
             >
               <div className="text-4xl sm:text-5xl drop-shadow-md animate-bounce-soft">{snack.icon}</div>
-              <div className="font-black text-xs sm:text-sm mt-2 leading-tight text-white">
+              <div className="font-black text-xs sm:text-sm mt-2 leading-tight text-indigo-950">
                 {plain(snack.name)}
               </div>
               <div className="text-[11px] font-black mt-1 px-2 py-0.5 rounded-full bg-amber-400 text-amber-950 shadow-sm">

@@ -164,17 +164,16 @@ function Modal({
   return (
     <div
       className="fixed inset-0 z-[50] flex items-center justify-center p-3 sm:p-4"
-      style={{ background: 'rgba(12, 6, 32, 0.85)', backdropFilter: 'blur(8px)' }}
+      style={{ background: 'rgba(30, 20, 60, 0.45)', backdropFilter: 'blur(8px)' }}
       role="dialog"
       aria-modal="true"
       aria-label={plain(title)}
     >
       <div
-        className={`surface animate-modal w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} max-h-[92vh] overflow-y-auto p-5 sm:p-7 relative rounded-3xl border-3 border-purple-400/35 shadow-2xl`}
-        style={{ background: 'linear-gradient(165deg, rgba(46, 26, 120, 0.96) 0%, rgba(22, 12, 70, 0.98) 100%)' }}
+        className={`surface animate-modal w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} max-h-[92vh] overflow-y-auto p-5 sm:p-7 relative rounded-3xl border-3 border-purple-200 shadow-2xl`}
       >
-        <div className="flex items-center justify-between gap-3 mb-5 pb-3 border-b-2 border-white/10">
-          <h2 className="text-2xl sm:text-3xl font-black text-amber-200 tracking-wide">{title}</h2>
+        <div className="flex items-center justify-between gap-3 mb-5 pb-3 border-b-2 border-purple-100">
+          <h2 className="text-2xl sm:text-3xl font-black text-indigo-950 tracking-wide">{title}</h2>
           <CloseButton onClick={onClose} />
         </div>
         {children}
@@ -606,6 +605,11 @@ export default function SunnyTeaParty() {
       <div className="sky sky-day" style={{ opacity: night ? 0 : 1 }} />
       <div className="sky sky-night" style={{ opacity: night ? 1 : 0 }} />
       <div className="sky-stars" style={{ opacity: night ? 1 : 0.35 }} aria-hidden="true" />
+      <div className="sky-clouds" aria-hidden="true">
+        <div className="cloud-puff cloud-1" />
+        <div className="cloud-puff cloud-2" />
+        <div className="cloud-puff cloud-3" />
+      </div>
       <div className="theme-atmosphere-glow" aria-hidden="true" />
 
       {/* Floating hearts, stars and friends */}
@@ -620,9 +624,9 @@ export default function SunnyTeaParty() {
 
       {levelUp !== null && (
         <div className="fixed inset-0 z-[57] flex items-center justify-center pointer-events-none">
-          <div className="surface animate-pop px-10 py-7 text-center" style={{ background: 'var(--surface-solid)' }}>
-            <div className="text-4xl font-light">Level {levelUp}</div>
-            <div className="mt-1 text-base" style={{ color: 'var(--muted)' }}>
+          <div className="surface animate-pop px-10 py-7 text-center">
+            <div className="text-4xl font-black text-indigo-950">Level {levelUp} ⭐</div>
+            <div className="mt-1 text-base font-bold text-purple-700">
               {getRank(levelUp)}
             </div>
           </div>
@@ -635,19 +639,20 @@ export default function SunnyTeaParty() {
         className="fixed top-0 inset-x-0 z-[45] transition-opacity duration-700"
         style={{
           opacity: !started ? 0 : night ? 0.6 : 1,
-          background: 'linear-gradient(to bottom, rgba(32,16,98,0.88) 60%, transparent)',
+          background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.65) 75%, transparent 100%)',
+          backdropFilter: 'blur(8px)',
         }}
       >
         <div className="mx-auto max-w-3xl landscape:md:max-w-5xl px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3" aria-label={`Level ${playerLevel}, ${Math.round((currentXP / 1000) * 100)} percent to the next level`}>
-            <div className="flex items-center justify-center gap-1 min-w-[56px] h-12 px-2.5 rounded-2xl bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 border-2 border-white shadow-[0_4px_0_#9a3412,0_6px_12px_rgba(0,0,0,0.3)] text-amber-950 font-black text-lg select-none">
+            <div className="flex items-center justify-center gap-1 min-w-[56px] h-12 px-2.5 rounded-2xl bg-gradient-to-b from-amber-200 via-amber-300 to-amber-400 border-2 border-white shadow-[0_4px_0_#f59e0b,0_6px_12px_rgba(245,158,11,0.25)] text-amber-950 font-black text-lg select-none">
               <span>⭐</span><span>{playerLevel}</span>
             </div>
             <div className="flex flex-col min-w-0">
-              <div className="text-xs font-black tracking-wide text-amber-200 uppercase flex items-center gap-1.5">
+              <div className="text-xs font-black tracking-wide text-indigo-950 uppercase flex items-center gap-1.5">
                 <span>{getRank(playerLevel)}</span>
-                <span className="text-white/60">·</span>
-                <span className="text-amber-100/90">{Math.round(currentXP)}/1000 XP</span>
+                <span className="text-indigo-400">·</span>
+                <span className="text-purple-700 font-bold">{Math.round(currentXP)}/1000 XP</span>
               </div>
               <div className="progress-line mt-1 w-28 sm:w-36 h-3.5" role="progressbar" aria-valuenow={Math.round((currentXP / 1000) * 100)}>
                 <span style={{ width: `${(currentXP / 1000) * 100}%` }} />
@@ -661,7 +666,7 @@ export default function SunnyTeaParty() {
               className="icon-btn"
               title={voiceOn ? 'Voice On' : 'Voice Off'}
             >
-              {voiceOn ? <Volume2 size={26} strokeWidth={2.2} style={{ color: 'var(--daisy)' }} aria-hidden="true" /> : <VolumeX size={26} strokeWidth={2.2} aria-hidden="true" />}
+              {voiceOn ? <Volume2 size={26} strokeWidth={2.4} className="text-amber-500" aria-hidden="true" /> : <VolumeX size={26} strokeWidth={2.4} className="text-slate-400" aria-hidden="true" />}
             </button>
             <button
               onClick={() => {
@@ -672,7 +677,7 @@ export default function SunnyTeaParty() {
               className="icon-btn"
               title="Grown-ups Lock"
             >
-              <Users size={26} strokeWidth={2.2} style={{ color: 'var(--mint)' }} aria-hidden="true" />
+              <Users size={26} strokeWidth={2.4} className="text-emerald-500" aria-hidden="true" />
             </button>
             <button
               onClick={() => {
@@ -683,7 +688,7 @@ export default function SunnyTeaParty() {
               className="icon-btn"
               title="Game Menu"
             >
-              <MenuIcon size={26} strokeWidth={2.2} style={{ color: 'var(--rose)' }} aria-hidden="true" />
+              <MenuIcon size={26} strokeWidth={2.4} className="text-rose-500" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -691,7 +696,7 @@ export default function SunnyTeaParty() {
 
       <div className="relative z-10 mx-auto w-full max-w-3xl landscape:md:max-w-5xl px-4 sm:px-6 pt-24 pb-48 flex flex-col gap-6 landscape:md:grid landscape:md:grid-cols-2 landscape:md:items-center">
         {errorMsg && started && (
-          <div className="surface px-4 py-2.5 text-center landscape:md:col-span-2 rounded-2xl flex items-center justify-center gap-2 font-bold text-rose-200 border-2 border-rose-400/40 bg-rose-950/70 shadow-md text-sm" role="alert">
+          <div className="surface px-4 py-2.5 text-center landscape:md:col-span-2 rounded-2xl flex items-center justify-center gap-2 font-bold text-rose-900 border-2 border-rose-300 bg-rose-50 shadow-md text-sm" role="alert">
             <span>⚠️</span> <span>{plain(errorMsg)}</span>
           </div>
         )}
@@ -734,7 +739,7 @@ export default function SunnyTeaParty() {
 
           {started && (
             <div className="absolute bottom-2.5 inset-x-0 flex justify-center pointer-events-none">
-              <div className="inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-black/55 backdrop-blur-md border border-white/20 text-xs font-black text-amber-200 shadow-lg">
+              <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/95 backdrop-blur-md border-2 border-purple-200 text-xs font-black text-indigo-950 shadow-md">
                 {mood === 'sleeping' ? '😴 Shhh... Sunny is sleeping soundly' : mood === 'bathing' ? '🫧 Splish splash! Warm bubble bath!' : '✨ Tap Sunny to cuddle or play! ✨'}
               </div>
             </div>
@@ -782,12 +787,12 @@ export default function SunnyTeaParty() {
               ].map(({ n, label, color }) => (
                 <div
                   key={n}
-                  className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all"
+                  className="px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all"
                   style={{
-                    background: n === step ? color : n < step ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.35)',
-                    color: '#ffffff',
-                    border: n === step ? '2px solid #ffffff' : '1.5px solid rgba(255,255,255,0.2)',
-                    boxShadow: n === step ? `0 3px 0 rgba(0,0,0,0.3), 0 0 14px ${color}` : 'none',
+                    background: n === step ? color : n < step ? '#dcfce7' : '#f1f5f9',
+                    color: n === step ? '#ffffff' : n < step ? '#15803d' : '#64748b',
+                    border: n === step ? '2px solid #ffffff' : n < step ? '2px solid #86efac' : '2px solid #e2e8f0',
+                    boxShadow: n === step ? `0 3px 0 rgba(0,0,0,0.18), 0 0 14px ${color}` : 'none',
                     transform: n === step ? 'scale(1.06)' : 'scale(1)',
                   }}
                 >
@@ -797,7 +802,7 @@ export default function SunnyTeaParty() {
             </div>
 
             <div className="flex items-center justify-center gap-2.5 mb-4">
-              <h2 className="text-2xl sm:text-3xl font-black text-center text-amber-100 drop-shadow-md">
+              <h2 className="text-2xl sm:text-3xl font-black text-center text-indigo-950">
                 {step === 1 && '✨ Pick a Leaf or Flower! 🌸'}
                 {step === 2 && '✨ Pick a Yummy Treat! 🍯'}
                 {step === 3 && '😴 How Long Should Sunny Nap? 🌙'}
@@ -809,7 +814,7 @@ export default function SunnyTeaParty() {
                 style={{ width: 44, height: 44 }}
                 title="Hear Sunny speak"
               >
-                <Volume2 size={22} strokeWidth={2.2} style={{ color: 'var(--daisy)' }} aria-hidden="true" />
+                <Volume2 size={22} strokeWidth={2.2} className="text-amber-500" aria-hidden="true" />
               </button>
             </div>
 
@@ -825,10 +830,10 @@ export default function SunnyTeaParty() {
                     className="pick-card px-2 py-3.5 flex flex-col items-center gap-1.5 text-center min-h-[148px]"
                   >
                     <LeafArt name={item.name} size={64} />
-                    <span className="text-base sm:text-lg font-black leading-tight text-white mt-1">{item.name}</span>
-                    <span className="text-[11px] sm:text-xs text-amber-100/80 font-semibold line-clamp-1">{item.blurb}</span>
+                    <span className="text-base sm:text-lg font-black leading-tight text-indigo-950 mt-1">{item.name}</span>
+                    <span className="text-[11px] sm:text-xs text-indigo-900/70 font-bold line-clamp-1">{item.blurb}</span>
                     {leaf.name === item.name && (
-                      <span className="text-[10px] font-black uppercase tracking-wider bg-white text-emerald-900 px-2 py-0.5 rounded-full shadow-sm mt-0.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-white px-2.5 py-0.5 rounded-full shadow-sm mt-0.5">
                         ✓ Picked!
                       </span>
                     )}
@@ -849,10 +854,10 @@ export default function SunnyTeaParty() {
                     className="pick-card px-2 py-3.5 flex flex-col items-center gap-1.5 text-center min-h-[148px]"
                   >
                     <TreatIcon name={item.name} size={64} />
-                    <span className="text-base sm:text-lg font-black leading-tight text-white mt-1">{item.name}</span>
-                    <span className="text-[11px] sm:text-xs text-amber-100/80 font-semibold line-clamp-1">{item.blurb}</span>
+                    <span className="text-base sm:text-lg font-black leading-tight text-indigo-950 mt-1">{item.name}</span>
+                    <span className="text-[11px] sm:text-xs text-indigo-900/70 font-bold line-clamp-1">{item.blurb}</span>
                     {treat.name === item.name && (
-                      <span className="text-[10px] font-black uppercase tracking-wider bg-white text-rose-900 px-2 py-0.5 rounded-full shadow-sm mt-0.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-rose-500 text-white px-2.5 py-0.5 rounded-full shadow-sm mt-0.5">
                         ✓ Picked!
                       </span>
                     )}
@@ -869,7 +874,7 @@ export default function SunnyTeaParty() {
                       key={n.key}
                       data-selected={napKey === n.key}
                       aria-pressed={napKey === n.key}
-                      style={{ '--sel': '#c9a7ff' } as React.CSSProperties}
+                      style={{ '--sel': '#8b5cf6' } as React.CSSProperties}
                       onClick={() => {
                         sounds.playPop();
                         setNapKey(n.key);
@@ -878,19 +883,19 @@ export default function SunnyTeaParty() {
                       className="pick-card px-3 py-3.5 flex flex-col items-center gap-1.5 text-center min-h-[120px]"
                     >
                       <NapIcon id={n.key} size={50} />
-                      <span className="text-base font-black text-white">{n.label}</span>
-                      <span className="text-xs font-bold text-amber-200">{n.sub}</span>
+                      <span className="text-base font-black text-indigo-950">{n.label}</span>
+                      <span className="text-xs font-bold text-purple-700">{n.sub}</span>
                       {napKey === n.key && (
-                        <span className="text-[10px] font-black uppercase tracking-wider bg-white text-purple-900 px-2 py-0.5 rounded-full shadow-sm mt-0.5">
+                        <span className="text-[10px] font-black uppercase tracking-wider bg-purple-600 text-white px-2.5 py-0.5 rounded-full shadow-sm mt-0.5">
                           ✓ Chosen!
                         </span>
                       )}
                     </button>
                   ))}
                 </div>
-                <div className="mt-4 p-3 rounded-2xl bg-black/35 border border-white/20 text-center">
-                  <p className="text-base font-bold text-amber-100">
-                    🐾 Sunny hopes <strong className="text-amber-300 font-black text-lg">{target}</strong> {target === 1 ? 'forest friend visits' : 'forest friends visit'} during nap time!
+                <div className="mt-4 p-3.5 rounded-2xl bg-amber-50/90 border-2 border-amber-200 text-center shadow-sm">
+                  <p className="text-base font-bold text-amber-950">
+                    🐾 Sunny hopes <strong className="text-amber-800 font-black text-lg">{target}</strong> {target === 1 ? 'forest friend visits' : 'forest friends visit'} during nap time!
                   </p>
                   <div className="mt-2.5 flex justify-center gap-2" aria-hidden="true">
                     {Array.from({ length: target }, (_, i) => (
@@ -899,7 +904,7 @@ export default function SunnyTeaParty() {
                       </span>
                     ))}
                   </div>
-                  <p className="mt-2 text-xs font-semibold text-white/70">
+                  <p className="mt-2 text-xs font-bold text-slate-500">
                     {napKey === 'demo' ? '⚡ Demo Mode: Quick 10-second nap for easy testing!' : '🌟 Longer naps and sweeter recipes bring more magical friends!'}
                   </p>
                 </div>
@@ -937,7 +942,7 @@ export default function SunnyTeaParty() {
         {tuck && (
           <section className="text-center py-6 surface animate-modal">
             <div className="text-5xl animate-bounce-soft mb-2">🍵🦥</div>
-            <h2 className="text-2xl sm:text-3xl font-black text-amber-200">
+            <h2 className="text-2xl sm:text-3xl font-black text-indigo-950">
               {tuck === 'drink' ? 'Sipping Warm Tea... Yum! 🍵' : 'Sleepy Time! Goodnight... 💤'}
             </h2>
           </section>
@@ -947,13 +952,13 @@ export default function SunnyTeaParty() {
         {isBrewing && !tuck && (
           <section className="text-center py-6 surface animate-modal">
             <div className="text-5xl animate-bounce-soft mb-2">😴💤</div>
-            <h2 className="text-2xl sm:text-3xl font-black text-amber-200">Shhh... Sunny is Sleeping! 🌙</h2>
-            <p className="mt-1 text-sm sm:text-base font-bold text-white/90">
+            <h2 className="text-2xl sm:text-3xl font-black text-indigo-950">Shhh... Sunny is Sleeping! 🌙</h2>
+            <p className="mt-1 text-sm sm:text-base font-bold text-indigo-900/80">
               The cozy tea is steeping quietly under the stars.
             </p>
-            <div className="my-5 inline-block px-6 py-2.5 rounded-2xl bg-black/40 border-2 border-amber-300/40 shadow-inner">
-              <div className="text-xs uppercase font-black text-amber-300 tracking-wider">⏰ Waking Up In</div>
-              <div className="text-3xl sm:text-4xl font-black text-white tracking-widest mt-0.5 font-mono">
+            <div className="my-5 inline-block px-6 py-2.5 rounded-2xl bg-amber-50/90 border-2 border-amber-300 shadow-sm">
+              <div className="text-xs uppercase font-black text-amber-800 tracking-wider">⏰ Waking Up In</div>
+              <div className="text-3xl sm:text-4xl font-black text-indigo-950 tracking-widest mt-0.5 font-mono">
                 {formatTimer(remainingSeconds)}
               </div>
             </div>
@@ -980,10 +985,10 @@ export default function SunnyTeaParty() {
                     key={i}
                     className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all"
                     style={{
-                      background: arrived ? 'rgba(52, 211, 153, 0.35)' : 'rgba(255, 255, 255, 0.1)',
-                      border: arrived ? '2px solid #34d399' : '1.5px solid rgba(255, 255, 255, 0.2)',
-                      color: arrived ? '#a7f3d0' : 'rgba(255, 255, 255, 0.5)',
-                      boxShadow: arrived ? '0 0 10px rgba(52, 211, 153, 0.4)' : 'none',
+                      background: arrived ? '#dcfce7' : '#f1f5f9',
+                      border: arrived ? '2px solid #34d399' : '1.5px solid #e2e8f0',
+                      color: arrived ? '#15803d' : '#64748b',
+                      boxShadow: arrived ? '0 0 10px rgba(52, 211, 153, 0.3)' : 'none',
                     }}
                   >
                     <span>{f.icon}</span>
@@ -993,10 +998,10 @@ export default function SunnyTeaParty() {
                 );
               })}
             </div>
-            <p className="mt-4 text-sm font-bold text-amber-200 min-h-6" role="status">
+            <p className="mt-4 text-sm font-bold text-indigo-950 min-h-6" role="status">
               {friendNote ? friendNote : '🌟 Relax and listen to the soothing bedtime sounds...'}
             </p>
-            <p className="mt-4 text-xs font-semibold text-white/60">
+            <p className="mt-4 text-xs font-semibold text-slate-500">
               Close the game now. Your tea party will be waiting when you wake up!
             </p>
           </section>
@@ -1006,10 +1011,10 @@ export default function SunnyTeaParty() {
         {isReady && !tuck && (
           <section className="text-center py-6 surface animate-modal">
             <div className="text-6xl animate-bounce mb-2">🎁✨</div>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-black text-amber-300 drop-shadow-md">
+            <h2 className="mt-2 text-3xl sm:text-4xl font-black text-indigo-950 drop-shadow-sm">
               Hooray! Sunny Woke Up! 🦥🎉
             </h2>
-            <p className="mt-2 text-base font-bold text-white/90">
+            <p className="mt-2 text-base font-bold text-indigo-900/80">
               {served} forest {served === 1 ? 'friend' : 'friends'} joined the bedtime tea party!
             </p>
             <div className="mt-6">
@@ -1031,7 +1036,7 @@ export default function SunnyTeaParty() {
             <div className="flex items-center justify-between gap-2 mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">📋</span>
-                <h3 className="text-base font-black uppercase tracking-wider text-amber-200">
+                <h3 className="text-base font-black uppercase tracking-wider text-indigo-950">
                   Today&apos;s Bedtime Quests
                 </h3>
               </div>
@@ -1047,14 +1052,14 @@ export default function SunnyTeaParty() {
                     key={w.label}
                     className="p-2.5 rounded-2xl flex items-center gap-2 text-left transition-all"
                     style={{
-                      background: w.done ? 'rgba(16, 185, 129, 0.28)' : 'rgba(0, 0, 0, 0.28)',
-                      border: w.done ? '2px solid #34d399' : '1.5px solid rgba(255, 255, 255, 0.15)',
+                      background: w.done ? '#ecfdf5' : '#f8fafc',
+                      border: w.done ? '2px solid #34d399' : '2px solid #e2e8f0',
                     }}
                   >
                     <span className="text-2xl shrink-0">{questIcons[wi % questIcons.length]}</span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-bold text-white leading-tight">{w.label}</div>
-                      <div className="text-[10px] font-black uppercase mt-0.5" style={{ color: w.done ? '#6ee7b7' : 'rgba(255,255,255,0.5)' }}>
+                      <div className="text-xs font-bold text-indigo-950 leading-tight">{w.label}</div>
+                      <div className="text-[10px] font-black uppercase mt-0.5" style={{ color: w.done ? '#059669' : '#64748b' }}>
                         {w.done ? '✓ Completed!' : 'In Progress'}
                       </div>
                     </div>
@@ -1072,25 +1077,26 @@ export default function SunnyTeaParty() {
         <nav
           inert={!started}
           aria-label="Activities"
-          className="fixed z-30 inset-x-3 mx-auto max-w-lg transition-opacity duration-700 surface"
+          className="fixed z-30 inset-x-3 mx-auto max-w-lg transition-opacity duration-700"
           style={{
             opacity: started ? 1 : 0,
             bottom: 'max(0.75rem, env(safe-area-inset-bottom))',
             borderRadius: 36,
-            background: 'linear-gradient(180deg, rgba(45, 24, 115, 0.94) 0%, rgba(25, 12, 75, 0.98) 100%)',
-            border: '3px solid rgba(255, 255, 255, 0.32)',
-            boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5), inset 0 2px 2px rgba(255, 255, 255, 0.4)',
+            background: 'rgba(255, 255, 255, 0.96)',
+            border: '3.5px solid #e0e7ff',
+            boxShadow: '0 10px 0 #c7d2fe, 0 20px 40px rgba(99, 102, 241, 0.2), inset 0 2px 2px #ffffff',
+            backdropFilter: 'blur(16px)',
           }}
         >
-          <div className="px-2 py-2 grid grid-cols-6 gap-1.5">
+          <div className="px-2.5 py-2 grid grid-cols-6 gap-1.5">
             {[
-              { key: 'bath', label: 'Bath', emoji: '🛁', Icon: Bath, active: petMode === 'bath', color: '#06b6d4', shadow: '#0891b2' },
-              { key: 'snack', label: 'Snack', emoji: '🍓', Icon: Apple, active: petMode === 'snack', color: '#f43f5e', shadow: '#be123c' },
-              { key: 'closet', label: 'Closet', emoji: '👗', Icon: Shirt, active: false, color: '#a855f7', shadow: '#7e22ce' },
-              { key: 'games', label: 'Games', emoji: '🎮', Icon: Gamepad2, active: false, color: '#10b981', shadow: '#047857' },
-              { key: 'talk', label: 'Talk', emoji: '🎤', Icon: Mic, active: false, color: '#f59e0b', shadow: '#b45309' },
-              { key: 'tea', label: 'Tea & Bed', emoji: '🍵', Icon: Coffee, active: petMode === 'tea', color: '#ea580c', shadow: '#9a3412' },
-            ].map(({ key, label, emoji, Icon, active, color, shadow }) => (
+              { key: 'bath', label: 'Bath', emoji: '🛁', Icon: Bath, active: petMode === 'bath', color: '#06b6d4', shadow: '#0891b2', bg: '#ecfeff', border: '#a5f3fc' },
+              { key: 'snack', label: 'Snack', emoji: '🍓', Icon: Apple, active: petMode === 'snack', color: '#f43f5e', shadow: '#be123c', bg: '#fff1f2', border: '#fecdd3' },
+              { key: 'closet', label: 'Closet', emoji: '👗', Icon: Shirt, active: false, color: '#a855f7', shadow: '#7e22ce', bg: '#f5f3ff', border: '#ddd6fe' },
+              { key: 'games', label: 'Games', emoji: '🎮', Icon: Gamepad2, active: false, color: '#10b981', shadow: '#047857', bg: '#ecfdf5', border: '#a7f3d0' },
+              { key: 'talk', label: 'Talk', emoji: '🎤', Icon: Mic, active: false, color: '#f59e0b', shadow: '#b45309', bg: '#fefce8', border: '#fef08a' },
+              { key: 'tea', label: 'Tea & Bed', emoji: '🍵', Icon: Coffee, active: petMode === 'tea', color: '#f97316', shadow: '#c2410c', bg: '#fff7ed', border: '#fed7aa' },
+            ].map(({ key, label, emoji, Icon, active, color, shadow, bg, border }) => (
               <button
                 key={key}
                 onClick={() => {
@@ -1114,19 +1120,21 @@ export default function SunnyTeaParty() {
                 className="flex flex-col items-center justify-center gap-1 min-h-[74px] rounded-2xl transition-transform active:scale-90"
               >
                 <span
-                  className="flex h-12 w-12 items-center justify-center rounded-2xl text-white font-black text-2xl transition-all"
+                  className="flex h-12 w-12 items-center justify-center rounded-2xl text-2xl transition-all"
                   style={
                     active
                       ? {
                           background: color,
+                          color: '#ffffff',
                           boxShadow: `0 4px 0 ${shadow}, 0 0 16px ${color}`,
-                          border: '2px solid #ffffff',
+                          border: '2.5px solid #ffffff',
                           transform: 'scale(1.1) translateY(-2px)',
                         }
                       : {
-                          background: 'rgba(255, 255, 255, 0.1)',
-                          border: '1.5px solid rgba(255, 255, 255, 0.2)',
-                          boxShadow: '0 3px 0 rgba(0, 0, 0, 0.3)',
+                          background: bg,
+                          color: color,
+                          border: `2px solid ${border}`,
+                          boxShadow: `0 3px 0 ${border}`,
                         }
                   }
                 >
@@ -1134,7 +1142,7 @@ export default function SunnyTeaParty() {
                 </span>
                 <span
                   className="text-[11px] font-black leading-none uppercase tracking-tight"
-                  style={{ color: active ? '#ffd23f' : 'rgba(255, 255, 255, 0.75)' }}
+                  style={{ color: active ? color : '#332258' }}
                 >
                   {label}
                 </span>
@@ -1148,19 +1156,18 @@ export default function SunnyTeaParty() {
       {showMenu && (
         <div
           className="fixed inset-0 z-[50]"
-          style={{ background: 'rgba(15,13,26,0.7)' }}
+          style={{ background: 'rgba(30,20,60,0.45)' }}
           onClick={() => setShowMenu(false)}
           role="dialog"
           aria-modal="true"
           aria-label="Menu"
         >
           <div
-            className="surface animate-modal absolute top-3 right-3 w-[min(22rem,calc(100vw-1.5rem))] p-3"
-            style={{ background: 'var(--surface-solid)' }}
+            className="surface animate-modal absolute top-3 right-3 w-[min(22rem,calc(100vw-1.5rem))] p-4 rounded-3xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-2 pb-2">
-              <span className="text-sm" style={{ color: 'var(--muted)' }}>Menu</span>
+            <div className="flex items-center justify-between px-2 pb-2 border-b-2 border-purple-100 mb-2">
+              <span className="text-base font-black text-indigo-950">Game Menu 🌟</span>
               <CloseButton onClick={() => setShowMenu(false)} />
             </div>
             {[
@@ -1175,16 +1182,16 @@ export default function SunnyTeaParty() {
                   setShowMenu(false);
                   run();
                 }}
-                className="w-full min-h-14 px-3 flex items-center gap-3 rounded-2xl text-left hover:bg-white/5"
+                className="w-full min-h-14 px-3 flex items-center gap-3 rounded-2xl text-left hover:bg-purple-50 transition-colors"
               >
-                <Icon size={22} strokeWidth={1.5} aria-hidden="true" />
-                <span className="flex-1 text-base">{label}</span>
-                <span className="text-sm" style={{ color: 'var(--muted)' }}>{plain(hint)}</span>
+                <Icon size={22} strokeWidth={2} className="text-purple-600" aria-hidden="true" />
+                <span className="flex-1 text-base font-bold text-indigo-950">{label}</span>
+                <span className="text-sm font-semibold text-purple-700">{plain(hint)}</span>
               </button>
             ))}
             {isBrewing && (
               <>
-                <div className="px-3 pt-3 pb-1 text-sm" style={{ color: 'var(--muted)' }}>Sleep sound</div>
+                <div className="px-3 pt-3 pb-1 text-xs font-black uppercase text-purple-800 tracking-wider">Sleep sound</div>
                 <div className="flex flex-wrap gap-2 px-3 pb-2">
                   {[
                     { key: 'rain', label: 'Rain' },
@@ -1211,11 +1218,11 @@ export default function SunnyTeaParty() {
                     handleFastForward();
                   }}
                   disabled={isFastForwarding}
-                  className="w-full min-h-14 px-3 flex items-center gap-3 rounded-2xl text-left hover:bg-white/5 disabled:opacity-50"
+                  className="w-full min-h-14 px-3 flex items-center gap-3 rounded-2xl text-left hover:bg-purple-50 disabled:opacity-50 transition-colors"
                 >
-                  <Zap size={22} strokeWidth={1.5} aria-hidden="true" />
-                  <span className="flex-1 text-base">{isFastForwarding ? 'Skipping...' : 'Skip the steep'}</span>
-                  <span className="text-sm" style={{ color: 'var(--muted)' }}>Demo</span>
+                  <Zap size={22} strokeWidth={2} className="text-amber-500" aria-hidden="true" />
+                  <span className="flex-1 text-base font-bold text-indigo-950">{isFastForwarding ? 'Skipping...' : 'Skip the steep'}</span>
+                  <span className="text-xs font-bold text-amber-600 uppercase">Demo</span>
                 </button>
               </>
             )}
@@ -1349,7 +1356,7 @@ export default function SunnyTeaParty() {
           {invCount === 0 ? (
             <div className="text-center py-10">
               <div className="text-5xl animate-bounce-soft mb-2">📖✨</div>
-              <p className="text-lg font-bold text-amber-100">
+              <p className="text-lg font-black text-indigo-950">
                 No stickers yet! Make your first cozy tea with Sunny to earn one!
               </p>
             </div>
@@ -1373,7 +1380,7 @@ export default function SunnyTeaParty() {
                         <IngredientArt key={n} name={n} size={38} />
                       ))}
                     </div>
-                    <div className="mt-2 font-black text-sm sm:text-base text-white">{item.item_name}</div>
+                    <div className="mt-2 font-black text-sm sm:text-base text-indigo-950">{item.item_name}</div>
                     <div className="flex justify-center gap-1 mt-1" style={{ color: kid.color }} aria-hidden="true">
                       {Array.from({ length: kid.stars }, (_, k) => (
                         <Star key={k} size={16} strokeWidth={2} fill="currentColor" />
@@ -1534,18 +1541,18 @@ export default function SunnyTeaParty() {
                       })()}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-base flex items-center justify-between">
+                      <div className="font-black text-base text-indigo-950 flex items-center justify-between">
                         <span>{th.name}</span>
                         {isSelected && (
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'var(--accent)', color: 'var(--accent-ink)' }}>
+                          <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-purple-600 text-white shadow-sm">
                             Active
                           </span>
                         )}
                       </div>
-                      <div className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
+                      <div className="text-xs font-bold mt-0.5 text-purple-700">
                         {plain(details?.tag ?? '')}
                       </div>
-                      <div className="text-sm mt-1 leading-snug line-clamp-2">
+                      <div className="text-xs mt-1 leading-snug line-clamp-2 text-slate-600 font-medium">
                         {plain(th.description)}
                       </div>
                       {/* Mini Palette Swatch */}
@@ -1624,30 +1631,30 @@ export default function SunnyTeaParty() {
       {!started && (
         <div
           className="fixed inset-x-0 bottom-0 z-[60] flex flex-col items-center text-center px-5 pt-16 pb-12"
-          style={{ background: 'linear-gradient(to top, rgba(28,14,80,0.95) 60%, transparent)' }}
+          style={{ background: 'linear-gradient(to top, rgba(255, 255, 255, 0.96) 60%, rgba(255, 255, 255, 0.75) 85%, transparent 100%)' }}
         >
           <div className="flex items-center gap-2 mb-2 animate-bounce-soft">
             <span className="text-3xl">⭐</span>
-            <span className="text-4xl">🌙</span>
+            <span className="text-4xl">🌸</span>
             <span className="text-3xl">✨</span>
           </div>
-          <h1 className="wordmark text-4xl sm:text-6xl font-black drop-shadow-xl">
+          <h1 className="wordmark text-4xl sm:text-6xl font-black drop-shadow-md">
             The Midnight Steeper
           </h1>
-          <p className="mt-2 text-base sm:text-lg font-black text-amber-200">
+          <p className="mt-2 text-base sm:text-lg font-black text-indigo-950">
             🦥 Cozy 3D Bedtime Tea Party with Sunny the Sloth! 🍵
           </p>
           <button
             onClick={handleStart}
-            className="btn-pill primary mt-6 px-12 py-4 text-2xl font-black min-h-[66px] shadow-[0_8px_0_#9a3412,0_16px_30px_rgba(0,0,0,0.5)] hover:scale-105 active:scale-95 transition-transform"
+            className="btn-pill primary mt-6 px-12 py-4 text-2xl font-black min-h-[66px] shadow-[0_8px_0_#b25000,0_16px_30px_rgba(245,124,0,0.35)] hover:scale-105 active:scale-95 transition-transform"
           >
             <Play size={28} strokeWidth={3} aria-hidden="true" />
             LET&apos;S PLAY! 🌟
           </button>
-          <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs font-black uppercase text-amber-100/90 tracking-wide">
-            <span className="px-3.5 py-1 rounded-full bg-white/10 border border-white/20">✨ 100% Free</span>
-            <span className="px-3.5 py-1 rounded-full bg-white/10 border border-white/20">🔒 Kid Safe</span>
-            <span className="px-3.5 py-1 rounded-full bg-white/10 border border-white/20">🌙 Bedtime Story</span>
+          <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs font-black uppercase text-indigo-900 tracking-wide">
+            <span className="px-4 py-1.5 rounded-full bg-white border-2 border-indigo-200 shadow-sm">✨ 100% Free</span>
+            <span className="px-4 py-1.5 rounded-full bg-white border-2 border-indigo-200 shadow-sm">🔒 Kid Safe</span>
+            <span className="px-4 py-1.5 rounded-full bg-white border-2 border-indigo-200 shadow-sm">🌙 Bedtime Story</span>
           </div>
         </div>
       )}

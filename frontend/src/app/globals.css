@@ -1,52 +1,68 @@
 @import "tailwindcss";
 
 /* ============================================================
-   DESIGN TOKENS — the single source of truth for the look
-   Dreamy storybook night: deep indigo to plum, soft jewel colours.
+   DESIGN TOKENS — Joyful, Colorful, Cute Storybook Playground
+   Sweet candy pastels, marshmallow clouds & chunky 3D toy depth!
    ============================================================ */
 :root {
-  --bg: #5a6dff;
-  --sky-g1: #3f8cff;
-  --sky-g2: #8b6dff;
-  --sky-g3: #ff78c4;
-  --glow-a: rgba(255, 241, 170, 0.55);
-  --glow-b: rgba(120, 235, 255, 0.40);
-  --glow-c: rgba(255, 255, 255, 0.16);
-  --glow-d: rgba(255, 255, 255, 0.26);
-  --sky-top: #0f0c24;
-  --sky-mid: #1d1442;
-  --sky-low: #33194f;
-  --text: #f6f3ff;
-  --muted: #ddd6fa; /* AA on the dark glass surfaces */
-  --accent: #c9a7ff;
-  --accent-2: #ffb8e0; /* soft pink, gradient partner of the accent */
-  --accent-ink: #2a1450; /* text on accent fills */
-  --surface: rgba(28, 16, 96, 0.38);
-  --surface-hover: rgba(28, 16, 96, 0.55);
-  --surface-solid: #231a62; /* modals */
-  --border: rgba(255, 255, 255, 0.22);
-  --border-strong: rgba(255, 255, 255, 0.38);
-  --danger: #ffa3b8;
+  --bg: #e0eeff;
 
-  /* friendly jewel colours used for items */
-  --mint: #5df0b5;
-  --lavender: #bf9bff;
-  --daisy: #ffd23f;
-  --rose: #ff7eb6;
-  --berry: #6cb8ff;
-  --orange: #ff9a52;
-  --sky-teal: #4de1d2;
+  /* Dreamy storybook sky tones — soft, creamy, colorful & cute */
+  --sky-g1: #c4dcfc;
+  --sky-g2: #f2d4f8;
+  --sky-g3: #ffccd8;
+  --sky-g4: #fff5ba;
 
-  --radius-sm: 16px;
-  --radius: 22px;
-  --radius-lg: 28px;
-  --radius-pill: 999px;
+  --glow-a: rgba(255, 230, 140, 0.65);
+  --glow-b: rgba(186, 230, 253, 0.6);
+  --glow-c: rgba(254, 205, 211, 0.5);
+  --glow-d: rgba(255, 255, 255, 0.75);
 
-  --glow: 0 8px 30px rgba(8, 4, 32, 0.35);
-  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --dur: 220ms;
+  --text: #21134d;
+  --text-muted: #5e4f88;
+  --text-light: #ffffff;
+  --muted: #62518c;
 
-  --tint: transparent; /* per-theme subtle stage tint, set below */
+  --accent: #9333ea;
+  --accent-2: #ec4899;
+  --accent-3: #06b6d4;
+  --accent-4: #f59e0b;
+  --accent-ink: #ffffff;
+
+  --surface: rgba(255, 255, 255, 0.95);
+  --surface-hover: #ffffff;
+  --surface-solid: #ffffff;
+  --border: #e0d7fe;
+  --border-strong: #c4b5fd;
+  --danger: #f43f5e;
+
+  /* Delicious candy & toy colours */
+  --mint: #10b981;
+  --mint-bg: #ecfdf5;
+  --lavender: #8b5cf6;
+  --lavender-bg: #f5f3ff;
+  --daisy: #f59e0b;
+  --daisy-bg: #fefce8;
+  --rose: #f43f5e;
+  --rose-bg: #fff1f2;
+  --berry: #0ea5e9;
+  --berry-bg: #f0f9ff;
+  --orange: #f97316;
+  --orange-bg: #fff7ed;
+  --sky-teal: #06b6d4;
+  --sky-teal-bg: #ecfeff;
+
+  --radius-sm: 18px;
+  --radius: 26px;
+  --radius-lg: 34px;
+  --radius-pill: 9999px;
+
+  --toy-shadow: 0 10px 0 #c7bbf8, 0 18px 36px rgba(138, 92, 246, 0.16), inset 0 2px 2px #ffffff;
+  --toy-shadow-sm: 0 5px 0 #c7bbf8, 0 10px 20px rgba(138, 92, 246, 0.12), inset 0 2px 2px #ffffff;
+
+  --ease: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur: 200ms;
+  --tint: transparent;
 }
 
 * { -webkit-tap-highlight-color: transparent; }
@@ -56,130 +72,166 @@ html { background: var(--bg); }
 body {
   background: var(--bg);
   font-family: var(--font-ui), 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--text);
   overflow-x: hidden;
   user-select: none;
 }
 
 :focus-visible {
-  outline: 2.5px solid var(--accent);
+  outline: 3px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 12px;
-}
-
-/* Theme tints: only a faint colour in the stage lighting */
-/* Each theme re-colours the whole interface: sky, glows and the six jewel slots */
-.theme-classic {
-  --tint: rgba(255, 170, 90, 0.14);
-}
-.theme-sakura {
-  --tint: rgba(251, 140, 170, 0.14);
-  --mint: #9af2c8; --daisy: #ffe08a; --rose: #ff6fa5; --berry: #ffa6d6; --orange: #ffb199; --lavender: #e0a8ff;
-  --accent: #ffb3d9; --accent-2: #ff6fa5;
-  --sky-g1: #ff8ccd; --sky-g2: #ff6fb1; --sky-g3: #b86bff;
-  --glow-a: rgba(255, 236, 190, 0.55); --glow-b: rgba(255, 190, 230, 0.40); --glow-c: rgba(255, 255, 255, 0.18); --glow-d: rgba(255, 255, 255, 0.26);
-}
-.theme-celestial {
-  --tint: rgba(90, 190, 250, 0.14);
-  --mint: #6ff7e8; --daisy: #fff08a; --rose: #c78bff; --berry: #5bb8ff; --orange: #8aa6ff; --lavender: #a58bff;
-  --accent: #9fd0ff; --accent-2: #b48bff;
-  --sky-g1: #2fa8ff; --sky-g2: #4a6bff; --sky-g3: #9a5cff;
-  --glow-a: rgba(220, 245, 255, 0.55); --glow-b: rgba(111, 247, 232, 0.38); --glow-c: rgba(255, 255, 255, 0.16); --glow-d: rgba(255, 255, 255, 0.24);
-}
-.theme-autumn {
-  --tint: rgba(245, 158, 11, 0.14);
-  --mint: #b8e86b; --daisy: #ffcf3a; --rose: #ff6f61; --berry: #ff9248; --orange: #ff8a2b; --lavender: #e0a35d;
-  --accent: #ffc27a; --accent-2: #ff6f61;
-  --sky-g1: #ff9a5c; --sky-g2: #ff6f91; --sky-g3: #b455ff;
-  --glow-a: rgba(255, 236, 150, 0.60); --glow-b: rgba(255, 207, 58, 0.34); --glow-c: rgba(255, 255, 255, 0.16); --glow-d: rgba(255, 255, 255, 0.26);
-}
-.theme-onsen {
-  --tint: rgba(45, 212, 191, 0.14);
-  --mint: #4ff0c6; --daisy: #e4ff7a; --rose: #ff9bd0; --berry: #5ad2ff; --orange: #ffc86b; --lavender: #86a8ff;
-  --accent: #8ff5de; --accent-2: #5ad2ff;
-  --sky-g1: #2fd6d0; --sky-g2: #3f9bff; --sky-g3: #6f7bff;
-  --glow-a: rgba(235, 255, 190, 0.55); --glow-b: rgba(79, 240, 198, 0.40); --glow-c: rgba(255, 255, 255, 0.16); --glow-d: rgba(255, 255, 255, 0.26);
+  border-radius: 14px;
 }
 
 /* ============================================================
-   NIGHT SKY — gradient, moon glow, slowly twinkling stars
+   THEMES — Cheerful, Pastel & Colorful Palettes
+   ============================================================ */
+.theme-classic {
+  --sky-g1: #cbe3fe; --sky-g2: #edd7f8; --sky-g3: #ffdfd0; --sky-g4: #fff5be;
+  --tint: rgba(254, 243, 199, 0.25);
+  --border: #e2d9fe; --border-strong: #c4b5fd;
+  --mint: #10b981; --daisy: #f59e0b; --rose: #f43f5e; --berry: #0ea5e9; --orange: #f97316; --lavender: #8b5cf6;
+}
+.theme-sakura {
+  --sky-g1: #fed7e2; --sky-g2: #fbcfe8; --sky-g3: #fce7f3; --sky-g4: #fff0f5;
+  --tint: rgba(251, 113, 133, 0.2);
+  --border: #fbcfe8; --border-strong: #f472b6;
+  --mint: #34d399; --daisy: #fde047; --rose: #ff4d8d; --berry: #f472b6; --orange: #fb923c; --lavender: #c084fc;
+  --accent: #ff4d8d; --accent-2: #ec4899;
+}
+.theme-celestial {
+  --sky-g1: #bae6fd; --sky-g2: #c7d2fe; --sky-g3: #e0e7ff; --sky-g4: #fdf4ff;
+  --tint: rgba(56, 189, 248, 0.2);
+  --border: #bae6fd; --border-strong: #38bdf8;
+  --mint: #2dd4bf; --daisy: #fde047; --rose: #c084fc; --berry: #38bdf8; --orange: #818cf8; --lavender: #a855f7;
+  --accent: #0284c7; --accent-2: #8b5cf6;
+}
+.theme-autumn {
+  --sky-g1: #fde68a; --sky-g2: #fed7aa; --sky-g3: #ffedd5; --sky-g4: #fffbeb;
+  --tint: rgba(245, 158, 11, 0.2);
+  --border: #fde68a; --border-strong: #f59e0b;
+  --mint: #84cc16; --daisy: #eab308; --rose: #f43f5e; --berry: #f97316; --orange: #ea580c; --lavender: #d97706;
+  --accent: #ea580c; --accent-2: #f59e0b;
+}
+.theme-onsen {
+  --sky-g1: #99f6e4; --sky-g2: #bae6fd; --sky-g3: #e0e7ff; --sky-g4: #f0fdfa;
+  --tint: rgba(45, 212, 191, 0.2);
+  --border: #99f6e4; --border-strong: #2dd4bf;
+  --mint: #10b981; --daisy: #fef08a; --rose: #f472b6; --berry: #38bdf8; --orange: #f59e0b; --lavender: #818cf8;
+  --accent: #0d9488; --accent-2: #0284c7;
+}
+
+/* ============================================================
+   STORYBOOK SKY — Soft Cotton Candy Gradient, Gentle Sun & Clouds
    ============================================================ */
 .sky { position: fixed; inset: 0; z-index: 0; }
 .sky-day {
   background:
-    radial-gradient(circle 260px at 84% 9%, var(--glow-a), transparent 70%),
-    radial-gradient(ellipse 60% 35% at 12% 30%, var(--glow-b), transparent 70%),
-    radial-gradient(ellipse 55% 35% at 90% 55%, var(--glow-c), transparent 70%),
-    radial-gradient(ellipse 90% 50% at 50% 108%, var(--glow-d), transparent 70%),
-    linear-gradient(180deg, var(--sky-g1), var(--sky-g2) 50%, var(--sky-g3));
+    radial-gradient(circle 380px at 82% 14%, var(--glow-a), transparent 65%),
+    radial-gradient(ellipse 65% 45% at 15% 25%, var(--glow-b), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 88% 50%, var(--glow-c), transparent 65%),
+    radial-gradient(ellipse 100% 45% at 50% 100%, var(--sky-g4), transparent 75%),
+    linear-gradient(180deg, var(--sky-g1) 0%, var(--sky-g2) 40%, var(--sky-g3) 75%, var(--sky-g4) 100%);
   transition: opacity 1.8s ease;
 }
 .sky-night {
   background:
-    radial-gradient(circle 220px at 84% 9%, rgba(255, 232, 190, 0.10), transparent 70%),
-    linear-gradient(180deg, #0a1250, #17205f 55%, #2a1f6e);
+    radial-gradient(circle 260px at 82% 14%, rgba(254, 240, 138, 0.25), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 20% 30%, rgba(139, 92, 246, 0.25), transparent 70%),
+    linear-gradient(180deg, #1e1b4b 0%, #2e1065 50%, #312e81 100%);
   transition: opacity 1.8s ease;
 }
+
+/* Twinkling cute pastel stars */
 .sky-stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
 .sky-stars::before,
 .sky-stars::after { content: ''; position: absolute; inset: 0; }
 .sky-stars::before {
   background-image:
-    radial-gradient(1.6px 1.6px at 30px 40px, #fff, transparent),
-    radial-gradient(1.2px 1.2px at 120px 90px, #ffe9c4, transparent),
-    radial-gradient(1.4px 1.4px at 200px 30px, #fff, transparent),
-    radial-gradient(1px 1px at 80px 160px, #dcd0ff, transparent),
-    radial-gradient(1.6px 1.6px at 170px 190px, #fff, transparent);
-  background-size: 240px 240px;
-  animation: twinkle 6s ease-in-out infinite;
+    radial-gradient(2.2px 2.2px at 40px 50px, #ffffff, transparent),
+    radial-gradient(2.5px 2.5px at 140px 100px, #fef08a, transparent),
+    radial-gradient(2px 2px at 220px 40px, #fbcfe8, transparent),
+    radial-gradient(1.8px 1.8px at 90px 180px, #bae6fd, transparent),
+    radial-gradient(2.2px 2.2px at 180px 210px, #ffffff, transparent);
+  background-size: 260px 260px;
+  animation: twinkle 5s ease-in-out infinite;
 }
 .sky-stars::after {
   background-image:
-    radial-gradient(1.2px 1.2px at 60px 100px, #fff, transparent),
-    radial-gradient(1.6px 1.6px at 190px 140px, #ffd9ec, transparent),
-    radial-gradient(1px 1px at 140px 20px, #fff, transparent),
-    radial-gradient(1.4px 1.4px at 20px 200px, #dcd0ff, transparent);
-  background-size: 310px 310px;
-  animation: twinkle 9s ease-in-out infinite reverse;
+    radial-gradient(2px 2px at 70px 120px, #ffffff, transparent),
+    radial-gradient(2.5px 2.5px at 210px 160px, #fde047, transparent),
+    radial-gradient(1.8px 1.8px at 160px 30px, #ffffff, transparent),
+    radial-gradient(2.2px 2.2px at 30px 220px, #ddd6fe, transparent);
+  background-size: 320px 320px;
+  animation: twinkle 8s ease-in-out infinite reverse;
 }
+
+/* Floating Cute Cartoon Clouds */
+.sky-clouds {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.cloud-puff {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 9999px;
+  box-shadow: 0 8px 20px rgba(168, 85, 247, 0.08);
+}
+.cloud-1 {
+  width: 140px; height: 44px; top: 8%; left: -160px;
+  animation: driftCloud 36s linear infinite;
+}
+.cloud-2 {
+  width: 180px; height: 52px; top: 22%; left: -200px;
+  animation: driftCloud 48s linear infinite 14s;
+}
+.cloud-3 {
+  width: 130px; height: 40px; top: 15%; left: -150px;
+  animation: driftCloud 42s linear infinite 24s;
+}
+
 .theme-atmosphere-glow {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 60% 40% at 50% 35%, var(--tint), transparent 70%);
+  background: radial-gradient(ellipse 70% 45% at 50% 35%, var(--tint), transparent 70%);
 }
 
 /* ============================================================
-   SURFACES & CONTROLS — Joyful, Tactile Kids Game UI
-   Chunky toy cards, 3D candy buttons, bouncy feedback & rich color!
+   SURFACES & TOY CARDS — Marshmallow White, Crisp & Tactile
    ============================================================ */
 .surface,
 .toy-card {
-  background: linear-gradient(165deg, rgba(58, 36, 142, 0.88) 0%, rgba(32, 18, 92, 0.94) 100%);
-  border: 3px solid rgba(255, 255, 255, 0.28);
+  background: linear-gradient(180deg, #ffffff 0%, #fdfaff 60%, #f7f2fe 100%);
+  border: 3.5px solid var(--border);
   border-radius: var(--radius-lg);
   color: var(--text);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 12px 32px rgba(10, 4, 45, 0.45), inset 0 2px 2px rgba(255, 255, 255, 0.35), inset 0 -3px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 0 var(--border-strong), 0 20px 40px rgba(124, 58, 237, 0.12), inset 0 2px 2px #ffffff;
+  transition: transform 160ms var(--ease), box-shadow 160ms ease, border-color 160ms ease;
 }
 
 .stage-scene {
   border-radius: var(--radius-lg);
-  border: 3px solid rgba(255, 255, 255, 0.22);
-  box-shadow: 0 12px 32px rgba(10, 4, 45, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.25);
+  border: 3.5px solid var(--border);
+  box-shadow: 0 10px 0 var(--border-strong), 0 20px 40px rgba(124, 58, 237, 0.12), inset 0 2px 4px rgba(255, 255, 255, 0.8);
   background:
-    radial-gradient(ellipse 65% 55% at 50% 40%, rgba(191, 155, 255, 0.35), transparent 75%),
-    radial-gradient(ellipse 80% 40% at 50% 100%, rgba(255, 126, 182, 0.28), transparent 85%),
-    linear-gradient(180deg, rgba(40, 25, 110, 0.4), rgba(20, 10, 65, 0.7));
+    radial-gradient(ellipse 75% 65% at 50% 45%, rgba(255, 255, 255, 0.95) 0%, rgba(254, 243, 199, 0.65) 45%, rgba(253, 230, 138, 0.3) 100%),
+    linear-gradient(180deg, #fdf4ff 0%, #fae8ff 50%, #fef3c7 100%);
 }
 .night .stage-scene {
-  background: radial-gradient(ellipse 60% 50% at 50% 45%, rgba(201, 167, 255, 0.18), transparent 75%), linear-gradient(180deg, rgba(15, 10, 50, 0.7), rgba(8, 4, 30, 0.9));
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 45%, rgba(139, 92, 246, 0.25) 0%, transparent 80%),
+    linear-gradient(180deg, #1e1b4b 0%, #2e1065 60%, #312e81 100%);
 }
 
-/* 3D Toy Buttons: Juicy, tactile, satisfying pushable arcade buttons! */
+/* ============================================================
+   3D TOY BUTTONS — Pushable, Juicy & Playful
+   ============================================================ */
 .btn-pill,
 .btn-chunky {
   display: inline-flex;
@@ -187,62 +239,62 @@ body {
   justify-content: center;
   gap: 10px;
   min-height: 52px;
-  background: linear-gradient(180deg, rgba(82, 56, 185, 0.9) 0%, rgba(45, 26, 128, 0.96) 100%);
-  color: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #f5f3ff 100%);
+  color: var(--text);
   font-family: var(--font-ui), 'Nunito', system-ui, sans-serif;
   font-weight: 800;
   font-size: 1.05rem;
-  letter-spacing: 0.02em;
-  border: 2.5px solid rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.01em;
+  border: 3px solid #dcd2fd;
   border-radius: var(--radius-pill);
   cursor: pointer;
   position: relative;
-  box-shadow: 0 5px 0 rgba(18, 10, 60, 0.85), 0 8px 18px rgba(0, 0, 0, 0.35), inset 0 2px 2px rgba(255, 255, 255, 0.35);
-  transition: transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 140ms ease, filter 140ms ease, background 140ms ease;
+  box-shadow: 0 5px 0 #c4b5fd, 0 10px 20px rgba(139, 92, 246, 0.15), inset 0 2px 2px #ffffff;
+  transition: transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 140ms ease, filter 140ms ease;
   user-select: none;
 }
 .btn-pill:hover:not(:disabled),
 .btn-chunky:hover:not(:disabled) {
   transform: translateY(-2px);
-  filter: brightness(1.12);
-  box-shadow: 0 7px 0 rgba(18, 10, 60, 0.85), 0 12px 22px rgba(0, 0, 0, 0.4), inset 0 2px 2px rgba(255, 255, 255, 0.45);
+  filter: brightness(1.05);
+  box-shadow: 0 7px 0 #c4b5fd, 0 14px 26px rgba(139, 92, 246, 0.22), inset 0 2px 2px #ffffff;
 }
 .btn-pill:active:not(:disabled),
 .btn-chunky:active:not(:disabled) {
   transform: translateY(4px);
-  box-shadow: 0 1px 0 rgba(18, 10, 60, 0.85), 0 3px 8px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 1px 0 #c4b5fd, 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 .btn-pill:disabled,
 .btn-chunky:disabled {
   opacity: 0.45;
   cursor: not-allowed;
   filter: grayscale(0.5);
-  box-shadow: 0 2px 0 rgba(18, 10, 60, 0.5);
+  box-shadow: 0 2px 0 #cbd5e1;
 }
 
 /* Primary Button: Sunshine Gold & Candy Orange 3D Bevel */
 .btn-pill.primary,
 .btn-chunky.green,
 .btn-chunky.yellow {
-  background: linear-gradient(180deg, #ffe066 0%, #f59e0b 52%, #ea580c 100%);
-  color: #3b1300;
-  border: 2.5px solid #fff5a5;
+  background: linear-gradient(180deg, #ffd43f 0%, #ff9800 52%, #f57c00 100%);
+  color: #3e1b00;
+  border: 3px solid #fff3b0;
   font-weight: 900;
-  box-shadow: 0 6px 0 #9a3412, 0 10px 22px rgba(234, 88, 12, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.7);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-shadow: 0 6px 0 #b25000, 0 12px 24px rgba(245, 124, 0, 0.35), inset 0 2px 3px rgba(255, 255, 255, 0.8);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 .btn-pill.primary:hover:not(:disabled),
 .btn-chunky.green:hover:not(:disabled),
 .btn-chunky.yellow:hover:not(:disabled) {
   transform: translateY(-2px);
-  filter: brightness(1.12);
-  box-shadow: 0 8px 0 #9a3412, 0 14px 26px rgba(234, 88, 12, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.8);
+  filter: brightness(1.1);
+  box-shadow: 0 8px 0 #b25000, 0 16px 28px rgba(245, 124, 0, 0.45), inset 0 2px 4px rgba(255, 255, 255, 0.9);
 }
 .btn-pill.primary:active:not(:disabled),
 .btn-chunky.green:active:not(:disabled),
 .btn-chunky.yellow:active:not(:disabled) {
   transform: translateY(4px);
-  box-shadow: 0 2px 0 #9a3412, 0 4px 10px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 0 #b25000, 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 /* Round 3D Toy Icon Button */
@@ -250,65 +302,69 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 58px;
-  height: 58px;
-  color: var(--text);
-  background: linear-gradient(180deg, rgba(78, 52, 172, 0.92) 0%, rgba(42, 22, 115, 0.96) 100%);
-  border: 3px solid rgba(255, 255, 255, 0.32);
+  width: 56px;
+  height: 56px;
+  color: #6d28d9;
+  background: linear-gradient(180deg, #ffffff 0%, #f5f3ff 100%);
+  border: 3px solid #ddd6fe;
   border-radius: var(--radius-pill);
-  box-shadow: 0 5px 0 rgba(15, 8, 52, 0.75), 0 8px 18px rgba(0, 0, 0, 0.3), inset 0 2px 2px rgba(255, 255, 255, 0.4);
+  box-shadow: 0 5px 0 #c4b5fd, 0 8px 18px rgba(124, 58, 237, 0.15), inset 0 2px 2px #ffffff;
   cursor: pointer;
   transition: transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 140ms ease, filter 140ms ease;
 }
 .icon-btn:hover {
   transform: translateY(-2px) scale(1.06);
-  filter: brightness(1.15);
-  box-shadow: 0 7px 0 rgba(15, 8, 52, 0.75), 0 12px 22px rgba(0, 0, 0, 0.35);
+  filter: brightness(1.08);
+  box-shadow: 0 7px 0 #c4b5fd, 0 12px 22px rgba(124, 58, 237, 0.22);
 }
 .icon-btn:active {
   transform: translateY(3px) scale(0.96);
-  box-shadow: 0 2px 0 rgba(15, 8, 52, 0.75);
+  box-shadow: 0 2px 0 #c4b5fd;
 }
 
-/* Picker cards: Toy Cards with thick colored cartoon borders & 3D pop */
+/* ============================================================
+   PICK CARDS — Colorful, Cheerful Candy Cards
+   ============================================================ */
 .pick-card {
   --sel: var(--accent);
   position: relative;
   border-radius: var(--radius);
-  border: 3px solid rgba(255, 255, 255, 0.24);
-  background: linear-gradient(160deg, color-mix(in srgb, var(--sel) 28%, rgba(50, 30, 135, 0.8)), rgba(26, 14, 82, 0.92));
+  border: 3px solid color-mix(in srgb, var(--sel) 40%, #e2e8f0);
+  background: linear-gradient(180deg, #ffffff 0%, color-mix(in srgb, var(--sel) 14%, #ffffff) 100%);
   color: var(--text);
   cursor: pointer;
-  box-shadow: 0 6px 0 rgba(14, 8, 50, 0.6), 0 10px 22px rgba(0, 0, 0, 0.28), inset 0 2px 3px rgba(255, 255, 255, 0.35);
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--sel) 45%, #cbd5e1), 0 10px 22px rgba(0, 0, 0, 0.08), inset 0 2px 3px #ffffff;
   transition: transform 160ms cubic-bezier(0.34, 1.56, 0.64, 1), border-color 160ms ease, box-shadow 160ms ease, filter 160ms ease;
 }
 .pick-card:hover {
-  filter: brightness(1.12);
+  filter: brightness(1.05);
   transform: translateY(-3px) scale(1.02);
-  border-color: rgba(255, 255, 255, 0.45);
-  box-shadow: 0 9px 0 rgba(14, 8, 50, 0.6), 0 14px 26px rgba(0, 0, 0, 0.35), inset 0 2px 3px rgba(255, 255, 255, 0.5);
+  border-color: var(--sel);
+  box-shadow: 0 9px 0 color-mix(in srgb, var(--sel) 55%, #cbd5e1), 0 14px 26px rgba(0, 0, 0, 0.12), inset 0 2px 3px #ffffff;
 }
 .pick-card:active {
   transform: translateY(2px) scale(0.98);
-  box-shadow: 0 2px 0 rgba(14, 8, 50, 0.6);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--sel) 45%, #cbd5e1);
 }
 .pick-card[data-selected='true'] {
-  border: 3.5px solid #ffffff;
-  background: linear-gradient(160deg, color-mix(in srgb, var(--sel) 48%, rgba(55, 30, 150, 0.9)), rgba(32, 16, 98, 0.95));
-  box-shadow: 0 0 0 3px var(--sel), 0 8px 0 color-mix(in srgb, var(--sel) 65%, black), 0 12px 30px color-mix(in srgb, var(--sel) 55%, transparent), inset 0 2px 4px rgba(255, 255, 255, 0.7);
+  border: 3.5px solid var(--sel);
+  background: linear-gradient(180deg, #ffffff 0%, color-mix(in srgb, var(--sel) 26%, #ffffff) 100%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sel) 35%, transparent), 0 8px 0 var(--sel), 0 14px 30px color-mix(in srgb, var(--sel) 35%, transparent), inset 0 2px 4px #ffffff;
   transform: translateY(-4px) scale(1.04);
 }
 
-/* Speech bubble: Cartoon storybook dialogue balloon with pointer tail */
+/* ============================================================
+   SPEECH BUBBLE & PROGRESS LINE
+   ============================================================ */
 .bubble {
   position: relative;
   background: linear-gradient(180deg, #ffffff 0%, #fffbe8 100%);
   color: #2b114d;
   font-family: var(--font-ui), 'Nunito', system-ui, sans-serif;
   font-weight: 800;
-  border-radius: 22px;
+  border-radius: 24px;
   border: 3.5px solid #ffcc22;
-  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.22), 0 14px 30px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 8px 0 rgba(234, 179, 8, 0.35), 0 14px 30px rgba(0, 0, 0, 0.12);
   animation: bubblePop 240ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 .bubble::after {
@@ -326,11 +382,11 @@ body {
 
 /* Chunky Candy Progress Line */
 .progress-line {
-  height: 16px;
+  height: 18px;
   border-radius: 9999px;
-  background: rgba(16, 8, 52, 0.75);
-  border: 2.5px solid rgba(255, 255, 255, 0.32);
-  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.45);
+  background: #f1f5f9;
+  border: 2.5px solid #cbd5e1;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   position: relative;
 }
@@ -338,22 +394,22 @@ body {
   display: block;
   height: 100%;
   border-radius: 9999px;
-  background: linear-gradient(90deg, #34d399 0%, #facc15 45%, #f472b6 80%, #60a5fa 100%);
-  box-shadow: 0 0 10px rgba(250, 204, 21, 0.7), inset 0 2px 2px rgba(255, 255, 255, 0.65);
+  background: linear-gradient(90deg, #10b981 0%, #facc15 45%, #f472b6 80%, #60a5fa 100%);
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.7), inset 0 2px 2px rgba(255, 255, 255, 0.8);
   transition: width 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.28) 0, rgba(255, 255, 255, 0.28) 8px, transparent 8px, transparent 16px);
+  background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.3) 0, rgba(255, 255, 255, 0.3) 8px, transparent 8px, transparent 16px);
 }
 
-/* 3D Rainbow Cartoon Wordmark */
+/* 3D Rainbow Candy Wordmark */
 .wordmark {
   font-family: var(--font-ui), 'Nunito', system-ui, sans-serif;
   font-weight: 900;
   letter-spacing: -0.01em;
-  background: linear-gradient(180deg, #ffffff 0%, #ffdf70 45%, #ff8c42 100%);
+  background: linear-gradient(180deg, #ff4071 0%, #ff8a3d 50%, #ffc400 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 5px 0 #5b1b75) drop-shadow(0 12px 24px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 4px 0 #b31d45) drop-shadow(0 10px 20px rgba(255, 64, 113, 0.35));
 }
 
 /* Helper game badges */
@@ -365,18 +421,19 @@ body {
   border-radius: 9999px;
   font-weight: 800;
   font-size: 0.85rem;
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
 }
 
 /* ============================================================
-   MOTION — Juicy, bouncy cartoon feel
+   MOTION — Bouncy Cartoon Animations
    ============================================================ */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes riseIn { from { opacity: 0; transform: translateY(12px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes bubblePop { 0% { opacity: 0; transform: translateY(14px) scale(0.9); } 70% { transform: translateY(-3px) scale(1.03); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes cardPop { 0% { transform: scale(0.94); } 60% { transform: scale(1.06); } 100% { transform: scale(1.04); } }
-@keyframes twinkle { 0%,100% { opacity: 0.35; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.15); } }
+@keyframes twinkle { 0%,100% { opacity: 0.35; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.2); } }
 @keyframes drift { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-7px) rotate(1.5deg); } }
+@keyframes driftCloud { 0% { transform: translateX(0); } 100% { transform: translateX(calc(100vw + 240px)); } }
 @keyframes floatUp {
   0% { opacity: 0; transform: translateY(0) scale(0.8); }
   25% { opacity: 1; transform: translateY(-15px) scale(1.2); }
@@ -400,8 +457,8 @@ body {
 .confetti-piece { position: absolute; top: 0; font-size: 24px; opacity: 0; }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: rgba(20, 10, 50, 0.3); border-radius: 9999px; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.35); border-radius: 9999px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-track { background: rgba(220, 210, 245, 0.4); border-radius: 9999px; }
+::-webkit-scrollbar-thumb { background: #c4b5fd; border-radius: 9999px; border: 2px solid transparent; background-clip: content-box; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

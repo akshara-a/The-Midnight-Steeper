@@ -176,20 +176,20 @@ export function ParentGate({ onPass, onClose }: Readonly<{ onPass: () => void; o
   return (
     <div
       className="fixed inset-0 z-[52] flex items-center justify-center p-4"
-      style={{ background: 'rgba(12, 8, 30, 0.85)', backdropFilter: 'blur(6px)' }}
+      style={{ background: 'rgba(30, 20, 60, 0.45)', backdropFilter: 'blur(6px)' }}
       role="dialog"
       aria-modal="true"
       aria-label="Grown-ups only lock"
     >
-      <div className="surface animate-modal w-full max-w-sm p-7 text-center" style={{ background: 'var(--surface-solid)' }}>
+      <div className="surface animate-modal w-full max-w-sm p-7 text-center rounded-3xl border-3 border-purple-200 shadow-2xl">
         <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center text-white mb-2" style={{ background: 'linear-gradient(180deg, #818cf8, #4f46e5)', border: '2.5px solid #ffffff', boxShadow: '0 4px 0 #312e81' }}>
           <Lock size={26} strokeWidth={2.5} />
         </div>
-        <p className="text-sm font-bold uppercase tracking-wider text-amber-300">
+        <p className="text-sm font-black uppercase tracking-wider text-purple-700">
           🔒 Grown-ups Only!
         </p>
-        <p className="text-xs text-white/70 mt-0.5">Solve the puzzle to enter the parent settings:</p>
-        <h2 className="mt-4 text-3xl font-black text-white">
+        <p className="text-xs text-slate-600 font-bold mt-0.5">Solve the puzzle to enter the parent settings:</p>
+        <h2 className="mt-4 text-3xl font-black text-indigo-950">
           {sum.a} + {sum.b} = ?
         </h2>
         <div className="mt-6 grid grid-cols-4 gap-2.5">
@@ -203,7 +203,7 @@ export function ParentGate({ onPass, onClose }: Readonly<{ onPass: () => void; o
                   setSum(makeSum());
                 }
               }}
-              className="btn-pill min-h-14 text-2xl font-black text-amber-100"
+              className="btn-pill min-h-14 text-2xl font-black text-white"
               style={{
                 background: 'linear-gradient(180deg, #6366f1 0%, #4338ca 100%)',
                 border: '2px solid #a5b4fc',
@@ -214,10 +214,10 @@ export function ParentGate({ onPass, onClose }: Readonly<{ onPass: () => void; o
             </button>
           ))}
         </div>
-        <p className="mt-3 h-5 text-sm font-bold text-rose-300" role="status">
+        <p className="mt-3 h-5 text-sm font-bold text-rose-500" role="status">
           {wrong ? 'Oops! Try this one instead ⭐' : ''}
         </p>
-        <button onClick={onClose} className="btn-pill mt-3 px-6 text-sm font-extrabold text-white">
+        <button onClick={onClose} className="btn-pill mt-3 px-6 text-sm font-black text-indigo-950">
           Close
         </button>
       </div>

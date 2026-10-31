@@ -135,8 +135,8 @@ export default function MemoryMatchGame({ onScoreReward, onClose }: MemoryMatchG
       </div>
 
       {/* Cards Grid */}
-      <div className="relative w-full p-3.5 rounded-3xl border-3 border-purple-400/30 shadow-inner"
-        style={{ background: 'radial-gradient(ellipse at 50% 100%, #3b1d60 0%, #1a0e38 100%)' }}>
+      <div className="relative w-full p-3.5 rounded-3xl border-3 border-purple-200 shadow-inner"
+        style={{ background: 'radial-gradient(ellipse at 50% 100%, #f5f3ff 0%, #fdf2f8 100%)' }}>
         <div className="grid grid-cols-4 gap-2.5 sm:gap-3.5">
           {cards.map((c, idx) => (
             <button
@@ -150,13 +150,13 @@ export default function MemoryMatchGame({ onScoreReward, onClose }: MemoryMatchG
                   : 'hover:-translate-y-1 active:scale-95 shadow-sm'
               }`}
               style={{
-                border: c.isMatched ? '3px solid #34d399' : c.isFlipped ? '3px solid #facc15' : '2.5px solid rgba(255, 255, 255, 0.3)',
+                border: c.isMatched ? '3px solid #34d399' : c.isFlipped ? '3px solid #facc15' : '2.5px solid #c4b5fd',
                 background: c.isMatched
-                  ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.4) 0%, rgba(5, 150, 105, 0.6) 100%)'
+                  ? 'linear-gradient(135deg, #a7f3d0 0%, #34d399 100%)'
                   : c.isFlipped
-                  ? 'linear-gradient(135deg, rgba(234, 179, 8, 0.35) 0%, rgba(202, 138, 4, 0.55) 100%)'
-                  : 'linear-gradient(145deg, rgba(88, 56, 185, 0.75) 0%, rgba(46, 24, 120, 0.85) 100%)',
-                boxShadow: c.isMatched ? '0 0 16px rgba(52, 211, 153, 0.6)' : '0 4px 0 rgba(0, 0, 0, 0.35)',
+                  ? 'linear-gradient(135deg, #fef08a 0%, #facc15 100%)'
+                  : 'linear-gradient(145deg, #c4b5fd 0%, #8b5cf6 100%)',
+                boxShadow: c.isMatched ? '0 0 16px rgba(52, 211, 153, 0.6)' : '0 4px 0 #7c3aed',
               }}
             >
               {c.isFlipped || c.isMatched ? (

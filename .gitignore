@@ -54,3 +54,8 @@ yarn-error.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Visual audit test artifacts & screenshots
+.audit_screenshots/
+*.audit_screenshots/
+

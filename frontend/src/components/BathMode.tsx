@@ -128,15 +128,15 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
       {/* Bath Top HUD */}
       <div className="surface px-4 py-3 flex items-center justify-between gap-3 rounded-3xl">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-3xl bg-cyan-500/30 border-2 border-cyan-400/50 shadow-inner">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-3xl bg-cyan-100 border-2 border-cyan-300 shadow-sm">
             🛁
           </div>
           <div className="min-w-0">
-            <div className="font-black text-lg text-amber-200">
+            <div className="font-black text-lg text-indigo-950">
               Sunny&apos;s Bubble Bath! 🫧
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs font-black text-cyan-200 uppercase tracking-wide">
+              <span className="text-xs font-black text-teal-800 uppercase tracking-wide">
                 Clean: {cleanliness}%
               </span>
               <div
@@ -160,9 +160,9 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
 
       {/* Interactive Bathing Overlay Area (covers the 3D pet view) */}
       <div
-        className="relative w-full h-[220px] overflow-hidden cursor-pointer select-none rounded-3xl border-3 border-cyan-300/40 shadow-inner"
+        className="relative w-full h-[220px] overflow-hidden cursor-pointer select-none rounded-3xl border-3 border-cyan-300 shadow-inner"
         style={{
-          background: 'linear-gradient(180deg, rgba(6, 182, 212, 0.15) 0%, rgba(14, 116, 144, 0.3) 100%)',
+          background: 'linear-gradient(180deg, rgba(165, 243, 252, 0.35) 0%, rgba(103, 232, 249, 0.2) 100%)',
         }}
         onClick={(e) => {
           if (activeTool === 'soap') applySoap(e);
@@ -174,7 +174,7 @@ export default function BathMode({ onSay, onReward, onClose }: BathModeProps) {
         {/* Hint banner */}
         <div
           className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-black text-center pointer-events-none z-20 max-w-[92%] shadow-md"
-          style={{ background: 'rgba(25, 12, 65, 0.88)', color: '#ffd23f', border: '2px solid rgba(255, 255, 255, 0.3)' }}
+          style={{ background: 'rgba(255, 255, 255, 0.95)', color: '#0f766e', border: '2px solid #2dd4bf' }}
         >
           {hints[activeTool]}
         </div>

@@ -120,12 +120,12 @@ export default function TalkingSlothModal({ onSay, onSetTalking }: TalkingSlothM
 
   return (
     <div className="flex flex-col gap-4 w-full text-center animate-modal">
-      <div className="text-sm sm:text-base font-bold text-amber-100">
+      <div className="text-sm sm:text-base font-black text-indigo-950">
         Talk to Sunny just like Talking Tom, or tap funny sound effects! 🎙️✨
       </div>
 
       {/* Voice Record / Mimic Section */}
-      <div className="surface p-5 flex flex-col items-center rounded-3xl">
+      <div className="surface p-5 flex flex-col items-center rounded-3xl bg-pink-50/70 border-2 border-pink-200">
         <div
           className={`mb-3 flex items-center justify-center rounded-3xl text-3xl shadow-lg transition-transform ${
             isRecording ? 'animate-bounce scale-110' : isPlayingBack ? 'animate-pulse scale-105' : ''
@@ -139,15 +139,15 @@ export default function TalkingSlothModal({ onSay, onSetTalking }: TalkingSlothM
               ? 'linear-gradient(180deg, #10b981, #047857)'
               : 'linear-gradient(180deg, #ec4899, #be185d)',
             border: '2.5px solid #ffffff',
-            boxShadow: '0 4px 0 rgba(0,0,0,0.3)',
+            boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
           }}
         >
           {isPlayingBack ? '🔊' : isRecording ? '🔴' : '🎤'}
         </div>
-        <h3 className="font-black text-xl text-white">
-          Talking Sloth Mimic
+        <h3 className="font-black text-xl text-indigo-950">
+          Talking Sloth Mimic 🎙️
         </h3>
-        <p className="text-xs sm:text-sm mt-1 mb-4 font-bold text-amber-200" role="status">
+        <p className="text-xs sm:text-sm mt-1 mb-4 font-bold text-indigo-900/80" role="status">
           {isPlayingBack
             ? 'Sunny is repeating what you said in a squeaky sloth voice!'
             : isRecording
@@ -181,7 +181,7 @@ export default function TalkingSlothModal({ onSay, onSetTalking }: TalkingSlothM
 
         {micError && (
           <div
-            className="mt-3 text-xs sm:text-sm px-4 py-2 font-bold text-rose-200 bg-rose-950/60 border border-rose-400/40 rounded-2xl"
+            className="mt-3 text-xs sm:text-sm px-4 py-2 font-bold text-rose-900 bg-rose-100 border border-rose-300 rounded-2xl"
             role="alert"
           >
             {micError}
@@ -191,7 +191,7 @@ export default function TalkingSlothModal({ onSay, onSetTalking }: TalkingSlothM
 
       {/* Silly Soundboard */}
       <div>
-        <div className="font-black text-lg mb-2 text-amber-200">
+        <div className="font-black text-lg mb-2 text-indigo-950">
           Sunny&apos;s Silly Soundboard! 🤪
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -203,7 +203,7 @@ export default function TalkingSlothModal({ onSay, onSetTalking }: TalkingSlothM
               style={{ ['--sel' as string]: color }}
             >
               <span className="text-3xl animate-bounce-soft">{emoji}</span>
-              <span className="text-xs sm:text-sm font-black text-white">{label}</span>
+              <span className="text-xs sm:text-sm font-black text-indigo-950">{label}</span>
             </button>
           ))}
         </div>

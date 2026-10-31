@@ -55,10 +55,10 @@ export default function MiniGamesModal({ onScoreReward, onClose }: MiniGamesModa
       {selectedGame === null ? (
         <div className="flex flex-col gap-4">
           <div className="text-center">
-            <h3 className="text-2xl font-black text-amber-200">
+            <h3 className="text-2xl font-black text-indigo-950">
               🎮 Sunny&apos;s Arcade! 🌟
             </h3>
-            <p className="text-sm font-bold text-white/80 mt-1">
+            <p className="text-sm font-bold text-indigo-900/70 mt-1">
               Pick a fun mini-game to play with Sunny and earn bonus stars!
             </p>
           </div>
@@ -77,10 +77,10 @@ export default function MiniGamesModal({ onScoreReward, onClose }: MiniGamesModa
                 <div className="w-18 h-18 rounded-3xl flex items-center justify-center text-5xl animate-bounce-soft shadow-inner my-2" style={{ background: g.bg, border: `2.5px solid ${g.color}` }}>
                   {g.emoji}
                 </div>
-                <div className="font-black text-xl mt-2 text-white">
+                <div className="font-black text-xl mt-2 text-indigo-950">
                   {g.title}
                 </div>
-                <div className="text-xs font-semibold mt-1 text-white/70 leading-relaxed px-1">
+                <div className="text-xs font-semibold mt-1 text-slate-600 leading-relaxed px-1">
                   {g.desc}
                 </div>
                 <div
@@ -105,7 +105,7 @@ export default function MiniGamesModal({ onScoreReward, onClose }: MiniGamesModa
                 sounds.playClick();
                 setSelectedGame(null);
               }}
-              className="btn-pill px-5 text-sm font-black text-white"
+              className="btn-pill px-5 text-sm font-black text-indigo-950"
             >
               <ArrowLeft size={18} strokeWidth={2.5} aria-hidden="true" /> Back to Arcade Menu 🎮
             </button>

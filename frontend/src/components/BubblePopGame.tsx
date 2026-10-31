@@ -123,9 +123,9 @@ export default function BubblePopGame({ onScoreReward, onClose }: BubblePopGameP
       </div>
 
       {/* Game Playfield */}
-      <div className="relative w-full h-[360px] max-h-[55vh] overflow-hidden select-none rounded-3xl border-3 border-purple-400/30 shadow-inner"
+      <div className="relative w-full h-[360px] max-h-[55vh] overflow-hidden select-none rounded-3xl border-3 border-cyan-200 shadow-inner"
         style={{
-          background: 'radial-gradient(ellipse at 50% 100%, #3b1d60 0%, #1a0e38 100%)',
+          background: 'radial-gradient(ellipse at 50% 100%, #e0f2fe 0%, #fdf4ff 100%)',
         }}>
         {bubbles.map((b) => (
           <button

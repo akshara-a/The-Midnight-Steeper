@@ -194,25 +194,24 @@ export default function WardrobeModal({
   return (
     <div
       className="fixed inset-0 z-[50] flex items-center justify-center p-2 sm:p-4 backdrop-blur-md"
-      style={{ background: 'rgba(15,13,26,0.8)' }}
+      style={{ background: 'rgba(30,20,60,0.45)' }}
       role="dialog"
       aria-modal="true"
       aria-label="Dressing room"
     >
       <div
-        className="surface animate-modal w-full max-w-4xl max-h-[96dvh] flex flex-col p-4 sm:p-6 relative overflow-hidden"
-        style={{ background: 'var(--surface-solid)' }}
+        className="surface animate-modal w-full max-w-4xl max-h-[96dvh] flex flex-col p-4 sm:p-6 relative overflow-hidden rounded-3xl border-3 border-purple-200 shadow-2xl"
       >
         {/* Header bar */}
         <div
           className="flex items-center justify-between gap-3 pb-3 shrink-0"
-          style={{ borderBottom: '1px solid var(--border)' }}
+          style={{ borderBottom: '2px solid #e0d7fe' }}
         >
           <div className="min-w-0">
-            <h2 className="text-xl sm:text-2xl font-light" style={{ color: 'var(--text)' }}>
-              Sunny&apos;s Dressing Room
+            <h2 className="text-xl sm:text-2xl font-black text-indigo-950">
+              Sunny&apos;s Dressing Room 👗✨
             </h2>
-            <p className="text-xs sm:text-sm" style={{ color: 'var(--muted)' }}>
+            <p className="text-xs sm:text-sm font-bold text-indigo-900/70">
               Try on outfits in the live mirror, then save your favorite look.
             </p>
           </div>
@@ -224,22 +223,22 @@ export default function WardrobeModal({
           {/* LEFT COLUMN: LIVE FITTING MIRROR */}
           <div
             className="flex flex-col gap-2.5 p-3"
-            style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}
+            style={{ background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 'var(--radius)' }}
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
+              <span className="text-xs font-black uppercase tracking-wider text-indigo-950">
                 Live Fitting Mirror
               </span>
               <span
-                className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                className="text-[11px] font-bold px-2.5 py-1 rounded-full"
                 style={
                   hasUnsavedChanges
                     ? {
-                        background: 'color-mix(in srgb, var(--daisy) 18%, transparent)',
-                        color: 'var(--daisy)',
-                        border: '1px solid color-mix(in srgb, var(--daisy) 40%, transparent)',
+                        background: '#fef3c7',
+                        color: '#b45309',
+                        border: '1.5px solid #fde047',
                       }
-                    : { background: 'var(--surface)', color: 'var(--muted)', border: '1px solid var(--border)' }
+                    : { background: '#f1f5f9', color: '#64748b', border: '1.5px solid #e2e8f0' }
                 }
               >
                 {hasUnsavedChanges ? 'Previewing new look' : 'Current outfit'}
@@ -251,9 +250,9 @@ export default function WardrobeModal({
               className="relative overflow-hidden h-[220px] sm:h-[280px] md:h-[310px]"
               style={{
                 borderRadius: 'var(--radius)',
-                border: '1.5px solid var(--border-strong)',
+                border: '2px solid #e2e8f0',
                 background:
-                  'radial-gradient(ellipse 70% 60% at 50% 45%, rgba(201,167,255,0.18), rgba(255,255,255,0.03))',
+                  'radial-gradient(ellipse 70% 60% at 50% 45%, rgba(254,243,199,0.7), rgba(255,255,255,0.95))',
               }}
             >
               <SlothPet3D
@@ -273,8 +272,8 @@ export default function WardrobeModal({
               </div>
 
               <div
-                className="absolute bottom-2 left-2 z-10 pointer-events-none text-[11px] px-2.5 py-1 rounded-full"
-                style={{ background: 'rgba(27,22,54,0.85)', color: 'var(--muted)', border: '1px solid var(--border)' }}
+                className="absolute bottom-2 left-2 z-10 pointer-events-none text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm"
+                style={{ background: 'rgba(255,255,255,0.92)', color: '#2b114d', border: '1.5px solid #e2e8f0' }}
               >
                 Tap Sunny to pose
               </div>
@@ -377,21 +376,21 @@ export default function WardrobeModal({
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold text-sm sm:text-base">{plain(item.name)}</span>
+                        <span className="font-black text-sm sm:text-base text-indigo-950">{plain(item.name)}</span>
                         {isEquipped ? (
                           <span
-                            className="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-                            style={{ background: active.color, color: 'var(--accent-ink)' }}
+                            className="text-[11px] font-black px-2.5 py-0.5 rounded-full shrink-0 text-white shadow-sm"
+                            style={{ background: active.color }}
                           >
                             In mirror
                           </span>
                         ) : (
-                          <span className="text-[11px] shrink-0" style={{ color: 'var(--muted)' }}>
+                          <span className="text-[11px] font-bold shrink-0 text-purple-700">
                             {plain(item.tag)}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs mt-0.5 leading-snug line-clamp-2" style={{ color: 'var(--muted)' }}>
+                      <p className="text-xs mt-0.5 leading-snug line-clamp-2 text-slate-600 font-medium">
                         {plain(item.description)}
                       </p>
                     </div>
